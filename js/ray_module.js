@@ -469,7 +469,7 @@ function showFocus(){
 	if(active_camera){
 	  scene.remove( scene.getObjectByName(active_camera.id + "_focus") );
 	  var focus =  active_camera.getObjectByName('ray_axis_x').getObjectByName('focus');
-	focus.visible = true;
+    focus.visible = true;
   }
 }
 
@@ -1060,7 +1060,7 @@ function makeDimension(obj, parameters){
       
       var note_camera_info = new note( line," Размер " );
     
-      note_camera_info.position = this.position;
+//      note_camera_info.position = this.position;
     
       scene.add(line);
       self.obj.add(note_camera_info);
