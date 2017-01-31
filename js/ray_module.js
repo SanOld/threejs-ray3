@@ -5,7 +5,8 @@ var active_camera = null;
 var ctrl = 0; //флаг клавиши ctrl
 var delta = 0.02; //шаг перемещения луча активной камеры
 var delta2 = 5;   //шаг линейного перемещения активной камеры
-var rayMaterial = new THREE.MeshNormalMaterial({wireframe: false, opacity: 0.5, transparent: true});
+var rayMaterial = new THREE.MeshLambertMaterial({wireframe: false, opacity: 0.5, transparent: true});
+     
 var isMoveRay = false; // перестраивание луча в функции рендеринга при движении луча
 var isMoveCamera = false; // перестраивание луча и "комнаты" в функции рендеринга при движении камеры
 //=== to addCameraRay
@@ -518,7 +519,7 @@ function onKeyDownCam ( event )
   }		  
   switch( event.keyCode ) {
     case 81: /*q*/
-      getRay2d(active_camera);
+//      getRay2d(active_camera);
       break; 
     case 17: /*ctrl*/
       ctrl = true;
