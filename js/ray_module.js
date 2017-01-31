@@ -235,8 +235,11 @@ function addCameraRay(scene)
 		arrowHelperAdd( ray_axis_x, null, 'red' );
 	  //ось z - хелпер
 	  
+    
 	}
   });
+  
+  setTimeout(raysShowAll, 500);
   
   document.addEventListener( 'keydown', onKeyDownCam, false );
   document.addEventListener( 'keyup', onKeyUpCam, false );
@@ -246,6 +249,47 @@ function addCameraRay(scene)
 //  document.addEventListener( 'wheel', onDocumentMouseWheelCam, false );
 }
 
+
+function raysShowAll(){
+   
+  for(var key in videocameraArr){
+    
+    roomCalculate(scene, videocameraArr[key]);
+        
+    if(videocameraArr[key].room){
+      drawRay(videocameraArr[key])   
+    }
+
+  }
+    
+}
+
+function drawRay(videocamera){
+  var rayBSP;
+  var roomBSP;
+  var newBSP;
+  var newRay;
+  var rayMesh;
+  var active_rayMesh;
+
+
+  rayMesh = videocamera.getObjectByName('rayMesh');
+
+  active_rayMesh = new THREE.Mesh( rayMesh.geometry.clone() );
+  active_rayMesh.position.copy(rayMesh.getWorldPosition());
+  active_rayMesh.rotation.copy(rayMesh.getWorldRotation());
+
+  rayBSP = new ThreeBSP( active_rayMesh );
+  roomBSP = new ThreeBSP( videocamera.room );
+  newBSP = roomBSP.intersect( rayBSP );
+
+  newRay = newBSP.toMesh( rayMaterial );
+  newRay.name = videocamera.id + "_ray";
+
+  scene.add( newRay ); 
+  newRay = newBSP = roomBSP = rayBSP = active_rayMesh = rayMesh = null;
+
+}
 function roomCalculate(scene, videocamera)
 {
   if (!videocamera)	
@@ -328,11 +372,12 @@ function roomCalculate(scene, videocamera)
 
   //построение контура
   var shape = new THREE.Shape();  
-  if (contour.vertices.length > 0)
-	shape.moveTo( contour.vertices[0].x,contour.vertices[0].z ); 
-  var i = contour.vertices.length-1;
-  while(--i){
-	shape.lineTo( contour.vertices[i].x, contour.vertices[i].z );
+  if (contour.vertices.length > 0){
+    shape.moveTo( contour.vertices[0].x,contour.vertices[0].z ); 
+    var i = contour.vertices.length-1;
+    while(--i){
+      shape.lineTo( contour.vertices[i].x, contour.vertices[i].z );
+    }
   }
 
   //вытянуть область
@@ -377,21 +422,7 @@ function updateCameraRay()
 	
 	  scene.remove( scene.getObjectByName(active_camera.id + "_ray") );
 
-	  rayMesh = active_camera.getObjectByName('rayMesh');
-
-	  active_rayMesh = new THREE.Mesh( rayMesh.geometry.clone() );
-	  active_rayMesh.position.copy(rayMesh.getWorldPosition());
-	  active_rayMesh.rotation.copy(rayMesh.getWorldRotation());
-
-	  rayBSP = new ThreeBSP( active_rayMesh );
-	  roomBSP = new ThreeBSP( active_camera.room );
-	  newBSP = roomBSP.intersect( rayBSP );
-
-	  newRay = newBSP.toMesh( rayMaterial );
-	  newRay.name = active_camera.id + "_ray";
-
-	  scene.add( newRay );
-	  newRay = newBSP = roomBSP = rayBSP = active_rayMesh = rayMesh = null;
+	  drawRay(active_camera);
 	} 
   }
   
