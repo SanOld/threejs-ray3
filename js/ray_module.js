@@ -162,6 +162,12 @@ function addCameraRay(scene)
   var far = 800;//окончание видимой области
   var angle = THREE.Math.degToRad(60);//угол обзора камеры
   var ray_axis_x; // доп ось камеры
+  
+  
+  
+  
+	
+  
   //debugger;
   scene.traverse(function(videocamera){
 	if(/*videocamera.name == videocameraName ||*/ videocamera.userData.is_camera == true){
@@ -215,6 +221,13 @@ function addCameraRay(scene)
 	  ray_axis_x.add( focus );
 
 	  videocamera.add(ray_axis_x);
+    
+//    var note_camera_info = new noteCameraInfo( videocamera," Активная мега \n супер \n камера " );
+    var note_camera_info = new note( videocamera," Активная мега \n супер \n камера " );
+    
+    note_camera_info.position.set(0,20,0);
+    videocamera.add(note_camera_info);
+    
 
 	  if (videocamera.userData.camera_props && videocamera.fscale) {
 		  //ray_axis_x.rotateX(THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle + 
@@ -417,6 +430,12 @@ function updateCameraRay()
 
   if (isMoveCamera){
 	  roomCalculate(scene, active_camera);
+  
+    //обновление примечания
+    var note_type = active_camera.getObjectByProperty('note_type', 'noteCameraInfo');
+    if(note_type){
+      note_type.update();
+    }
   } 
   if(isMoveRay){
 	 if(active_camera && active_camera.room){
@@ -453,6 +472,7 @@ function showFocus(){
 	focus.visible = true;
   }
 }
+
 
 function onKeyUpCam ( event )  
 {
@@ -506,7 +526,6 @@ function onKeyUpCam ( event )
       break; 
   }
 }
-
 function onKeyDownCam ( event )  
 {
 //  alert(event.keyCode)
@@ -606,6 +625,7 @@ function onKeyDownCam ( event )
         if(active_camera){
           active_camera.position.y += ( -delta2 );
         }
+        
       } else {
         if(active_camera){
           active_camera.position.z += ( -delta2 );
@@ -614,8 +634,6 @@ function onKeyDownCam ( event )
       break;  
   }
 }
-
-
 function onDocumentMouseDownCam( event )
 {
   //event.preventDefault();
@@ -682,6 +700,12 @@ function onDocumentMouseDownCam( event )
 		active_camera.currentMaterial.color = 'green';
 	  showFocus();
 	  showRay();
+    
+    makeDimension(active_camera, {'type':'front'});
+    makeDimension(active_camera, {'type':'back'});
+    makeDimension(active_camera, {'type':'left'});
+    makeDimension(active_camera, {'type':'right'});
+    
 	  
 	}
 	
@@ -760,7 +784,6 @@ function onDocumentMouseDownCam( event )
 
     }
 }
-
 function onDocumentMouseMoveCam( event )
 {
 //  var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
@@ -769,10 +792,284 @@ function onDocumentMouseMoveCam( event )
 //  lon -= movementX * 0.1;
 //  lat += movementY * 0.1;
 }
-
 function onDocumentMouseUpCam( event )
 {
   document.removeEventListener( 'mousemove', onDocumentMouseMoveCam );
   document.removeEventListener( 'mouseup', onDocumentMouseUpCam );
 //  showFocus();
 }
+
+//============================
+
+
+function makeNote( obj, message, parameters )
+{
+  var self = this;
+  
+  this.obj = obj;
+  this.note_type = 'note';
+  
+	if ( parameters === undefined ) parameters = {};
+	
+	this.fontface = parameters.hasOwnProperty("fontface") ? 
+		parameters["fontface"] : "Arial";
+	
+	this.fontsize = parameters.hasOwnProperty("fontsize") ? 
+		parameters["fontsize"] : 24;
+	
+	this.borderThickness = parameters.hasOwnProperty("borderThickness") ? 
+		parameters["borderThickness"] : 4;
+	
+	this.borderColor = parameters.hasOwnProperty("borderColor") ?
+		parameters["borderColor"] : { r:0, g:0, b:0, a:1.0 };
+	
+	this.backgroundColor = parameters.hasOwnProperty("backgroundColor") ?
+		parameters["backgroundColor"] : { r:255, g:255, b:255, a:1.0 };
+    
+  //максимальная длина строки
+  this.message = message || [];
+  
+  this.texture = {};
+  this.sprite = {};
+  
+  
+	this.canvas = document.createElement('canvas');
+  this.koef = this.canvas.height / this.canvas.width;
+	this.context = this.canvas.getContext('2d');
+	this.context.font = "Bold " + this.fontsize + "px " + this.fontface;
+  this.context.lineWidth = this.borderThickness;  
+    
+  
+// get size data (height depends only on font size)
+
+  this.getMessage = function(){
+   return self.message.split("\n");
+ }
+    
+  this.getTextWidth = function(message){
+    var maxTextWidth = 0;
+    var maxWord = '';
+    
+    for(var key in message){
+      if(message[key].length > maxTextWidth){
+        maxTextWidth = message[key].length ;
+        maxWord = message[key];
+      }
+
+    }  
+    
+    var metrics = self.context.measureText( maxWord );
+    return metrics.width;
+  }
+
+  this.addRectangle = function(){
+    
+    // background color
+   self.context.fillStyle   = "rgba(" + self.backgroundColor.r + "," + self.backgroundColor.g + ","
+                   + self.backgroundColor.b + "," + self.backgroundColor.a + ")";
+   // border color
+   self.context.strokeStyle = "rgba(" + self.borderColor.r + "," + self.borderColor.g + ","
+                   + self.borderColor.b + "," + self.borderColor.a + ")"; 
+
+   self.roundRect(self.context, self.borderThickness/2, self.borderThickness/2, self.textWidth + self.borderThickness, self.message.length * self.fontsize * 1.4 + self.borderThickness, 6);
+   // 1.4 is extra height factor for text below baseline: g,j,p,q.
+  
+  }
+  
+  this.addText = function(){
+    // text color
+    self.context.fillStyle = "rgba(0, 0, 0, 1.0)";
+    //Для многострочности
+    for(var key in self.message){
+      self.context.fillText( self.message[key], self.borderThickness, (+key+1) * (self.fontsize + self.borderThickness)); 
+    }   
+  }
+  
+  this.getTexture = function(){
+      var texture = new THREE.Texture(self.canvas) 
+      texture.needsUpdate = true;
+      return texture;
+  }
+  
+
+  
+  // function for drawing rounded rectangles
+  this.roundRect = function (ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x+r, y);
+      ctx.lineTo(x+w-r, y);
+      ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+      ctx.lineTo(x+w, y+h-r);
+      ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+      ctx.lineTo(x+r, y+h);
+      ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+      ctx.lineTo(x, y+r);
+      ctx.quadraticCurveTo(x, y, x+r, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();   
+  }
+  
+  this.update = function(){
+
+    if(self.sprite){
+      self.message = self.getMessage();
+      self.textWidth = self.getTextWidth(self.message);
+      self.addRectangle();
+      self.addText();
+      self.texture = self.getTexture();
+    
+      self.sprite.material.map = self.texture;
+      self.sprite.material.needsUpdate = true;
+    }
+    
+  }
+  
+  this.getSprite = function(){
+      
+      var spriteMaterial = new THREE.SpriteMaterial( 
+      { map: self.texture, useScreenCoordinates: false } );
+
+      var sprite = new THREE.Sprite( spriteMaterial );
+      
+      sprite.note_type = self.note_type;
+      sprite.scale.set(1 * self.fontsize,  self.koef * self.fontsize, 0 * self.fontsize);
+      sprite.position.set(0,20,0);
+      sprite.update = function(){return self.update();};
+      return sprite;   
+  }
+  
+  
+  
+
+  
+  this.sprite = null;
+  
+  
+  this.view = function(){
+    self.message = self.getMessage();
+    self.textWidth = self.getTextWidth(self.message);
+    self.addRectangle();
+    self.addText();
+    self.texture = self.getTexture();
+    self.sprite = self.getSprite();  
+    return self.sprite;
+  }
+  
+  
+}
+function note()
+{
+  makeNote.apply(this, arguments);
+  return this.view();
+}
+function noteCameraInfo ()
+{
+  
+  makeNote.apply(this, arguments);
+  
+  this.note_type = 'noteCameraInfo';
+  
+  this.getMessage = function(){
+    var text = '';
+    if(this.obj.userData.is_camera){
+      text += "Объект: камера \n" ;
+      text += "Угол обзора: " + this.obj.angle + "\n";
+      text += "Высота: " + this.obj.position.y + "\n";
+    }
+    
+    return text.split('\n');
+  }
+  
+  return this.view();
+  
+}
+
+function makeDimension(obj, parameters){
+  var self = this;
+  
+  this.obj = obj;
+  this.note_type = 'ray_dimension';
+  
+	if ( parameters === undefined ) parameters = {};
+	this.type = parameters.hasOwnProperty("type") ? parameters["type"] : "front"; 
+
+  this.direction = this.obj.getWorldDirection();
+  
+  
+  var a = new THREE.Euler( 0, 0, 0, 'YXZ' );
+  switch (this.type) {
+    case 'front':
+      var a = new THREE.Euler( 0, 0, 0, 'YXZ' );
+      this.position = new THREE.Vector3( 0, 0, 20 );
+      break;
+    case 'back':  
+      var a = new THREE.Euler( 0, Math.PI, 0, 'YXZ' );
+      this.position = new THREE.Vector3( 0, 0, -20 );
+      break;
+    case 'left':
+      var a = new THREE.Euler( 0, -Math.PI/2, 0, 'YXZ' );
+      this.position = new THREE.Vector3( 20, 0, 0 );
+      break;
+    case 'right':
+      var a = new THREE.Euler( 0, Math.PI/2, 0, 'YXZ' );
+       this.position = new THREE.Vector3( -20, 0, 0 );
+      break;
+  }
+  this.direction.applyEuler(a);
+  
+  this.position = this.obj.getWorldPosition();
+  
+  var raycaster = new THREE.Raycaster(position, direction, 0, 10000 );
+
+
+  this.ray_point = null;
+  this.ray_distance = Infinity;
+  
+  //проход по элементам сцены
+	scene.traverse(function(el){
+	  
+	  if(el.name == 'wall'){
+		
+      point = null;
+      var  objBoundingBox = new THREE.Box3().setFromObject(el);
+
+
+      var intersects = raycaster.intersectObject(el);
+
+      if (intersects.length > 0) {
+        var point  = intersects[0].point;
+        var distance  = intersects[0].distance;
+      } 
+
+      if(point){
+        if (distance < self.ray_distance){
+        self.ray_distance  = distance;
+        self.ray_point = point;
+        }
+      }        
+	  }
+	  
+	}); 
+  
+  this.drawRayLine = function(scene, obj, ray_point){
+    if(ray_point){
+      var lineGeometry = new THREE.Geometry();
+      lineGeometry.vertices.push( obj.getWorldPosition(), ray_point );
+      var line = new THREE.Line( lineGeometry, new THREE.LineBasicMaterial( { color: 'green' }) );
+      
+      var note_camera_info = new note( line," Размер " );
+    
+      note_camera_info.position = this.position;
+    
+      scene.add(line);
+      self.obj.add(note_camera_info);
+      
+    }
+  }
+  
+  
+  this.drawRayLine(scene, this.obj, this.ray_point);
+  
+}
+  
