@@ -5,7 +5,7 @@ var active_camera = null;
 var ctrl = 0; //флаг клавиши ctrl
 var delta = 0.02; //шаг перемещения луча активной камеры
 var delta2 = 5;   //шаг линейного перемещения активной камеры
-var rayMaterial = new THREE.MeshNormalMaterial({wireframe: false, opacity: 0.5, transparent: true});
+var rayMaterial = new THREE.MeshLambertMaterial({wireframe: false, opacity: 0.5, transparent: true, depthWrite: false});
      
 var isMoveRay = false; // перестраивание луча в функции рендеринга при движении луча
 var isMoveCamera = false; // перестраивание луча и "комнаты" в функции рендеринга при движении камеры
@@ -137,7 +137,7 @@ function getRay2d(videocamera)
   
   //прорисовываем точки пересечения луча и стен - для наглядности
   drawPoint(contour.vertices);
-      window.console.log(contour.vertices);
+
   return contour.vertices;
 }
 
@@ -222,11 +222,6 @@ function addCameraRay(scene)
 
 	  videocamera.add(ray_axis_x);
     
-//    var note_camera_info = new noteCameraInfo( videocamera," Активная мега \n супер \n камера " );
-    var note_camera_info = new note( videocamera," Активная мега \n супер \n камера " );
-    
-    note_camera_info.position.set(0,20,0);
-    videocamera.add(note_camera_info);
     
 
 	  if (videocamera.userData.camera_props && videocamera.fscale) {
@@ -253,7 +248,8 @@ function addCameraRay(scene)
 	}
   });
   
-  setTimeout(raysShowAll, 500);
+  //Отобразить все лучи
+//  setTimeout(raysShowAll, 500);
   
   document.addEventListener( 'keydown', onKeyDownCam, false );
   document.addEventListener( 'keyup', onKeyUpCam, false );
@@ -688,6 +684,18 @@ function onDocumentMouseDownCam( event )
 			active_camera.material.color = ( active_camera.currentMaterial.color );
 		showFocus();
 		active_camera.getObjectByName('focus').visible = false;
+    
+    //удаление примечаний
+    if(active_camera.traverse){
+      var items = active_camera.children;
+      var i = items.length;
+      while(--i){
+        if(items[i]['note_type']){
+          active_camera.remove(items[i]);
+        }
+      }
+    }
+    
 		active_camera = null;
 	  }
 	  active_camera = click_cam;
@@ -700,11 +708,12 @@ function onDocumentMouseDownCam( event )
 		active_camera.currentMaterial.color = 'green';
 	  showFocus();
 	  showRay();
-    
-    makeDimension(active_camera, {'type':'front'});
-    makeDimension(active_camera, {'type':'back'});
-    makeDimension(active_camera, {'type':'left'});
-    makeDimension(active_camera, {'type':'right'});
+
+    noteAdd(active_camera, " Активная \n камера ", 'noteCameraInfo');
+    dimensionCameraAdd(active_camera, {'type':'front'});
+    dimensionCameraAdd(active_camera, {'type':'back'});
+    dimensionCameraAdd(active_camera, {'type':'left'});
+    dimensionCameraAdd(active_camera, {'type':'right'});
     
 	  
 	}
@@ -760,10 +769,8 @@ function onDocumentMouseDownCam( event )
 			  
 			  var radiusB = Math.tan(active_camera.angle/2) * active_camera.far / Math.sin(THREE.Math.degToRad(45)); //большее основание пирамиды
 			  var geometry = new THREE.CylinderGeometry( 1, radiusB+1, active_camera.far, 4 ); //геометрия луча
-//              window.console.log(active_camera.getObjectByName('rayMesh').geometry);
 //              active_camera.getObjectByName('rayMesh').geometry.parameters.radiusBottom  = radiusB;
 //              active_camera.getObjectByName('rayMesh').geometry.parameters.height = active_camera.far;
-//              window.console.log(active_camera.getObjectByName('rayMesh').geometry);
 			}
 
 			//локальные/мировые координаты фокуса
@@ -801,13 +808,40 @@ function onDocumentMouseUpCam( event )
 
 //============================
 
+function noteAdd(obj, message, type, parameters){
+  
+  var obj = obj || {};
+  var message = message || '';
+  var type = type || 'note';
+  
+  var notification = {};
+  
+  switch (type) {
+    case 'note':
+      notification = new note( obj, message, parameters );
+      break;
+    case 'noteCameraInfo':
+      notification = new noteCameraInfo( obj, message, parameters );
+      break;    
+  }
+  
+  if(typeof obj.add == 'function')  {
+    
+    obj.add(notification);
+    
+  }
+  
+  return notification;
+  
+}
 
-function makeNote( obj, message, parameters )
+//базовый для примечаний
+function noteMaker( obj, message, parameters )
 {
   var self = this;
   
   this.obj = obj;
-  this.note_type = 'note';
+  this.note_type = '';
   
 	if ( parameters === undefined ) parameters = {};
 	
@@ -826,27 +860,28 @@ function makeNote( obj, message, parameters )
 	this.backgroundColor = parameters.hasOwnProperty("backgroundColor") ?
 		parameters["backgroundColor"] : { r:255, g:255, b:255, a:1.0 };
     
-  //максимальная длина строки
   this.message = message || [];
+  
   
   this.texture = {};
   this.sprite = {};
   
   
 	this.canvas = document.createElement('canvas');
-  this.koef = this.canvas.height / this.canvas.width;
-	this.context = this.canvas.getContext('2d');
-	this.context.font = "Bold " + this.fontsize + "px " + this.fontface;
-  this.context.lineWidth = this.borderThickness;  
+  this.koef = 1;
+
     
   
 // get size data (height depends only on font size)
 
   this.getMessage = function(){
+    if(typeof self.message == 'array'){
+      return self.message;
+    }
    return self.message.split("\n");
- }
-    
-  this.getTextWidth = function(message){
+  }
+  
+  this.getMaxWord = function(message){
     var maxTextWidth = 0;
     var maxWord = '';
     
@@ -856,10 +891,52 @@ function makeNote( obj, message, parameters )
         maxWord = message[key];
       }
 
-    }  
+    }
     
+    return maxWord;
+  }
+    
+  this.getTextWidth = function(message){
+    
+    var maxWord = self.getMaxWord(message);
     var metrics = self.context.measureText( maxWord );
+
+    if(self.canvas.width < metrics.width){
+      self.canvasResize(metrics.width);
+      self.getTextWidth(message);
+    }
+    
     return metrics.width;
+  }
+  
+  this.getContext = function(){
+   	self.context = self.canvas.getContext('2d');
+    self.context.font = "Bold " + self.fontsize + "px " + self.fontface;
+    self.context.lineWidth = self.borderThickness;    
+  }
+  
+  this.getFontHeight = function (font) {
+        var parent = document.createElement("span");
+        parent.appendChild(document.createTextNode("height"));
+        document.body.appendChild(parent);
+        parent.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;";
+        var height = parent.offsetHeight;
+        document.body.removeChild(parent);
+        return height;
+    }
+  
+  this.canvasResize = function(width){
+    self.canvas.width = width || 10  ;
+    self.canvas.width += 2*self.borderThickness;
+    if(self.fontheight){
+      self.canvas.height = Math.floor(self.message.length * self.fontheight + 2*self.borderThickness);
+    } else {
+      self.canvas.height = Math.floor(self.message.length * self.fontsize + 2*self.borderThickness);
+    }
+    
+    self.koef = this.canvas.height / this.canvas.width;
+    
+    self.getContext();
   }
 
   this.addRectangle = function(){
@@ -870,18 +947,26 @@ function makeNote( obj, message, parameters )
    // border color
    self.context.strokeStyle = "rgba(" + self.borderColor.r + "," + self.borderColor.g + ","
                    + self.borderColor.b + "," + self.borderColor.a + ")"; 
+                 
 
-   self.roundRect(self.context, self.borderThickness/2, self.borderThickness/2, self.textWidth + self.borderThickness, self.message.length * self.fontsize * 1.4 + self.borderThickness, 6);
+   var x = self.canvas.width/2 - self.textWidth/2 - self.borderThickness/2;
+   var y = self.canvas.height/2 - self.message.length * self.fontheight /2 - self.borderThickness/2;
+   var width = self.textWidth + self.borderThickness;
+   var height = self.message.length * self.fontheight * 1.4 + self.borderThickness
+//   self.roundRect(self.context, x, y, width, height, 6);
    // 1.4 is extra height factor for text below baseline: g,j,p,q.
-  
+  self.roundRect(self.context, 0,0, self.canvas.width, self.canvas.height, 6);
   }
   
   this.addText = function(){
     // text color
     self.context.fillStyle = "rgba(0, 0, 0, 1.0)";
     //Для многострочности
+     var x = self.canvas.width/2 - self.textWidth/2 ;
+     
     for(var key in self.message){
-      self.context.fillText( self.message[key], self.borderThickness, (+key+1) * (self.fontsize + self.borderThickness)); 
+      var y = self.canvas.height/2 - self.message.length * self.fontheight /2 +  (+key+1) * self.fontheight;
+      self.context.fillText( self.message[key], x, y); 
     }   
   }
   
@@ -890,8 +975,6 @@ function makeNote( obj, message, parameters )
       texture.needsUpdate = true;
       return texture;
   }
-  
-
   
   // function for drawing rounded rectangles
   this.roundRect = function (ctx, x, y, w, h, r) {
@@ -933,41 +1016,39 @@ function makeNote( obj, message, parameters )
       var sprite = new THREE.Sprite( spriteMaterial );
       
       sprite.note_type = self.note_type;
-      sprite.scale.set(1 * self.fontsize,  self.koef * self.fontsize, 0 * self.fontsize);
+//      sprite.scale.set( self.message.length * self.fontsize, self.koef * self.message.length * self.fontsize, 0 * self.fontsize);
+sprite.scale.set(10,self.koef*10,1)
       sprite.position.set(0,20,0);
       sprite.update = function(){return self.update();};
       return sprite;   
   }
-  
-  
-  
 
-  
   this.sprite = null;
   
-  
+
   this.view = function(){
-    self.message = self.getMessage();
+    this.message = this.getMessage();
+    self.canvasResize();
     self.textWidth = self.getTextWidth(self.message);
+    self.fontheight = self.getFontHeight(self.context.font);
     self.addRectangle();
     self.addText();
     self.texture = self.getTexture();
     self.sprite = self.getSprite();  
     return self.sprite;
   }
-  
-  
+    
 }
 function note()
 {
-  makeNote.apply(this, arguments);
+  noteMaker.apply(this, arguments);
+  this.note_type = 'note';
   return this.view();
 }
 function noteCameraInfo ()
 {
   
-  makeNote.apply(this, arguments);
-  
+  noteMaker.apply(this, arguments);
   this.note_type = 'noteCameraInfo';
   
   this.getMessage = function(){
@@ -985,7 +1066,8 @@ function noteCameraInfo ()
   
 }
 
-function makeDimension(obj, parameters){
+
+function dimensionCameraAdd(obj, parameters){
   var self = this;
   
   this.obj = obj;
@@ -1001,19 +1083,19 @@ function makeDimension(obj, parameters){
   switch (this.type) {
     case 'front':
       var a = new THREE.Euler( 0, 0, 0, 'YXZ' );
-      this.position = new THREE.Vector3( 0, 0, 20 );
+      this.note_position = new THREE.Vector3( 0, 0, 20 );
       break;
     case 'back':  
       var a = new THREE.Euler( 0, Math.PI, 0, 'YXZ' );
-      this.position = new THREE.Vector3( 0, 0, -20 );
+      this.note_position = new THREE.Vector3( 0, 0, -20 );
       break;
     case 'left':
       var a = new THREE.Euler( 0, -Math.PI/2, 0, 'YXZ' );
-      this.position = new THREE.Vector3( 20, 0, 0 );
+      this.note_position = new THREE.Vector3( -20, 0, 0 );
       break;
     case 'right':
       var a = new THREE.Euler( 0, Math.PI/2, 0, 'YXZ' );
-       this.position = new THREE.Vector3( -20, 0, 0 );
+       this.note_position = new THREE.Vector3( 20, 0, 0 );
       break;
   }
   this.direction.applyEuler(a);
@@ -1055,16 +1137,21 @@ function makeDimension(obj, parameters){
   this.drawRayLine = function(scene, obj, ray_point){
     if(ray_point){
       var lineGeometry = new THREE.Geometry();
-      lineGeometry.vertices.push( obj.getWorldPosition(), ray_point );
+      lineGeometry.vertices.push( new THREE.Vector3(0,0,0), self.obj.worldToLocal(ray_point) );
       var line = new THREE.Line( lineGeometry, new THREE.LineBasicMaterial( { color: 'green' }) );
       
-      var note_camera_info = new note( line," Размер " );
-    
-//      note_camera_info.position = this.position;
-    
-      scene.add(line);
-      self.obj.add(note_camera_info);
+      line.note_type = self.note_type;
       
+      self.ray_distance = Math.ceil(self.ray_distance);
+      var noteObj = noteAdd(line, " " + self.ray_distance.toString() + " ");
+      noteObj.position.set(
+        self.note_position.x,
+        self.note_position.y,
+        self.note_position.z
+      );
+    
+      self.obj.add(line);
+ 
     }
   }
   

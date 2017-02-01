@@ -165,8 +165,6 @@ function init()
   scene.add( w1, w2, w3, w4 );
   scene.add(ceil);
 
-
-
 test_cams();
 
 //
