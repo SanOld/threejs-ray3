@@ -257,7 +257,7 @@ function addCameraRay(scene)
   });
   
   //Отобразить все лучи
-//  setTimeout(raysShowAll, 500);
+  setTimeout(raysShowAll, 500);
   
   document.addEventListener( 'keydown', onKeyDownCam, false );
   document.addEventListener( 'keyup', onKeyUpCam, false );
