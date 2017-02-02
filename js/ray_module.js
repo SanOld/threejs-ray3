@@ -818,7 +818,7 @@ function onDocumentMouseUpCam( event )
 
 
 
-//базовый для примечаний
+//Примечания
 function noteMaker( obj, message, parameters )
 {
   THREE.Object3D.call( this );
@@ -1101,11 +1101,10 @@ function noteAdd(obj, message, type, parameters)
 }
 
 
-
+//Размеры
 function dimensionCameraAdd(obj, parameters){
   var dim = new dimension(obj, parameters);
 }
-
 function dimension(obj, parameters)
 {
   var self = this;
@@ -1114,14 +1113,17 @@ function dimension(obj, parameters)
   this.note_type = 'dimension';
   this.ray_point = null;
   this.ray_distance;
-  this.gr ;
-  this.line;
-  this.note;
+  this.gr ; //группа размера
+  this.line;//линия размера
+  this.note;//примечание размера
   
 	if ( parameters === undefined ) parameters = {};
 	this.type2 = parameters.hasOwnProperty("type") ? parameters["type"] : "front"; 
-
-  this.calculate = function(){
+  this.relative_position = parameters.hasOwnProperty("relative_position") ? parameters["relative_position"] : 0.5; 
+  
+  
+  this.calculate = function()
+  {
     self.direction = self.obj.getWorldDirection();
     self.position = self.obj.getWorldPosition();
     self.ray_distance = Infinity;
@@ -1173,8 +1175,8 @@ function dimension(obj, parameters)
     }); 
     
   }
-
-  this.update = function(){
+  this.update = function()
+  {
 
       self.calculate();
       
@@ -1186,11 +1188,31 @@ function dimension(obj, parameters)
         self.note.visible = true;
       }
       self.note.setMessage(" " + self.ray_distance.toString() + " ");
-      
+      switch (self.type2) {
+        case 'front':
+          self.note_position = new THREE.Vector3( 0, 5, self.ray_distance * self.relative_position );
+          break;
+        case 'back':  
+          self.note_position = new THREE.Vector3( 0, 5, -self.ray_distance * self.relative_position );
+          break;
+        case 'left':
+          self.note_position = new THREE.Vector3( -self.ray_distance * self.relative_position, 5, 0 );
+          break;
+        case 'right':
+           self.note_position = new THREE.Vector3( self.ray_distance * self.relative_position, 5, 0 );
+          break;
+      }
+
+      self.note.position.set(
+        self.note_position.x,
+        self.note_position.y,
+        self.note_position.z
+      );
+
       self.note.update();
   }
-    
-  this.drawRayLine = function(){
+  this.drawRayLine = function()
+  {
     self.ray_point = self.ray_point ? self.obj.worldToLocal(self.ray_point.clone()): self.direction.floor();
     self.ray_distance = self.ray_distance == Infinity ? 1 : self.ray_distance;
       
@@ -1203,6 +1225,7 @@ function dimension(obj, parameters)
 
     self.ray_distance = Math.ceil(self.ray_distance);
     self.note = noteAdd(self.gr, " " + self.ray_distance.toString() + " ");
+    
     self.note.position.set(
       self.note_position.x,
       self.note_position.y,
@@ -1216,6 +1239,5 @@ function dimension(obj, parameters)
 
   this.calculate();
   return this.drawRayLine(); 
-  
 }
   
