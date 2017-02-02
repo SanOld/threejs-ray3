@@ -5,7 +5,7 @@ var active_camera = null;
 var ctrl = 0; //флаг клавиши ctrl
 var delta = 0.02; //шаг перемещения луча активной камеры
 var delta2 = 5;   //шаг линейного перемещения активной камеры
-var rayMaterial = new THREE.MeshLambertMaterial({wireframe: false, opacity: 0.5, transparent: true, depthWrite: false});
+var rayMaterial = new THREE.MeshNormalMaterial({wireframe: false, opacity: 0.5, transparent: true, depthWrite: false});
      
 var isMoveRay = false; // перестраивание луча в функции рендеринга при движении луча
 var isMoveCamera = false; // перестраивание луча и "комнаты" в функции рендеринга при движении камеры
@@ -162,12 +162,7 @@ function addCameraRay(scene)
   var far = 800;//окончание видимой области
   var angle = THREE.Math.degToRad(60);//угол обзора камеры
   var ray_axis_x; // доп ось камеры
-  
-  
-  
-  
-	
-  
+
   //debugger;
   scene.traverse(function(videocamera){
 	if(/*videocamera.name == videocameraName ||*/ videocamera.userData.is_camera == true){
@@ -222,6 +217,19 @@ function addCameraRay(scene)
 
 	  videocamera.add(ray_axis_x);
     
+    
+    videocamera.updateDimesions = function(){
+        this.traverse(function(item){
+          if(item['note_type'] && item['note_type'] == 'dimension')
+            item.update();
+        })
+    }
+    videocamera.updateInformation = function(){
+        var note_type = this.getObjectByProperty('note_type', 'noteCameraInfo');
+      if(note_type){
+        note_type.update();
+      }  
+    }
     
 
 	  if (videocamera.userData.camera_props && videocamera.fscale) {
@@ -417,24 +425,21 @@ function roomCalculate(scene, videocamera)
 
 function updateCameraRay()
 {
-   var rayBSP;
-   var roomBSP;
-   var newBSP;
-   var newRay;
-   var rayMesh;
-   var active_rayMesh;
 
   if (isMoveCamera){
 	  roomCalculate(scene, active_camera);
   
     //обновление примечания
-    var note_type = active_camera.getObjectByProperty('note_type', 'noteCameraInfo');
-    if(note_type){
-      note_type.update();
-    }
+    active_camera.updateInformation();
+
   } 
   if(isMoveRay){
 	 if(active_camera && active_camera.room){
+     
+     //обновление примечания
+     active_camera.updateDimesions();
+     active_camera.updateInformation();
+    
 	
 	  scene.remove( scene.getObjectByName(active_camera.id + "_ray") );
 
@@ -698,18 +703,20 @@ function onDocumentMouseDownCam( event )
     
 		active_camera = null;
 	  }
+    
 	  active_camera = click_cam;
 	  active_camera.currentMaterial = {};
 	  if (active_camera.material) {
-		active_camera.currentMaterial.color = active_camera.material.color;
-		active_camera.material.color =  new THREE.Color( 'red' );
+      active_camera.currentMaterial.color = active_camera.material.color;
+      active_camera.material.color =  new THREE.Color( 'red' );
 	  }	
 	  else 
-		active_camera.currentMaterial.color = 'green';
+      active_camera.currentMaterial.color = 'green';
 	  showFocus();
 	  showRay();
 
     noteAdd(active_camera, " Активная \n камера ", 'noteCameraInfo');
+//
     dimensionCameraAdd(active_camera, {'type':'front'});
     dimensionCameraAdd(active_camera, {'type':'back'});
     dimensionCameraAdd(active_camera, {'type':'left'});
@@ -724,6 +731,7 @@ function onDocumentMouseDownCam( event )
 	
   } 
   //выбор активной камеры
+  
   
 	if (active_camera){
 	  
@@ -808,36 +816,12 @@ function onDocumentMouseUpCam( event )
 
 //============================
 
-function noteAdd(obj, message, type, parameters){
-  
-  var obj = obj || {};
-  var message = message || '';
-  var type = type || 'note';
-  
-  var notification = {};
-  
-  switch (type) {
-    case 'note':
-      notification = new note( obj, message, parameters );
-      break;
-    case 'noteCameraInfo':
-      notification = new noteCameraInfo( obj, message, parameters );
-      break;    
-  }
-  
-  if(typeof obj.add == 'function')  {
-    
-    obj.add(notification);
-    
-  }
-  
-  return notification;
-  
-}
+
 
 //базовый для примечаний
 function noteMaker( obj, message, parameters )
 {
+  THREE.Object3D.call( this );
   var self = this;
   
   this.obj = obj;
@@ -868,17 +852,28 @@ function noteMaker( obj, message, parameters )
   
   
 	this.canvas = document.createElement('canvas');
-  this.koef = 1;
+  this.canvas.width = 1000;
+  this.canvas.height = 1000;
+  this.context = self.canvas.getContext('2d');
+  this.context.font = "Bold " + self.fontsize + "px " + self.fontface;
+  this.context.lineWidth = self.borderThickness; 
 
+  this.canvas2 = document.createElement('canvas');
+  this.context2 = self.canvas2.getContext('2d');
     
-  
-// get size data (height depends only on font size)
-
+    
   this.getMessage = function(){
-    if(typeof self.message == 'array'){
+    if(typeof self.message == 'object'){
       return self.message;
     }
    return self.message.split("\n");
+  }
+  this.setMessage = function(message){
+    if(typeof message == 'object'){
+      self.message = message;
+    } else if(typeof message == 'string') {
+      self.message = message.split("\n");
+    }
   }
   
   this.getMaxWord = function(message){
@@ -900,69 +895,58 @@ function noteMaker( obj, message, parameters )
     
     var maxWord = self.getMaxWord(message);
     var metrics = self.context.measureText( maxWord );
-
-    if(self.canvas.width < metrics.width){
-      self.canvasResize(metrics.width);
-      self.getTextWidth(message);
-    }
-    
+ 
     return metrics.width;
   }
   
-  this.getContext = function(){
-   	self.context = self.canvas.getContext('2d');
-    self.context.font = "Bold " + self.fontsize + "px " + self.fontface;
-    self.context.lineWidth = self.borderThickness;    
-  }
-  
   this.getFontHeight = function (font) {
-        var parent = document.createElement("span");
-        parent.appendChild(document.createTextNode("height"));
-        document.body.appendChild(parent);
-        parent.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;";
-        var height = parent.offsetHeight;
-        document.body.removeChild(parent);
-        return height;
-    }
-  
-  this.canvasResize = function(width){
-    self.canvas.width = width || 10  ;
-    self.canvas.width += 2*self.borderThickness;
-    if(self.fontheight){
-      self.canvas.height = Math.floor(self.message.length * self.fontheight + 2*self.borderThickness);
-    } else {
-      self.canvas.height = Math.floor(self.message.length * self.fontsize + 2*self.borderThickness);
-    }
-    
-    self.koef = this.canvas.height / this.canvas.width;
-    
-    self.getContext();
+    var parent = document.createElement("span");
+    parent.appendChild(document.createTextNode("height"));
+    document.body.appendChild(parent);
+    parent.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;";
+    var height = parent.offsetHeight;
+    document.body.removeChild(parent);
+    return height;
   }
+  
+  this.toCanvas2 = function(){
+    
+    var x = self.canvas.width/2 - self.textWidth/2 - self.borderThickness;
+    var y = self.canvas.height/2 - self.message.length * self.fontheight /2 - self.borderThickness;
+    var width = self.textWidth + self.borderThickness*2;
+    var height = self.message.length * self.fontheight  + self.borderThickness*2
 
+    var imageData = self.context.getImageData(x,y,width,height);
+    self.canvas2.width = width;
+    self.canvas2.height = height;
+
+    
+    self.context2.putImageData(imageData,0, 0);
+  }
+  
   this.addRectangle = function(){
     
-    // background color
-   self.context.fillStyle   = "rgba(" + self.backgroundColor.r + "," + self.backgroundColor.g + ","
-                   + self.backgroundColor.b + "," + self.backgroundColor.a + ")";
-   // border color
-   self.context.strokeStyle = "rgba(" + self.borderColor.r + "," + self.borderColor.g + ","
-                   + self.borderColor.b + "," + self.borderColor.a + ")"; 
-                 
+      // background color
+     self.context.fillStyle   = "rgba(" + self.backgroundColor.r + "," + self.backgroundColor.g + ","
+                     + self.backgroundColor.b + "," + self.backgroundColor.a + ")";
+     // border color
+     self.context.strokeStyle = "rgba(" + self.borderColor.r + "," + self.borderColor.g + ","
+                     + self.borderColor.b + "," + self.borderColor.a + ")"; 
 
-   var x = self.canvas.width/2 - self.textWidth/2 - self.borderThickness/2;
-   var y = self.canvas.height/2 - self.message.length * self.fontheight /2 - self.borderThickness/2;
-   var width = self.textWidth + self.borderThickness;
-   var height = self.message.length * self.fontheight * 1.4 + self.borderThickness
-//   self.roundRect(self.context, x, y, width, height, 6);
-   // 1.4 is extra height factor for text below baseline: g,j,p,q.
-  self.roundRect(self.context, 0,0, self.canvas.width, self.canvas.height, 6);
+
+     var x = self.canvas.width/2 - self.textWidth/2 - self.borderThickness/2;
+     var y = self.canvas.height/2 - self.message.length * self.fontheight /2 - self.borderThickness/2;
+     var width = self.textWidth + self.borderThickness;
+     var height = self.message.length * self.fontheight + self.borderThickness
+     self.roundRect(self.context, x, y, width, height, 6);
+
   }
   
   this.addText = function(){
     // text color
     self.context.fillStyle = "rgba(0, 0, 0, 1.0)";
     //Для многострочности
-     var x = self.canvas.width/2 - self.textWidth/2 ;
+    var x = self.canvas.width/2 - self.textWidth/2 ;
      
     for(var key in self.message){
       var y = self.canvas.height/2 - self.message.length * self.fontheight /2 +  (+key+1) * self.fontheight;
@@ -971,9 +955,10 @@ function noteMaker( obj, message, parameters )
   }
   
   this.getTexture = function(){
-      var texture = new THREE.Texture(self.canvas) 
-      texture.needsUpdate = true;
-      return texture;
+    var texture = new THREE.Texture(self.canvas2) 
+    texture.minFilter = THREE.NearestFilter;
+    texture.needsUpdate = true;
+    return texture;
   }
   
   // function for drawing rounded rectangles
@@ -996,12 +981,14 @@ function noteMaker( obj, message, parameters )
   this.update = function(){
 
     if(self.sprite){
-      self.message = self.getMessage();
+      self.message = this.getMessage();
       self.textWidth = self.getTextWidth(self.message);
+      self.fontheight = self.getFontHeight(self.context.font);
       self.addRectangle();
       self.addText();
+      self.toCanvas2();
       self.texture = self.getTexture();
-    
+      self.texture.needsUpdate = true;
       self.sprite.material.map = self.texture;
       self.sprite.material.needsUpdate = true;
     }
@@ -1016,38 +1003,42 @@ function noteMaker( obj, message, parameters )
       var sprite = new THREE.Sprite( spriteMaterial );
       
       sprite.note_type = self.note_type;
-//      sprite.scale.set( self.message.length * self.fontsize, self.koef * self.message.length * self.fontsize, 0 * self.fontsize);
-sprite.scale.set(10,self.koef*10,1)
+
+      sprite.scale.set(
+          (self.textWidth + self.borderThickness)/10,
+          (self.message.length * self.fontheight  + self.borderThickness)/10,
+          1
+      );
       sprite.position.set(0,20,0);
       sprite.update = function(){return self.update();};
+      sprite.setMessage = function(message){return self.setMessage(message);};
       return sprite;   
   }
 
   this.sprite = null;
   
-
   this.view = function(){
-    this.message = this.getMessage();
-    self.canvasResize();
+    self.message = self.getMessage();
     self.textWidth = self.getTextWidth(self.message);
     self.fontheight = self.getFontHeight(self.context.font);
     self.addRectangle();
     self.addText();
+    self.toCanvas2();
     self.texture = self.getTexture();
     self.sprite = self.getSprite();  
-    return self.sprite;
+    return self.sprite ;
   }
     
-}
-function note()
+};
+function noteSimple()
 {
   noteMaker.apply(this, arguments);
-  this.note_type = 'note';
+  this.note_type = 'noteSimple';
   return this.view();
 }
 function noteCameraInfo ()
 {
-  
+  var self = this;
   noteMaker.apply(this, arguments);
   this.note_type = 'noteCameraInfo';
   
@@ -1055,108 +1046,176 @@ function noteCameraInfo ()
     var text = '';
     if(this.obj.userData.is_camera){
       text += "Объект: камера \n" ;
-      text += "Угол обзора: " + this.obj.angle + "\n";
+      text += "Угол обзора: " + Math.ceil(THREE.Math.radToDeg(this.obj.angle)) + " градусов\n";
+      text += "Угол вертикальный: " + this.getAngleVert() + "\n";
+      text += "Угол горизонтальный: " + this.getAngleGorizont() + "\n";
       text += "Высота: " + this.obj.position.y + "\n";
     }
-    
+
     return text.split('\n');
   }
+  
+  this.getAngleVert = function(){
+    var vector = self.obj.getWorldDirection().projectOnPlane (  new THREE.Vector3(1, 0, 0) )
+    var inRad = self.obj.getWorldDirection().angleTo( vector );
+    var inDeg = Math.ceil(THREE.Math.radToDeg(inRad));
+    return inDeg;
+  }
+  
+  this.getAngleGorizont = function(){
+    var vector = self.obj.getWorldDirection().projectOnPlane (  new THREE.Vector3(0, 1, 0) )
+    var inRad = self.obj.getWorldDirection().angleTo( vector );
+    var inDeg = Math.ceil(THREE.Math.radToDeg(inRad));
+    return inDeg;
+  }  
   
   return this.view();
   
 }
+function noteAdd(obj, message, type, parameters)
+{
+  
+  var obj = obj || {};
+  var message = message || '';
+  var type = type || 'note';
+  
+  var notification = {};
+  
+  switch (type) {
+    case 'note':
+      notification = new noteSimple( obj, message, parameters );
+      break;
+    case 'noteCameraInfo':
+      notification = new noteCameraInfo( obj, message, parameters );
+      break;    
+  }
+  
+  if(typeof obj.add == 'function')  {
+    
+    obj.add(notification);
+    
+  }
+  
+  return notification;
+  
+}
+
 
 
 function dimensionCameraAdd(obj, parameters){
+  var dim = new dimension(obj, parameters);
+}
+
+function dimension(obj, parameters)
+{
   var self = this;
   
   this.obj = obj;
-  this.note_type = 'ray_dimension';
+  this.note_type = 'dimension';
+  this.ray_point = null;
+  this.ray_distance;
+  this.gr ;
+  this.line;
+  this.note;
   
 	if ( parameters === undefined ) parameters = {};
-	this.type = parameters.hasOwnProperty("type") ? parameters["type"] : "front"; 
+	this.type2 = parameters.hasOwnProperty("type") ? parameters["type"] : "front"; 
 
-  this.direction = this.obj.getWorldDirection();
-  
-  
-  var a = new THREE.Euler( 0, 0, 0, 'YXZ' );
-  switch (this.type) {
-    case 'front':
-      var a = new THREE.Euler( 0, 0, 0, 'YXZ' );
-      this.note_position = new THREE.Vector3( 0, 0, 20 );
-      break;
-    case 'back':  
-      var a = new THREE.Euler( 0, Math.PI, 0, 'YXZ' );
-      this.note_position = new THREE.Vector3( 0, 0, -20 );
-      break;
-    case 'left':
-      var a = new THREE.Euler( 0, -Math.PI/2, 0, 'YXZ' );
-      this.note_position = new THREE.Vector3( -20, 0, 0 );
-      break;
-    case 'right':
-      var a = new THREE.Euler( 0, Math.PI/2, 0, 'YXZ' );
-       this.note_position = new THREE.Vector3( 20, 0, 0 );
-      break;
-  }
-  this.direction.applyEuler(a);
-  
-  this.position = this.obj.getWorldPosition();
-  
-  var raycaster = new THREE.Raycaster(position, direction, 0, 10000 );
-
-
-  this.ray_point = null;
-  this.ray_distance = Infinity;
-  
-  //проход по элементам сцены
-	scene.traverse(function(el){
-	  
-	  if(el.name == 'wall'){
-		
-      point = null;
-      var  objBoundingBox = new THREE.Box3().setFromObject(el);
-
-
-      var intersects = raycaster.intersectObject(el);
-
-      if (intersects.length > 0) {
-        var point  = intersects[0].point;
-        var distance  = intersects[0].distance;
-      } 
-
-      if(point){
-        if (distance < self.ray_distance){
-        self.ray_distance  = distance;
-        self.ray_point = point;
-        }
-      }        
-	  }
-	  
-	}); 
-  
-  this.drawRayLine = function(scene, obj, ray_point){
-    if(ray_point){
-      var lineGeometry = new THREE.Geometry();
-      lineGeometry.vertices.push( new THREE.Vector3(0,0,0), self.obj.worldToLocal(ray_point) );
-      var line = new THREE.Line( lineGeometry, new THREE.LineBasicMaterial( { color: 'green' }) );
-      
-      line.note_type = self.note_type;
-      
-      self.ray_distance = Math.ceil(self.ray_distance);
-      var noteObj = noteAdd(line, " " + self.ray_distance.toString() + " ");
-      noteObj.position.set(
-        self.note_position.x,
-        self.note_position.y,
-        self.note_position.z
-      );
+  this.calculate = function(){
+    self.direction = self.obj.getWorldDirection();
+    self.position = self.obj.getWorldPosition();
+    self.ray_distance = Infinity;
     
-      self.obj.add(line);
- 
+    switch (self.type2) {
+      case 'front':
+        var a = new THREE.Euler( 0, 0, 0, 'YXZ' );
+        self.note_position = new THREE.Vector3( 0, 5, 50 );
+        break;
+      case 'back':  
+        var a = new THREE.Euler( 0, Math.PI, 0, 'YXZ' );
+        self.note_position = new THREE.Vector3( 0, 5, -50 );
+        break;
+      case 'left':
+        var a = new THREE.Euler( 0, -Math.PI/2, 0, 'YXZ' );
+        self.note_position = new THREE.Vector3( -50, 5, 0 );
+        break;
+      case 'right':
+        var a = new THREE.Euler( 0, Math.PI/2, 0, 'YXZ' );
+         self.note_position = new THREE.Vector3( 50, 5, 0 );
+        break;
     }
+
+    self.direction.applyEuler(a);
+  
+    var raycaster = new THREE.Raycaster(self.position, self.direction, 0, 10000 );
+      //проход по элементам сцены
+    scene.traverse(function(el){
+
+      if(el.name == 'wall'){
+
+        point = null;
+
+        var intersects = raycaster.intersectObject(el);
+
+        if (intersects.length > 0) {
+          var point  = intersects[0].point;
+          var distance  = intersects[0].distance;
+        } 
+
+        if(point){
+          if (distance < self.ray_distance){
+          self.ray_distance  = distance;
+          self.ray_point = point;
+          }
+        }        
+      }
+
+    }); 
+    
   }
-  
-  
-  this.drawRayLine(scene, this.obj, this.ray_point);
+
+  this.update = function(){
+
+      self.calculate();
+      
+      self.line.setLength(self.ray_distance, 10);
+      self.ray_distance = Math.ceil(self.ray_distance);
+      if(self.ray_distance == Infinity){
+        self.note.visible = false;
+      } else {
+        self.note.visible = true;
+      }
+      self.note.setMessage(" " + self.ray_distance.toString() + " ");
+      
+      self.note.update();
+  }
+    
+  this.drawRayLine = function(){
+    self.ray_point = self.ray_point ? self.obj.worldToLocal(self.ray_point.clone()): self.direction.floor();
+    self.ray_distance = self.ray_distance == Infinity ? 1 : self.ray_distance;
+      
+    self.line = new THREE.ArrowHelper(  self.ray_point.normalize(), new THREE.Vector3(0,0,0), self.ray_distance, 'blue', 10);
+
+    self.gr = new THREE.Group();
+    self.gr.note_type = self.note_type;
+    self.gr.update = function(){ return self.update();};
+    self.gr.add(self.line)
+
+    self.ray_distance = Math.ceil(self.ray_distance);
+    self.note = noteAdd(self.gr, " " + self.ray_distance.toString() + " ");
+    self.note.position.set(
+      self.note_position.x,
+      self.note_position.y,
+      self.note_position.z
+    );
+
+    self.obj.add(self.gr);
+    return self.gr;
+    
+  }
+
+  this.calculate();
+  return this.drawRayLine(); 
   
 }
   
