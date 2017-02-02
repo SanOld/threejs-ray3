@@ -949,7 +949,7 @@ function noteMaker( obj, message, parameters )
     var x = self.canvas.width/2 - self.textWidth/2 ;
      
     for(var key in self.message){
-      var y = self.canvas.height/2 - self.message.length * self.fontheight /2 +  (+key+1) * self.fontheight;
+      var y = self.canvas.height/2 - self.message.length * self.fontheight /2 +  (+key+1) * self.fontheight-5;
       self.context.fillText( self.message[key], x, y); 
     }   
   }
