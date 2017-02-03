@@ -109,13 +109,13 @@ function init()
 //
 //  //
 //
-  var ceil = new THREE.Mesh(
+  var ceiling = new THREE.Mesh(
 //    new THREE.BoxBufferGeometry( 500, 150, 10 ),
     new THREE.BoxGeometry( 500, 500, 10 ),
      new THREE.MeshNormalMaterial({wireframe: false, opacity: 0.3, transparent: true, depthWrite: false})
   );
-  ceil.position.y = 130;
-  ceil.rotation.x = Math.PI/2;
+  ceiling.position.y = 130;
+  ceiling.rotation.x = Math.PI/2;
   
   
   var w1 = new THREE.Mesh(
@@ -163,7 +163,7 @@ function init()
   
   scene.add(w11, w12, w13, w14);
   scene.add( w1, w2, w3, w4 );
-  scene.add(ceil);
+  scene.add(ceiling);
 
 test_cams();
 
