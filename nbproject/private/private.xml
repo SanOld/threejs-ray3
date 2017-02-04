@@ -3,13 +3,13 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/E:/Work/Servers/OpenServer524/domains/threejs-ray3/js/lib/three-master/build/three.js</file>
             <file>file:/E:/Work/Servers/OpenServer524/domains/threejs-ray3/js/ray_module.js</file>
+            <file>file:/E:/Work/Servers/OpenServer524/domains/threejs-ray3/js/OBJLoader.js</file>
             <file>file:/E:/Work/Servers/OpenServer524/domains/threejs-ray3/js/load.js</file>
             <file>file:/E:/Work/Servers/OpenServer524/domains/threejs-ray3/js/script.js</file>
+            <file>file:/E:/Work/Servers/OpenServer524/domains/threejs-ray3/sc/camera.obj</file>
             <file>file:/E:/Work/Servers/OpenServer524/domains/threejs-ray3/js/init.js</file>
             <file>file:/E:/Work/Servers/OpenServer524/domains/threejs-ray3/js/include.js</file>
-            <file>file:/E:/Work/Servers/OpenServer524/domains/threejs-ray3/js/lib/three-master/examples/js/AudioObject.js</file>
         </group>
     </open-files>
 </project-private>

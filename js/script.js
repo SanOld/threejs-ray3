@@ -165,7 +165,7 @@ function init()
   scene.add( w1, w2, w3, w4 );
   scene.add(ceiling);
 
-test_cams();
+//test_cams();
 
 //
 //var axisHelper = new THREE.AxisHelper( 100 );
@@ -174,10 +174,11 @@ test_cams();
 //
 
 
-loadScene();
+//loadScene();
+loadCamera();
 
 //инициализация возможности отрисовки луча
-addCameraRay(scene); 
+setTimeout(addCameraRay,1000,scene);
 
 }
 
