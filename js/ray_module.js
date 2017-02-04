@@ -1078,12 +1078,12 @@ function noteCameraInfo ()
   
   this.getMessage = function(){
     var text = '';
-    if(this.obj.userData.is_camera){
+    if(self.obj.userData.is_camera){
       text += "Объект: камера \n" ;
-      text += "Угол обзора: " + Math.ceil(THREE.Math.radToDeg(this.obj.angle)) + " градусов\n";
-      text += "Угол вертикальный: " + this.getAngleVert() + "\n";
-      text += "Угол горизонтальный: " + this.getAngleGorizont() + "\n";
-      text += "Высота: " + this.obj.position.y + "\n";
+      text += "Угол обзора: " + Math.ceil(THREE.Math.radToDeg(self.obj.angle)) + " градусов\n";
+      text += "Угол вертикальный: " + self.getAngleVert() + "\n";
+      text += "Угол горизонтальный: " + self.getAngleGorizont() + "\n";
+      text += "Высота: " + self.obj.getWorldPosition().y + "\n";
     }
 
     return text.split('\n');
