@@ -56,6 +56,7 @@ function loadCamera(){
         object.userData.is_camera = true;
         //расположение камеры
         object.position.y = 100;
+        
         scene.add( object );   
         
           

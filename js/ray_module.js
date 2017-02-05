@@ -23,12 +23,15 @@ function test_cams() {
     var geometry = new THREE.BoxGeometry( 10, 10, 10 );
 	  var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
 	  var videocamera = new THREE.Mesh( geometry, material );
-	  videocamera.name = videocameraName;
-	  videocamera.userData.is_camera = true;
-	  videocamera.position.y = 140;
-	  videocamera.position.x = 250;
+    
+    var group = new THREE.Group();
+    group.add(videocamera);
+	  group.name = videocameraName;
+	  group.userData.is_camera = true;
+	  group.position.y = 140;
+	  group.position.x = 250;
 
-	  scene.add( videocamera );
+	  scene.add( group );
    
 //	for(var p = 1; p <= 10; p++){
 //
@@ -174,7 +177,7 @@ function addCameraRay(scene)
   
   scene.traverse(function(videocamera){
     
-    if(/*videocamera.name == videocameraName ||*/ videocamera.userData.is_camera == true){
+    if(videocamera.userData.is_camera == true && videocamera.parent.name != 'ray_axis_x'){
 
       videocamera.name = videocameraName;
       videocameraArr.push(videocamera);
@@ -196,15 +199,19 @@ function addCameraRay(scene)
       var radiusB = Math.tan(videocamera.angle/2) * videocamera.far / Math.sin(THREE.Math.degToRad(45)); //большее основание пирамиды
       var geometry = new THREE.CylinderGeometry( 1, radiusB+1, videocamera.far, 4 ); //геометрия луча
       var rayMesh = new THREE.Mesh( geometry );
+      
       //if (videocamera.userData.camera_props) {
       //    rayMesh.rotation.x = THREE.Math.degToRad(videocamera.userData.camera_props.angle_xy);
       //    rayMesh.rotation.y = THREE.Math.degToRad(videocamera.userData.camera_props.angle_z);
       //}
       //else 
-      {
-        rayMesh.rotation.x = -Math.PI/2;
-        rayMesh.rotation.y = Math.PI/4;
-      }    
+//      {
+//        rayMesh.rotation.x = -Math.PI/2;
+//        rayMesh.rotation.y = Math.PI/4;
+//      }    
+      rayMesh.rotation.x = -Math.PI/2;
+      rayMesh.rotation.y = Math.PI/4;
+      
       rayMesh.translateY(-videocamera.far/2);
       rayMesh.visible = false;
       rayMesh.name = 'rayMesh';
@@ -217,13 +224,11 @@ function addCameraRay(scene)
       focus.position.z = videocamera.far + 5;
       focus.visible = false;
 
-
-
-      //ось вращения
+      //ось вращения1
       var ray_axis_x = new THREE.Object3D();
       ray_axis_x.name = 'ray_axis_x';
 
-      //ось вращения
+      //ось вращения2
       var ray_axis_y = new THREE.Object3D();
       ray_axis_y.name = 'ray_axis_y';
 
@@ -237,6 +242,13 @@ function addCameraRay(scene)
       videocamera.add( focus );
       videocamera.add(rayMesh);
 
+
+      if (videocamera.userData.camera_props) {
+        rayMesh.rotateX(THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
+        rayMesh.position.y = videocamera.userData.camera_props.camera_off_y;
+        rayMesh.position.z = videocamera.userData.camera_props.camera_off_z;
+        rayMesh.position.x = videocamera.userData.camera_props.camera_off_x;
+      }
       
 //      if (videocamera.userData.camera_props && videocamera.fscale) {
 //        rayMesh.rotateX(THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
@@ -252,7 +264,7 @@ function addCameraRay(scene)
 //      }    
 
       //ось z - хелпер
-      arrowHelperAdd( ray_axis_x, null, 'red' );
+      arrowHelperAdd( videocamera, null, 'red' );
       //ось z - хелпер
 
     }
@@ -327,6 +339,7 @@ function drawRay(videocamera){
   var rayMesh;
   var active_rayMesh;
 
+  scene.remove( scene.getObjectByName(videocamera.id + "_ray") );
 
   rayMesh = videocamera.getObjectByName('rayMesh');
 
@@ -467,6 +480,7 @@ function updateCameraRay()
 	  roomCalculate(scene, active_camera);
   
     //обновление примечания
+    active_camera.updateDimesions();
     active_camera.updateInformation();
 
   } 
@@ -477,9 +491,6 @@ function updateCameraRay()
      active_camera.updateDimesions();
      active_camera.updateInformation();
     
-	
-	  scene.remove( scene.getObjectByName(active_camera.id + "_ray") );
-
 	  drawRay(active_camera);
 	} 
   }
@@ -725,7 +736,7 @@ function onDocumentMouseDownCam( event )
 	//console.log(click_cam);
 	if ('name' in click_cam && click_cam['userData'].is_camera == true) {
 	  if ( active_camera && active_camera['currentMaterial']){
-		if (active_camera.material)
+		if (active_camera.children[0].material)
 			active_camera.children[0].material.color = ( active_camera.currentMaterial.color );
 		showFocus();
 		active_camera.getObjectByName('focus').visible = false;
@@ -1032,7 +1043,7 @@ function noteMaker( obj, message, parameters )
   this.getSprite = function(){
       
       var spriteMaterial = new THREE.SpriteMaterial( 
-      { map: self.texture, useScreenCoordinates: false } );
+      { map: self.texture/*, useScreenCoordinates: false */} );
 
       var sprite = new THREE.Sprite( spriteMaterial );
       
