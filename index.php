@@ -5,9 +5,8 @@
 <?php include('head.php'); ?>
 </head>
 <body id="bd">
-
-
- 
+  
+  
 
 </body>
 

@@ -180,6 +180,9 @@ loadCamera();
 //инициализация возможности отрисовки луча
 setTimeout(addCameraRay,1000,scene);
 
+
+$arcWall.add( scene, wall );
+
 }
 
 function animate() 

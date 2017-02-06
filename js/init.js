@@ -1,7 +1,7 @@
 
 $(document).ready(function() {
   include("js/lib/three-master/build/three.js");
-  
+
   include("js/OBJLoader.js");
   include("js/lib/three-master/examples/js/Detector.js");
   include("js/lib/three-master/examples/js/controls/OrbitControls.js");
@@ -14,8 +14,12 @@ $(document).ready(function() {
   include("js/load.js?"+HASH);
   include("js/lib/ThreeCSG.js");
 
-  include("js/ray_module.js?"+HASH);
 
+
+ 
+  include("data/arc_wall_data.js?"+HASH);
+  
+  include("js/ray_module.js?"+HASH);
   include("js/script.js?"+HASH);
   
 })
