@@ -15,6 +15,7 @@ function loadScene (){
           var cl = item.clone();
           cl.position.x -= 700;
           cl.position.z -= 750;
+          
           scene.add(cl);
 
         }
@@ -48,6 +49,8 @@ function loadCamera(){
               child.fscale = 100;
               child.scale.set(child.fscale,child.fscale,child.fscale)
               child.position.y -= 25;
+              child.position.z += 10;
+              child.rotation.x -= Math.PI/8
               
 						}
             

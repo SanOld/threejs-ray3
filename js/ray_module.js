@@ -5,12 +5,31 @@ var active_camera = null;
 var ctrl = 0; //флаг клавиши ctrl
 var delta = 0.02; //шаг перемещения луча активной камеры
 var delta2 = 5;   //шаг линейного перемещения активной камеры
-var rayMaterial = new THREE.MeshNormalMaterial({
+var rayMaterial = new THREE.MeshBasicMaterial({
   wireframe: false,
-  opacity: 0.5, 
+  opacity: 0.2, 
   transparent: true, 
   depthWrite: false, 
-  side: THREE.DoubleSide
+  side: THREE.DoubleSide,
+  color: 'green'
+
+});
+              
+var rayMaterial2 = new THREE.MeshBasicMaterial({
+  wireframe: false,
+  opacity: 0.1, 
+  transparent: true, 
+  depthWrite: false, 
+  side: THREE.DoubleSide,
+  color: 'yellow'
+});
+var rayMaterial3 = new THREE.MeshBasicMaterial({
+  wireframe: false,
+  opacity: 0.1, 
+  transparent: true, 
+  depthWrite: false, 
+  side: THREE.DoubleSide,
+  color: 'red'
 });
      
 var isMoveRay = false; // перестраивание луча в функции рендеринга при движении луча
@@ -171,7 +190,7 @@ function addCameraRay(scene)
   var roomHeight = 150; //высота комнаты ???????? 
   var near = 2; //начало видимой области
   var far = 800;//окончание видимой области
-  var angle = THREE.Math.degToRad(60);//угол обзора камеры
+  var angle = THREE.Math.degToRad(30);//угол обзора камеры
 //  var ray_axis_x; // доп ось камеры
 //  var ray_axis_y; // доп ось камеры
   
@@ -200,21 +219,28 @@ function addCameraRay(scene)
       var geometry = new THREE.CylinderGeometry( 1, radiusB+1, videocamera.far, 4 ); //геометрия луча
       var rayMesh = new THREE.Mesh( geometry );
       
-      //if (videocamera.userData.camera_props) {
-      //    rayMesh.rotation.x = THREE.Math.degToRad(videocamera.userData.camera_props.angle_xy);
-      //    rayMesh.rotation.y = THREE.Math.degToRad(videocamera.userData.camera_props.angle_z);
-      //}
-      //else 
-//      {
-//        rayMesh.rotation.x = -Math.PI/2;
-//        rayMesh.rotation.y = Math.PI/4;
-//      }    
-      rayMesh.rotation.x = -Math.PI/2;
-      rayMesh.rotation.y = Math.PI/4;
+      var radiusB2 = Math.tan(videocamera.angle/2) * videocamera.far/3*2 / Math.sin(THREE.Math.degToRad(45))*1.01; //большее основание пирамиды
+      var geometry2 = new THREE.CylinderGeometry( 1, radiusB2+1, videocamera.far/3*2, 4 ); //геометрия луча
+      var rayMesh2 = new THREE.Mesh( geometry2);
+      
+      var radiusB3 = Math.tan(videocamera.angle/2) * videocamera.far/3 / Math.sin(THREE.Math.degToRad(45))*1.02; //большее основание пирамиды
+      var geometry3 = new THREE.CylinderGeometry( 1, radiusB3+1, videocamera.far/3, 4 ); //геометрия луча
+      var rayMesh3 = new THREE.Mesh( geometry3);
+        
+      rayMesh.rotation.x = rayMesh2.rotation.x = rayMesh3.rotation.x = -Math.PI/2;
+      rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = Math.PI/4;
       
       rayMesh.translateY(-videocamera.far/2);
       rayMesh.visible = false;
-      rayMesh.name = 'rayMesh';
+      rayMesh.name = 'rayMesh1';
+      
+      rayMesh2.translateY(-videocamera.far/2/3*2);
+      rayMesh2.visible = false;
+      rayMesh2.name = 'rayMesh2';
+      
+      rayMesh3.translateY(-videocamera.far/2/3);
+      rayMesh3.visible = false;
+      rayMesh3.name = 'rayMesh3';
 
       //хелпер фокуса
       var geometry = new THREE.SphereGeometry( 3, 32, 32 );
@@ -241,6 +267,8 @@ function addCameraRay(scene)
       ray_axis_x.add(videocamera);
       videocamera.add( focus );
       videocamera.add(rayMesh);
+      videocamera.add(rayMesh2);
+      videocamera.add(rayMesh3);
 
 
       if (videocamera.userData.camera_props) {
@@ -324,38 +352,76 @@ function raysShowAll(){
     roomCalculate(scene, videocameraArr[key]);
         
     if(videocameraArr[key].room){
-      drawRay(videocameraArr[key])   
+      drawRay(videocameraArr[key], '1');   
+      drawRay(videocameraArr[key], '2');
+      drawRay(videocameraArr[key], '3');
     }
 
   }
     
 }
 
-function drawRay(videocamera){
+function drawRay(videocamera, index){
   var rayBSP;
   var roomBSP;
   var newBSP;
   var newRay;
-  var rayMesh;
+  var rayMesh = null;
   var active_rayMesh;
+  var material = null;
 
-  scene.remove( scene.getObjectByName(videocamera.id + "_ray") );
+  scene.remove( scene.getObjectByName(videocamera.id + "_ray" + index) );
+  scene.remove( scene.getObjectByName(videocamera.id + "_edge" + index) );
 
-  rayMesh = videocamera.getObjectByName('rayMesh');
+  rayMesh = videocamera.getObjectByName('rayMesh' + index);
 
-  active_rayMesh = new THREE.Mesh( rayMesh.geometry.clone() );
-  active_rayMesh.position.copy(rayMesh.getWorldPosition());
-  active_rayMesh.rotation.copy(rayMesh.getWorldRotation());
+  if(rayMesh){
+    active_rayMesh = new THREE.Mesh( rayMesh.geometry.clone() );
+    active_rayMesh.position.copy(rayMesh.getWorldPosition());
+    active_rayMesh.rotation.copy(rayMesh.getWorldRotation());
 
-  rayBSP = new ThreeBSP( active_rayMesh );
-  roomBSP = new ThreeBSP( videocamera.room );
-  newBSP = roomBSP.intersect( rayBSP );
 
-  newRay = newBSP.toMesh( rayMaterial );
-  newRay.name = videocamera.id + "_ray";
+    rayBSP = new ThreeBSP( active_rayMesh );
+    roomBSP = new ThreeBSP( videocamera.room );
+    newBSP = roomBSP.intersect( rayBSP );
 
-  scene.add( newRay ); 
-  newRay = newBSP = roomBSP = rayBSP = active_rayMesh = rayMesh = null;
+    switch (index) {
+      case '1':
+        var material = rayMaterial;
+        break;
+      case '2':
+        var material = rayMaterial2;
+        break;
+      case '3':
+        var material = rayMaterial3;
+        break;
+
+    }
+
+    newRay = newBSP.toMesh( material );
+    newRay.name = videocamera.id + "_ray" + index;
+
+
+    scene.add( newRay ); 
+    
+    if(index == '1'){
+      var edges = new THREE.EdgesGeometry( newRay.geometry );
+
+					var line = new THREE.LineSegments( edges );
+					line.material.depthTest = false;
+					line.material.opacity = 0.25;
+					line.material.transparent = true;
+      line.position.copy(newRay.getWorldPosition());
+      line.rotation.copy(newRay.getWorldRotation()); 
+      line.name = videocamera.id + "_edge" + index;
+			scene.add( line );
+    }
+					
+          
+          
+
+    newRay = newBSP = roomBSP = rayBSP = active_rayMesh = rayMesh = line = null;
+  }
 
 }
 function roomCalculate(scene, videocamera)
@@ -462,7 +528,7 @@ function roomCalculate(scene, videocamera)
 	material.transparent = true;
 	var ExtrudeMesh = new THREE.Mesh( geometry, material ) ;
 	ExtrudeMesh.rotateX( Math.PI/2 );
-	ExtrudeMesh.translateZ ( - videocamera.roomHeight );
+	ExtrudeMesh.translateZ ( - videocamera.roomHeight-2 );//-2 убрать артефакт пересечения с полом
 	videocamera.room = ExtrudeMesh;
   } else {
 	videocamera.room = null;
@@ -491,7 +557,9 @@ function updateCameraRay()
      active_camera.updateDimesions();
      active_camera.updateInformation();
     
-	  drawRay(active_camera);
+	  drawRay(active_camera, '1');
+    drawRay(active_camera, '2');
+    drawRay(active_camera, '3');
 	} 
   }
   
@@ -564,16 +632,24 @@ function onKeyUpCam ( event )
       },500);
       break; 
     case 87:/*w*/  
-      isMoveRay = false;
+      setTimeout(function(){
+        isMoveRay = false;
+      },500);
       break;
     case 83:/*s*/ 
-      isMoveRay = false;
+      setTimeout(function(){
+        isMoveRay = false;
+      },500);
       break;
     case 65:/*a*/ 
-      isMoveRay = false;
+      setTimeout(function(){
+        isMoveRay = false;
+      },500);
       break;
     case 68:/*d*/ 
-      isMoveRay = false;
+      setTimeout(function(){
+        isMoveRay = false;
+      },500);
       break; 
   }
 }
