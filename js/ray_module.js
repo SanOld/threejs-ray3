@@ -411,6 +411,7 @@ function drawRay(videocamera, index){
 					line.material.depthTest = false;
 					line.material.opacity = 0.25;
 					line.material.transparent = true;
+          line.material.color = new THREE.Color('black');
       line.position.copy(newRay.getWorldPosition());
       line.rotation.copy(newRay.getWorldRotation()); 
       line.name = videocamera.id + "_edge" + index;
