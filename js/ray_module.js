@@ -49,8 +49,10 @@ function test_cams() {
 	  group.userData.is_camera = true;
 	  group.position.y = 140;
 	  group.position.x = 250;
-
-	  scene.add( group );
+    group.name = 'load';
+    var externGroup = new THREE.Group();
+    externGroup.add( group );
+	  scene.add( externGroup );
    
 //	for(var p = 1; p <= 10; p++){
 //
