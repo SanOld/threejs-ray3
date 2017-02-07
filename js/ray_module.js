@@ -786,7 +786,7 @@ function onDocumentMouseDownCam( event )
   var click_cam = undefined;
   // найдем камеру среди кликнутых объктов:
   if(intersects.length > 0 && active_camera !== intersects[ 0 ].object){
-	if ('name' in intersects[ 0 ].object && intersects[ 0 ].object['userData'].is_camera == true /*intersects[ 0 ].object['name'] == videocameraName*/) {
+	if ('name' in intersects[ 0 ].object && intersects[ 0 ].object['userData'].is_camera == true ) {
 		click_cam = intersects[ 0 ].object;
 	}
   }  
@@ -800,9 +800,9 @@ function onDocumentMouseDownCam( event )
 			break;
 		}	
 
-		if (intersects[i].object.parent && intersects[i].object.parent.userData && intersects[i].object.parent.userData.is_camera)	
+		if (intersects[i].object.parent.parent && intersects[i].object.parent.parent.userData && intersects[i].object.parent.parent.userData.is_camera)	
 		{
-			click_cam = intersects[i].object.parent;
+			click_cam = intersects[i].object.parent.parent;
 			break;
 		}	
 	  }	
@@ -813,8 +813,8 @@ function onDocumentMouseDownCam( event )
 	//console.log(click_cam);
 	if ('name' in click_cam && click_cam['userData'].is_camera == true) {
 	  if ( active_camera && active_camera['currentMaterial']){
-		if (active_camera.children[0].material)
-			active_camera.children[0].material.color = ( active_camera.currentMaterial.color );
+		if (active_camera.children[0].children[0].material)
+			active_camera.children[0].children[0].material.color = ( active_camera.currentMaterial.color );
 		showFocus();
 		active_camera.getObjectByName('focus').visible = false;
     
@@ -825,9 +825,9 @@ function onDocumentMouseDownCam( event )
     
 	  active_camera = click_cam;
 	  active_camera.currentMaterial = {};
-	  if (active_camera.children[0].material) {
-      active_camera.currentMaterial.color = active_camera.children[0].material.color;
-      active_camera.children[0].material.color =  new THREE.Color( 'red' );
+	  if (active_camera.children[0].children[0].material) {
+      active_camera.currentMaterial.color = active_camera.children[0].children[0].material.color;
+      active_camera.children[0].children[0].material.color =  new THREE.Color( 'red' );
 	  }	
 	  else {
       active_camera.currentMaterial.color = 'green';
@@ -846,7 +846,7 @@ function onDocumentMouseDownCam( event )
 	}
 	
 	if(click_cam['userData'].is_camera == true){
-	  click_cam.children[0].color =  new THREE.Color( 'red' );
+	  click_cam.children[0].children[0].color =  new THREE.Color( 'red' );
 	}
 	
   } 

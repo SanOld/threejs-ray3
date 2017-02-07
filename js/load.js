@@ -43,24 +43,26 @@ function loadCamera(){
         object.traverse( function ( child ) {
           
 						if ( child instanceof THREE.Mesh ) {
-              child.material = new THREE.MeshLambertMaterial( {color: 0xffff00} );
-              
-//              child.userData.is_camera = true;
-              child.fscale = 100;
-              child.scale.set(child.fscale,child.fscale,child.fscale)
-              child.position.y -= 25;
-              child.position.z += 10;
-              child.rotation.x -= Math.PI/8
-              
+              child.material = new THREE.MeshLambertMaterial( {color: 0xffff00} ); 
 						}
             
 				});
-
-        object.userData.is_camera = true;
-        //расположение камеры
-        object.position.y = 100;
         
-        scene.add( object );   
+        //камера
+        var camera = new THREE.Group();
+        camera.userData.is_camera = true;
+        //расположение камеры
+        camera.position.y = 100;
+        camera.add( object );
+       
+       //масштабируем полученный объект
+        object.fscale = 100;
+        object.scale.set(object.fscale,object.fscale,object.fscale)
+        object.position.y -= 25;
+        object.position.z += 10;
+        object.rotation.x -= Math.PI/8
+
+        scene.add( camera );   
         
           
 			}
