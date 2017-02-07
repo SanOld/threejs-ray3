@@ -343,6 +343,23 @@ function cameraDecorator(camera){
         }
       }
     }
+    camera.getMainMesh = function()
+    {
+      var result = false;
+      
+      var group = this.getObjectByProperty('name', 'load');
+      if(group){
+        var children = group.children;
+        var i = children.length;
+        while(i--){
+          if ( children[i] instanceof THREE.Mesh ) {
+            return children[i];
+          }
+        }
+      }
+
+      return result; 
+    };
       
 }
 function raysShowAll(){
@@ -813,8 +830,8 @@ function onDocumentMouseDownCam( event )
 	//console.log(click_cam);
 	if ('name' in click_cam && click_cam['userData'].is_camera == true) {
 	  if ( active_camera && active_camera['currentMaterial']){
-		if (active_camera.children[0].children[0].material)
-			active_camera.children[0].children[0].material.color = ( active_camera.currentMaterial.color );
+		if (active_camera.getMainMesh().material)
+			active_camera.getMainMesh().material.color = ( active_camera.currentMaterial.color );
 		showFocus();
 		active_camera.getObjectByName('focus').visible = false;
     
@@ -825,9 +842,9 @@ function onDocumentMouseDownCam( event )
     
 	  active_camera = click_cam;
 	  active_camera.currentMaterial = {};
-	  if (active_camera.children[0].children[0].material) {
-      active_camera.currentMaterial.color = active_camera.children[0].children[0].material.color;
-      active_camera.children[0].children[0].material.color =  new THREE.Color( 'red' );
+	  if (active_camera.getMainMesh().material) {
+      active_camera.currentMaterial.color = active_camera.getMainMesh().material.color;
+      active_camera.getMainMesh().material.color =  new THREE.Color( 'red' );
 	  }	
 	  else {
       active_camera.currentMaterial.color = 'green';
@@ -846,7 +863,7 @@ function onDocumentMouseDownCam( event )
 	}
 	
 	if(click_cam['userData'].is_camera == true){
-	  click_cam.children[0].children[0].color =  new THREE.Color( 'red' );
+	  click_cam.getMainMesh().color =  new THREE.Color( 'red' );
 	}
 	
   } 

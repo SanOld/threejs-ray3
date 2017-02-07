@@ -56,11 +56,13 @@ function loadCamera(){
         camera.add( object );
        
        //масштабируем полученный объект
+        object.name = 'load';
         object.fscale = 100;
         object.scale.set(object.fscale,object.fscale,object.fscale)
         object.position.y -= 25;
         object.position.z += 10;
         object.rotation.x -= Math.PI/8
+        
 
         scene.add( camera );   
         
