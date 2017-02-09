@@ -48,59 +48,40 @@ function loadCamera(){
 
 				});
 
-        //камера
-        var camera = new THREE.Group();
-        camera.userData.is_camera = true;
-        //расположение камеры
-//        camera.position.y = 100;
-        camera.add( object );
 
-       //масштабируем полученный объект
-        object.name = 'load';
-        object.fscale = 100;
-        object.scale.set(object.fscale,object.fscale,object.fscale)
-        object.position.y -= 25;
-        object.position.z += 10;
-        object.rotation.x -= Math.PI/8
-
-
-        scene.add( camera );
-
-
-        camera.position.y = 100;
-        camera.position.z = -110;
-        camera.position.x = -110;
-        camera.userData.camera_props = {
+        object.userData.is_camera = true;
+        object.userData.camera_props = {
           angle: 30,
           far: 100,
           roomHeight: 150 ,
-          camera_off_y : 9.8,
-          camera_off_z : -2,
+          camera_off_y : 9.8/40,
+          camera_off_z : -2/40,
           camera_off_x : 0 ,
 		      camera_start_angle : 25 ,
           angle_xy : 45,
           angle_z : 0};
 
+        //масштабируем полученный объект
+        object.name = 'load';
+        object.fscale = 40;
+        object.scale.set(object.fscale,object.fscale,object.fscale)
+        object.position.y = 100;
+        object.position.z = -110;
+        object.position.x = -110;
+        object.rotation.y = Math.PI/4;
+        object.rotation.x = 0;
+        object.rotation.z = 0;
 
-//==============================
         var obj2 = object.clone();
-        var cam = new THREE.Group();
-        cam.userData = {};
-        cam.userData.is_camera = true;
-        cam.userData.name = '123'
-
-
-
         obj2.fscale = 200;
-        obj2.scale.set(obj2.fscale,obj2.fscale,obj2.fscale)
+        obj2.scale.set(obj2.fscale,obj2.fscale,obj2.fscale);
         obj2.userData = JSON.parse(JSON.stringify(object.userData));
         obj2.position.y = 90;
         obj2.position.z = 100;
         obj2.position.x = 100;
-        debugger;
-//        obj2.rotation.x = 0; //Math.PI/8;
-//        obj2.rotation.z = 0; //Math.PI/8;
-//        obj2.rotation.y = Math.PI/2;
+        obj2.rotation.x = 0; //Math.PI/8;
+        obj2.rotation.z = 0; //Math.PI/8;
+        obj2.rotation.y = Math.PI/2;
         obj2.userData.camera_props = {
           angle: 60,
           far: 100,
@@ -112,9 +93,10 @@ function loadCamera(){
           angle_xy : 90,
           angle_z : 0};
 
-cam.add( obj2 );
-scene.add( cam );
-			}
+        scene.add( object );
+        scene.add( obj2 );
+
+		}
 
 		);
 
