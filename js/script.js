@@ -23,16 +23,16 @@ function initMain()
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera) ;
 	camera.position.set(400,400,400);
-	camera.lookAt(scene.position);	
+	camera.lookAt(scene.position);
 	// RENDERER
 	if ( Detector.webgl )
 		renderer = new THREE.WebGLRenderer( {antialias:true} );
 	else
-		renderer = new THREE.CanvasRenderer(); 
+		renderer = new THREE.CanvasRenderer();
 	renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
   container = document.createElement( 'div' );
 	document.body.appendChild( container );
-        
+
 //	container = document.getElementById( 'ThreeJS' );
 	container.appendChild( renderer.domElement );
 	// EVENTS
@@ -50,9 +50,9 @@ function initMain()
 var light = new THREE.PointLight(0xffffff);
 	light.position.set(0,250,0);
 	scene.add(light);
-  
+
 	// FLOOR
-  
+
   // instantiate a loader
 var loader = new THREE.TextureLoader();
 
@@ -64,7 +64,7 @@ loader.load(
 	function ( floorTexture ) {
 		// do something with the texture
 //      var floorTexture = new THREE.ImageUtils.loadTexture( '../textures/brick_bump.jpg' );
-      floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
+      floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
       floorTexture.repeat.set( 10, 10 );
       var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
       var floorGeometry = new THREE.PlaneBufferGeometry(1000, 1000, 10, 10);
@@ -88,21 +88,21 @@ loader.load(
 	var skyBoxGeometry = new THREE.BoxGeometry( 10000, 10000, 10000 );
 	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
 	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
-	scene.add(skyBox); 
+	scene.add(skyBox);
 
     controls = new THREE.OrbitControls( camera, renderer.domElement );
-	//  controls.enabled = false;  
+	//  controls.enabled = false;
 
-	window.addEventListener( 'resize', onWindowResize, false );  
-	
+	window.addEventListener( 'resize', onWindowResize, false );
+
 }
 
-// FUNCTIONS 		
-function init() 
+// FUNCTIONS
+function init()
 {
 
 	initMain();
-//  
+//
 //	////////////
 //	// CUSTOM //
 //	////////////
@@ -116,8 +116,8 @@ function init()
   );
   ceiling.position.y = 130;
   ceiling.rotation.x = Math.PI/2;
-  
-  
+
+
   var w1 = new THREE.Mesh(
 //    new THREE.BoxBufferGeometry( 500, 150, 10 ),
     new THREE.BoxGeometry( 500, 150, 10 ),
@@ -130,7 +130,7 @@ function init()
   w2.position.y = 75;
   w2.rotateY ( Math.PI/2 );
   w2.position.z = 250+5;
-  
+
   var w3 = new THREE.Mesh(
 //    new THREE.BoxBufferGeometry( 30, 150, 30 ),
     new THREE.BoxGeometry( 30, 150, 30 ),
@@ -139,19 +139,19 @@ function init()
   );
   w3.position.y = 75;
   w3.position.z = -125;
-  
+
 
   w2.position.z += -500;
   w1.position.z += -500;
-  
+
   var w4 = w2.clone();
   w4.geometry = new THREE.BoxGeometry( 200, 150, 10 );
-  
-  w4.position.x += 200; 
-  w4.position.z -= 150; 
- 
+
+  w4.position.x += 200;
+  w4.position.z -= 150;
+
   w4.rotation.y = Math.PI/4;
-  
+
   w1.name = w2.name = w3.name = w4.name ='wall';
 
   var w11 = w1.clone();
@@ -160,7 +160,7 @@ function init()
   var w14 = w4.clone();
   var wire_material =  new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } )
   w11.material = w12.material = w13.material = w14.material = wire_material;
-  
+
   scene.add(w11, w12, w13, w14);
   scene.add( w1, w2, w3, w4 );
   scene.add(ceiling);
@@ -185,24 +185,24 @@ $arcWall.add( scene, wall );
 
 }
 
-function animate() 
+function animate()
 {
   requestAnimationFrame( animate );
   update();
-	render();		
+	render();
 }
 
-function update() 
+function update()
 {
   updateCameraRay();
 }
 
-function render() 
+function render()
 {
 	renderer.render( scene, camera );
 }
 
-function onDocumentMouseWheel( event ) 
+function onDocumentMouseWheel( event )
 {
   camera.fov += event.deltaY * 0.05;
   camera.updateProjectionMatrix();

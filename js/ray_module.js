@@ -274,7 +274,9 @@ function addCameraRay(scene)
 
 
       if (videocamera.userData.camera_props) {
-        videocamera.rotateX(THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
+        videocamera.parent.rotateX(THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
+        videocamera.parent.parent.rotateY(THREE.Math.degToRad(videocamera.userData.camera_props.angle_xy) );
+        videocamera.rotateZ(THREE.Math.degToRad(videocamera.userData.camera_props.angle_z) );
         videocamera.position.y += videocamera.userData.camera_props.camera_off_y;
         videocamera.position.z += videocamera.userData.camera_props.camera_off_z;
         videocamera.position.x += videocamera.userData.camera_props.camera_off_x;
@@ -558,16 +560,16 @@ function updateCameraRay()
 
   }
   if(isMoveRay){
-	 if(active_camera && active_camera.room){
+    if(active_camera && active_camera.room){
 
-     //обновление примечания
-     active_camera.updateDimesions();
-     active_camera.updateInformation();
+      //обновление примечания
+      active_camera.updateDimesions();
+      active_camera.updateInformation();
 
-	  drawRay(active_camera, '1');
-    drawRay(active_camera, '2');
-    drawRay(active_camera, '3');
-	}
+      drawRay(active_camera, '1');
+      drawRay(active_camera, '2');
+      drawRay(active_camera, '3');
+    }
   }
 
 }

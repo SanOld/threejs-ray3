@@ -82,7 +82,38 @@ function loadCamera(){
           angle_z : 0};
 
 
+//==============================
+        var obj2 = object.clone();
+        var cam = new THREE.Group();
+        cam.userData = {};
+        cam.userData.is_camera = true;
+        cam.userData.name = '123'
 
+
+
+        obj2.fscale = 200;
+        obj2.scale.set(obj2.fscale,obj2.fscale,obj2.fscale)
+        obj2.userData = JSON.parse(JSON.stringify(object.userData));
+        obj2.position.y = 90;
+        obj2.position.z = 100;
+        obj2.position.x = 100;
+        debugger;
+//        obj2.rotation.x = 0; //Math.PI/8;
+//        obj2.rotation.z = 0; //Math.PI/8;
+//        obj2.rotation.y = Math.PI/2;
+        obj2.userData.camera_props = {
+          angle: 60,
+          far: 100,
+          roomHeight: 150 ,
+          camera_off_y : 9.8/40,
+          camera_off_z : -2/40,
+          camera_off_x : 0 ,
+		      camera_start_angle : 25 ,
+          angle_xy : 90,
+          angle_z : 0};
+
+cam.add( obj2 );
+scene.add( cam );
 			}
 
 		);
