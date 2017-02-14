@@ -377,6 +377,15 @@ function cameraDecorator(camera)
           }
         }
       }
+      if(this.traverse){
+        var items = this.children;
+        var i = items.length;
+        while(--i){
+          if(items[i]['note_type']){
+            this.remove(items[i]);
+          }
+        }
+      }
     }
     camera.getMainMesh = function()
     {
@@ -395,6 +404,12 @@ function cameraDecorator(camera)
 
       return result;
     };
+    camera.removeRay = function(){
+      var index = 4;
+      while(--index){
+        scene.remove( scene.getObjectByName(camera.id + "_ray" + index) );
+      }
+    }
 
 }
 function raysShowAll()
@@ -733,7 +748,9 @@ function onKeyDownCam ( event )
       break;
     case 82: /*r*/
       if(active_camera){
-        scene.remove( scene.getObjectByName(active_camera.id + "_ray") );
+
+        active_camera.removeRay();
+
         if ( active_camera['currentMaterial']){
           if (active_camera.children[0].material)
           	active_camera.children[0].material.color = ( active_camera.currentMaterial.color );
