@@ -72,7 +72,8 @@ function loadCamera(){
         object.rotation.x = 0;
         object.rotation.z = 0;
 
-        var obj2 = object.clone();
+        var obj2 = new THREE.Object3D();
+        obj2.copy(object);
         obj2.fscale = 200;
         obj2.scale.set(obj2.fscale,obj2.fscale,obj2.fscale);
         obj2.userData = JSON.parse(JSON.stringify(object.userData));
@@ -95,6 +96,31 @@ function loadCamera(){
 
         scene.add( object );
         scene.add( obj2 );
+
+
+         var obj3 = new THREE.Object3D();
+        obj3.copy(object);
+        obj3.fscale = 200;
+        obj3.scale.set(obj3.fscale,obj3.fscale,obj3.fscale);
+        obj3.userData = JSON.parse(JSON.stringify(object.userData));
+        obj3.position.y = 0;
+        obj3.position.z = 100;
+        obj3.position.x = 0;
+        obj3.rotation.x = 0; //Math.PI/8;
+        obj3.rotation.z = 0; //Math.PI/8;
+        obj3.rotation.y = 0;
+        obj3.userData.camera_props = {
+          angle: 0,
+          far: 100,
+          roomHeight: 150 ,
+          camera_off_y : 9.8/40,
+          camera_off_z : -2/40,
+          camera_off_x : 0 ,
+		      camera_start_angle : 25 ,
+          angle_xy : 0,
+          angle_z : 0};
+
+        scene.add( obj3 );
 
 		}
 

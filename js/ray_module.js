@@ -173,18 +173,54 @@ function getRay2d(videocamera)
   return contour.vertices;
 }
 
-function arrowHelperAdd(obj, dir, hex)
+function arrowHelperAdd(obj, dir, hex, length)
 {
-
   var dir = dir || new THREE.Vector3( 0, 0, 1 );
   var hex = hex || 0xffff00;
   dir.normalize();
   var origin = new THREE.Vector3( 0, 0, 0 );
-  var length = 35;
-  //if (obj.parent && obj.parent.fscale != undefined )
-  //	length = length / obj.parent.fscale;
+  var length = length|| 35;
   var arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
   obj.add( arrowHelper );
+}
+
+function cameraWrapper(videocamera_one){
+    //камера
+    var camera_g = new THREE.Group();
+    camera_g.userData = JSON.parse(JSON.stringify(videocamera_one.userData));
+		videocamera_one.userData.is_camera = false;
+		camera_g.userData.is_cam_group = true;
+		camera_g.fscale = videocamera_one.fscale;
+		//debugger;
+    //расположение камеры
+
+    camera_g.position.copy(videocamera_one.getWorldPosition());
+    camera_g.rotation.copy(videocamera_one.getWorldRotation());
+    videocamera_one.position.set(0,0,0);
+    videocamera_one.rotation.set(0,0,0);
+
+    var X = camera_g.userData.camera_props.camera_off_x * camera_g.fscale;
+    var Y = camera_g.userData.camera_props.camera_off_y * camera_g.fscale;
+    var Z = camera_g.userData.camera_props.camera_off_z * camera_g.fscale;
+    var rX = THREE.Math.degToRad(camera_g.userData.camera_props.camera_start_angle);
+
+
+	  camera_g.position.y += Y;
+		camera_g.position.x += X;
+		camera_g.position.z += Z;
+//    camera_g.rotateX( rX ); //вращать нельзя!!!
+
+	  videocamera_one.position.y -= Y;
+		videocamera_one.position.x -= X;
+		videocamera_one.position.z -= Z;
+    videocamera_one.rotateX( -rX );
+
+    videocamera_one.matrixWorldNeedsUpdate = true;
+    camera_g.matrixWorldNeedsUpdate = true;
+
+    camera_g.add( videocamera_one );
+
+    return camera_g;
 }
 
 function addCameraRay(scene)
@@ -202,122 +238,84 @@ function addCameraRay(scene)
 		allCamArr.push(videocamera_one);
   });
 
-//  scene.traverse(function(videocamera_one){
-//	scene.children.forEach(function(videocamera_one, idx) {
-//      if(videocamera_one.userData.is_camera == true && videocamera_one.parent.name != 'ray_axis_x'){
-  allCamArr.forEach(function(videocamera_one, idx) {
+  allCamArr.forEach(function(videocamera_one, idx)
 		{
+      //камера
+	    var videocamera = cameraWrapper(videocamera_one);
 
-        //камера
-        var camera_g = new THREE.Group();
-        camera_g.userData = JSON.parse(JSON.stringify(videocamera_one.userData));
-		videocamera_one.userData.is_camera = false;
-		camera_g.userData.is_cam_group = true;
-		camera_g.fscale = videocamera_one.fscale;
-		//debugger;
-        //расположение камеры
-        camera_g.position.y = videocamera_one.position.y;
-        camera_g.position.x = videocamera_one.position.x;
-		camera_g.position.z = videocamera_one.position.z;
-
-		camera_g.rotation.y = videocamera_one.rotation.y;
-        camera_g.rotation.x = videocamera_one.rotation.x;
-		camera_g.rotation.z = videocamera_one.rotation.z;
-
-		videocamera_one.rotation.y = 0;
-		videocamera_one.rotation.x = 0;
-		videocamera_one.rotation.z = 0;
-
-		videocamera_one.position.y = 0;
-		videocamera_one.position.x = 0;
-		videocamera_one.position.z = 0;
-
-		camera_g.add( videocamera_one );
-        scene.add( camera_g );
-		scene.remove(videocamera_one);
-
-	    var videocamera = camera_g;
-
-
-	    videocamera.position.y += videocamera.userData.camera_props.camera_off_y * videocamera.fscale;
-		videocamera.position.x += videocamera.userData.camera_props.camera_off_x * videocamera.fscale;
-		videocamera.position.z += videocamera.userData.camera_props.camera_off_z * videocamera.fscale;
-
-	    videocamera_one.position.y -= videocamera.userData.camera_props.camera_off_y * videocamera.fscale;
-		videocamera_one.position.x -= videocamera.userData.camera_props.camera_off_x * videocamera.fscale;
-		videocamera_one.position.z -= videocamera.userData.camera_props.camera_off_z * videocamera.fscale;
-
-  	    videocamera.rotateX(THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
-  	    videocamera_one.rotateX(-THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
-
+      scene.add( videocamera );
 
   	  videocamera.name = videocameraName;
       videocameraArr.push(videocamera);
 
       videocamera.roomHeight = roomHeight;
-      if (videocamera.userData.camera_props)
-		videocamera.roomHeight = videocamera.userData.camera_props.roomHeight;
       videocamera.near = near;
+      videocamera.far = far;
+      videocamera.angle = angle;
+
       if (videocamera.userData.camera_props)
-		videocamera.far = videocamera.userData.camera_props.far;
-      else
-		videocamera.far = far;
+        videocamera.roomHeight = videocamera.userData.camera_props.roomHeight;
       if (videocamera.userData.camera_props)
-		videocamera.angle = THREE.Math.degToRad(videocamera.userData.camera_props.angle);
-      else
-		videocamera.angle = angle;
+        videocamera.far = videocamera.userData.camera_props.far;
+      if (videocamera.userData.camera_props)
+        videocamera.angle = THREE.Math.degToRad(videocamera.userData.camera_props.angle);
 
-     //луч
-      var radiusB = Math.tan(videocamera.angle/2) * videocamera.far / Math.sin(THREE.Math.degToRad(45)); //большее основание пирамиды
-      var geometry = new THREE.CylinderGeometry( 1, radiusB+1, videocamera.far, 4 ); //геометрия луча
-      var rayMesh = new THREE.Mesh( geometry );
+      //луч
+      {
+       var radiusB = Math.tan(videocamera.angle/2) * videocamera.far / Math.sin(THREE.Math.degToRad(45)); //большее основание пирамиды
+       var geometry = new THREE.CylinderGeometry( 1, radiusB+1, videocamera.far, 4 ); //геометрия луча
+       var rayMesh = new THREE.Mesh( geometry );
 
-      var radiusB2 = Math.tan(videocamera.angle/2) * videocamera.far/3*2 / Math.sin(THREE.Math.degToRad(45))*1.01; //большее основание пирамиды
-      var geometry2 = new THREE.CylinderGeometry( 1, radiusB2+1, videocamera.far/3*2, 4 ); //геометрия луча
-      var rayMesh2 = new THREE.Mesh( geometry2);
+       var radiusB2 = Math.tan(videocamera.angle/2) * videocamera.far/3*2 / Math.sin(THREE.Math.degToRad(45))*1.01; //большее основание пирамиды
+       var geometry2 = new THREE.CylinderGeometry( 1, radiusB2+1, videocamera.far/3*2, 4 ); //геометрия луча
+       var rayMesh2 = new THREE.Mesh( geometry2);
 
-      var radiusB3 = Math.tan(videocamera.angle/2) * videocamera.far/3 / Math.sin(THREE.Math.degToRad(45))*1.02; //большее основание пирамиды
-      var geometry3 = new THREE.CylinderGeometry( 1, radiusB3+1, videocamera.far/3, 4 ); //геометрия луча
-      var rayMesh3 = new THREE.Mesh( geometry3);
+       var radiusB3 = Math.tan(videocamera.angle/2) * videocamera.far/3 / Math.sin(THREE.Math.degToRad(45))*1.02; //большее основание пирамиды
+       var geometry3 = new THREE.CylinderGeometry( 1, radiusB3+1, videocamera.far/3, 4 ); //геометрия луча
+       var rayMesh3 = new THREE.Mesh( geometry3);
 
-      rayMesh.rotation.x = rayMesh2.rotation.x = rayMesh3.rotation.x = -Math.PI/2;
-      rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = Math.PI/4;
+       rayMesh.rotation.x = rayMesh2.rotation.x = rayMesh3.rotation.x = -Math.PI/2;
+       rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = Math.PI/4;
 
-      rayMesh.translateY(-videocamera.far/2);
-      rayMesh.visible = false;
-      rayMesh.name = 'rayMesh1';
+       rayMesh.translateY(-videocamera.far/2);
+       rayMesh.visible = false;
+       rayMesh.name = 'rayMesh1';
 
-      rayMesh2.translateY(-videocamera.far/2/3*2);
-      rayMesh2.visible = false;
-      rayMesh2.name = 'rayMesh2';
+       rayMesh2.translateY(-videocamera.far/2/3*2);
+       rayMesh2.visible = false;
+       rayMesh2.name = 'rayMesh2';
 
-      rayMesh3.translateY(-videocamera.far/2/3);
-      rayMesh3.visible = false;
-      rayMesh3.name = 'rayMesh3';
-
+       rayMesh3.translateY(-videocamera.far/2/3);
+       rayMesh3.visible = false;
+       rayMesh3.name = 'rayMesh3';
+      }
       //хелпер фокуса
+        {
       var geometry = new THREE.SphereGeometry( 3, 32, 32 );
       var material = new THREE.MeshBasicMaterial( {color: 0xff00ff} );
       var focus = new THREE.Mesh( geometry, material );
       focus.name = 'focus';
       focus.position.z = videocamera.far + 5;
       focus.visible = false;
-
+      }
       //ось вращения1
       var ray_axis_x = new THREE.Object3D();
       ray_axis_x.name = 'ray_axis_x';
+      ray_axis_x.rotateX( THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
 
       //ось вращения2
       var ray_axis_y = new THREE.Object3D();
       ray_axis_y.name = 'ray_axis_y';
 
-      videocamera.getWorldPosition(ray_axis_y.position);
-      //videocamera.getWorldRotation(ray_axis_y.rotation);
+      ray_axis_y.position.copy(videocamera.getWorldPosition());
+      ray_axis_y.rotation.copy(videocamera.getWorldRotation());
+
       videocamera.position.set(0,0,0);
+      videocamera.rotation.set(0,0,0);
 
-	  scene.add( ray_axis_y );
+      scene.add( ray_axis_y );
 
-	  ray_axis_y.add(ray_axis_x);
+      ray_axis_y.add(ray_axis_x);
       ray_axis_x.add(videocamera);
       videocamera.add( focus );
       videocamera.add(rayMesh);
@@ -325,18 +323,18 @@ function addCameraRay(scene)
       videocamera.add(rayMesh3);
 
       //ось z - хелпер
-      arrowHelperAdd( videocamera, null, 'red' );
-	  //arrowHelperAdd( ray_axis_y, null, 'red' );
+      arrowHelperAdd( videocamera, null, 'red', 35 );
+//      arrowHelperAdd( ray_axis_x, null, 'blue', 30 );
+//      arrowHelperAdd( ray_axis_x, ray_axis_x.up, 'blue', 30 );
+//      arrowHelperAdd( ray_axis_y, null, 'green', 25);
+//      arrowHelperAdd( ray_axis_y, ray_axis_y.up, 'green', 25);
       //ось z - хелпер
 
-      //наверное здесь это правильнее
 	  //Дополнительный функционал для камеры
       cameraDecorator(videocamera);
 
-	}
+	});
 
-
-  });
 
   //Отобразить все лучи
   setTimeout(raysShowAll, 500);
@@ -348,12 +346,13 @@ function addCameraRay(scene)
 //  document.addEventListener( 'wheel', onDocumentMouseWheelCam, false );
 }
 
-function cameraDecorator(camera){
+function cameraDecorator(camera)
+{
 
     camera.updateDimesions = function()
     {
 
-      this.traverse(function(item){
+      this.parent.parent.traverse(function(item){
         if(item['note_type'] && item['note_type'] == 'dimension')
           item.update();
       })
@@ -368,12 +367,13 @@ function cameraDecorator(camera){
     camera.noteRemoveAll = function()
     {
       //удаление примечаний
-      if(this.traverse){
-        var items = this.children;
+      var obj = this.parent.parent;
+      if(obj.traverse){
+        var items = obj.children;
         var i = items.length;
         while(--i){
           if(items[i]['note_type']){
-            this.remove(items[i]);
+            obj.remove(items[i]);
           }
         }
       }
@@ -397,7 +397,8 @@ function cameraDecorator(camera){
     };
 
 }
-function raysShowAll(){
+function raysShowAll()
+{
 
   for(var key in videocameraArr){
 
@@ -413,7 +414,8 @@ function raysShowAll(){
 
 }
 
-function drawRay(videocamera, index){
+function drawRay(videocamera, index)
+{
   var rayBSP;
   var roomBSP;
   var newBSP;
@@ -838,10 +840,10 @@ function onDocumentMouseDownCam( event )
   //if(intersects.length > 0)
   //  console.log(intersects);
 
-  var click_cam = undefined;
+  var click_cam = null;
   // найдем камеру среди кликнутых объктов:
   if(intersects.length > 0 && active_camera !== intersects[ 0 ].object){
-	if ('name' in intersects[ 0 ].object && intersects[ 0 ].object['userData'].is_camera == true ) {
+	if ('name' in intersects[ 0 ].object && intersects[ 0 ].object['userData'].is_camera === true ) {
 		click_cam = intersects[ 0 ].object;
 	}
   }
@@ -849,7 +851,7 @@ function onDocumentMouseDownCam( event )
   if (!click_cam) {
 	  for(var i = 0; i < intersects.length; i++)
 	  {
-		if (intersects[i].object && intersects[i].object.userData && intersects[i].object['userData'].is_camera == true)
+		if (intersects[i].object && intersects[i].object.userData && intersects[i].object['userData'].is_camera === true)
 		{
 			click_cam = intersects[i].object;
 			break;
@@ -959,18 +961,17 @@ function onDocumentMouseDownCam( event )
 			//локальные/мировые координаты фокуса
 			var wPos = newFocus.getWorldPosition();
 			var lPos = new THREE.Vector3();
-			active_camera.worldToLocal(lPos.copy(wPos));
+			active_camera.parent.parent.worldToLocal(lPos.copy(wPos));
 
 			//сдвиг осей камеры
-			active_camera.parent.lookAt(new THREE.Vector3(active_camera.position.x, lPos.y ,lPos.z));
-			active_camera.parent.parent.lookAt(new THREE.Vector3(wPos.x, active_camera.position.y, wPos.z));
+			active_camera.parent.lookAt(new THREE.Vector3(active_camera.parent.position.x, lPos.y ,lPos.z));
+			active_camera.parent.parent.lookAt(new THREE.Vector3(wPos.x, active_camera.parent.parent.position.y, wPos.z));
 
 			showRay();
 
 		  } );
 
 	  }
-
 
   }
   //фокус активной камеры
@@ -991,8 +992,6 @@ function onDocumentMouseUpCam( event )
 }
 
 //============================
-
-
 
 //Примечания
 function noteMaker( obj, message, parameters )
@@ -1227,16 +1226,14 @@ function noteCameraInfo ()
 		    text += window.opener.i18next.t('cam_angle_3d') + ' ' + Math.ceil(THREE.Math.radToDeg(self.obj.angle)) + ' ' + window.opener.i18next.t('cam_angle_degrees_3d') + ' \n';
 		    text += window.opener.i18next.t('cam_angle_vert_3d') + ' ' + self.getAngleVert() + '\n';
 		    text += window.opener.i18next.t('cam_angle_hor_3d') + ' ' + self.getAngleGorizont() + '\n';
-		    text += window.opener.i18next.t('cam_level_3d') + self.obj.getWorldPosition().y + '\n';
+		    text += window.opener.i18next.t('cam_level_3d') + Math.ceil(self.obj.getWorldPosition().y) + '\n';
 		}
 		else {
 		    text += "Объект: камера \n" ;
 		    text += "Угол обзора: " + Math.ceil(THREE.Math.radToDeg(self.obj.angle)) + " градусов\n";
 		    text += "Угол вертикальный: " + self.getAngleVert() + "\n";
 		    text += "Угол горизонтальный: " + self.getAngleGorizont() + "\n";
-		    text += "Высота: " + self.obj.getWorldPosition().y + "\n";
-        text += "X: " + self.obj.getWorldPosition().x + "\n";
-        text += "Z: " + self.obj.getWorldPosition().z + "\n";
+		    text += "Высота: " + Math.ceil(self.obj.getWorldPosition().y) + "\n";
 		}
 
     }
@@ -1303,10 +1300,11 @@ function dimension(obj, parameters)
   this.obj = obj;
   this.note_type = 'dimension';
   this.ray_point = null;
-  this.ray_distance = undefined;
-  this.gr = undefined; //группа размера
-  this.line = undefined;//линия размера
-  this.note = undefined;//примечание размера
+  this.ray_distance = Infinity;
+  this.gr = null; //группа размера
+  this.line = null;//линия размера
+  this.note = null;//примечание размера
+  this.angle = null;
 
 	if ( parameters === undefined ) parameters = {};
 	this.type2 = parameters.hasOwnProperty("type") ? parameters["type"] : "front";
@@ -1316,71 +1314,49 @@ function dimension(obj, parameters)
   this.calculate = function()
   {
     //debugger;
-	self.direction = self.obj.parent.parent.getWorldDirection();
+    self.direction = self.obj.parent.parent.getWorldDirection();
     self.position = self.obj.getWorldPosition();
     self.ray_distance = Infinity;
 
     switch (self.type2) {
       case 'front':
-        var a = new THREE.Euler( 0, 0, 0, 'YXZ' );
-        self.note_position = new THREE.Vector3( 0, 5, 50 );
+        self.angle = new THREE.Euler( 0, 0, 0, 'XYZ' );
         break;
       case 'back':
-        var a = new THREE.Euler( 0, Math.PI, 0, 'YXZ' );
-        self.note_position = new THREE.Vector3( 0, 5, -50 );
+        self.angle = new THREE.Euler( 0, Math.PI, 0, 'XYZ' );
         break;
       case 'left':
-        var a = new THREE.Euler( 0, -Math.PI/2, 0, 'YXZ' );
-        self.note_position = new THREE.Vector3( -50, 5, 0 );
+        self.angle = new THREE.Euler( 0, -Math.PI/2, 0, 'XYZ' );
         break;
       case 'right':
-        var a = new THREE.Euler( 0, Math.PI/2, 0, 'YXZ' );
-         self.note_position = new THREE.Vector3( 50, 5, 0 );
+        self.angle = new THREE.Euler( 0, Math.PI/2, 0, 'XYZ' );
         break;
     }
 
-    self.direction.applyEuler(a);
+    self.direction.applyEuler(self.angle);
 
-    var raycaster = new THREE.Raycaster(self.position, self.direction, 0, 10000 );
-      //проход по элементам сцены
-    scene.traverse(function(el){
 
-      if(el.name == 'wall'){
+    var raycaster = new THREE.Raycaster(self.position, self.direction.normalize(), 0, 10000 );
 
-        point = null;
 
-        var intersects = raycaster.intersectObject(el);
+    var intersects = raycaster.intersectObjects( scene.children );
 
-        if (intersects.length > 0) {
-          var point  = intersects[0].point;
-          var distance  = intersects[0].distance;
-        }
+    for ( var i = 0; i < intersects.length; i++ ) {
 
-        if(point){
-          if (distance < self.ray_distance){
-          self.ray_distance  = distance;
-          self.ray_point = point;
-          }
-        }
+      if(intersects[ i ].object.name == 'wall' && intersects[ i ].distance < self.ray_distance){
+
+        self.ray_distance  = intersects[ i ].distance;
+        self.ray_point = intersects[ i ].point;
+
       }
 
-    });
+    }
 
   }
-  this.update = function()
+
+  this.setNotePosition = function()
   {
-
-      self.calculate();
-
-      self.line.setLength(self.ray_distance, 10);
-      self.ray_distance = Math.ceil(self.ray_distance);
-      if(self.ray_distance == Infinity){
-        self.note.visible = false;
-      } else {
-		window.NOTE = self.note;
-        self.note.visible = true;
-      }
-      self.note.setMessage(" " + self.ray_distance.toString() + " ");
+    self.note.rotation.x += -self.gr.getWorldRotation().x;
       switch (self.type2) {
         case 'front':
           self.note_position = new THREE.Vector3( 0, 5, self.ray_distance * self.relative_position );
@@ -1402,64 +1378,48 @@ function dimension(obj, parameters)
         self.note_position.z
       );
 
+  }
+  this.update = function()
+  {
+      self.calculate();
 
-	  if (self.note.visible && self.note.parent.name != 'pivot') {
-		  //self.note.geometry.applyMatrix( new THREE.Matrix4().makeTranslation( -self.note.parent.getWorldPosition().x,
-			//						-self.note.parent.getWorldPosition().y, -self.note.parent.getWorldPosition().z ) );
-
-		  if (self.note.parent.getObjectByName('pivot')) {
-			var pivot = self.note.parent.getObjectByName('pivot');
-			pivot.add(self.note);
-		  }
-		  else
-		  {
-				  var pivot = new THREE.Object3D();
-				  pivot.name = 'pivot';
-				  self.note.parent.add(pivot);
-				  pivot.add(self.note);
-				  //pivot.rotation.y = - THREE.Math.degToRad(pivot.parent.parent.userData.camera_props.angle_xy);
-				  //console.log(pivot.parent.parent.userData.camera_props.angle_xy);
-				  pivot.rotation.y = - pivot.parent.parent.children[0].getWorldRotation().y;
-				  pivot.rotation.x = - THREE.Math.degToRad(pivot.parent.parent.userData.camera_props.camera_start_angle);
-
-				  // так не всегда срабатывает как положено
-				  //pivot.rotation.x = - pivot.parent.parent.getWorldRotation().x;
-				  //pivot.rotation.z = - pivot.parent.parent.getWorldRotation().z;
-		  }
-	  }
+      self.line.setLength(self.ray_distance, 10);
+      self.ray_distance = Math.ceil(self.ray_distance);
+      if(self.ray_distance === Infinity){
+        self.note.visible = false;
+        self.line.visible = false;
+      } else {
+        self.note.visible = true;
+        self.line.visible = true;
+      }
+      self.note.setMessage(self.ray_distance.toString());
+      self.setNotePosition();
 
 	  self.note.update();
   }
+
   this.drawRayLine = function()
   {
-    self.ray_point = self.ray_point ? self.obj.worldToLocal(self.ray_point.clone()): self.direction.floor();
-    self.ray_distance = self.ray_distance == Infinity ? 1 : self.ray_distance;
-
-    self.line = new THREE.ArrowHelper(  self.ray_point.normalize(), new THREE.Vector3(0,0,0), self.ray_distance, 'blue', 10);
-
     self.gr = new THREE.Group();
     self.gr.note_type = self.note_type;
     self.gr.update = function(){ return self.update();};
-    self.gr.add(self.line)
+    self.obj.parent.parent.add(self.gr);
+
+    var dim_direction = new THREE.Vector3(0,0,1);
+    self.line = new THREE.ArrowHelper(  dim_direction.applyEuler(self.angle).normalize(), new THREE.Vector3(0,0,0), self.ray_distance, 'blue', 10);
+    self.gr.add(self.line);
 
     self.ray_distance = Math.ceil(self.ray_distance);
-    self.note = noteAdd(self.gr, " " + self.ray_distance.toString() + " ");
+    var note = self.ray_distance === Infinity ? "aaaaa" : self.ray_distance; //резерв 5 символов
+    self.note = noteAdd(self.obj.parent.parent,note.toString());
+    self.setNotePosition();
 
-    self.note.position.set(
-      self.note_position.x,
-      self.note_position.y,
-      self.note_position.z
-    );
-
-    self.obj.add(self.gr);
     return self.gr;
-
   }
 
   this.calculate();
   return this.drawRayLine();
 }
-
 
 //Радиусная стена
 function arcWall(data) {
