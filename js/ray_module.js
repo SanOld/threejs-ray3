@@ -743,6 +743,14 @@ function onKeyDownCam ( event )
   switch( event.keyCode ) {
     case 81: /*q*/
 //      getRay2d(active_camera);
+      if(ctrl){
+        if($wallEditor.wall_mode){
+          $wallEditor.off();
+        } else {
+          $wallEditor.on();
+        }
+        break;
+      }
       break;
     case 17: /*ctrl*/
       ctrl = true;
@@ -766,6 +774,7 @@ function onKeyDownCam ( event )
       }
       break;
     case 87:/*w*/
+
       showFocus();
       isMoveRay = true;
       if(active_camera)
@@ -855,11 +864,13 @@ function onDocumentMouseDownCam( event )
   var mouse_raycaster = new THREE.Raycaster();
   mouse_raycaster.setFromCamera( mouse, camera );
 
-  //var intersects = mouse_raycaster.intersectObjects( scene.children, false );
-  var intersects = mouse_raycaster.intersectObjects(videocameraArr, true );
+  if($wallEditor.wall_mode){
 
-  //if(intersects.length > 0)
-  //  console.log(intersects);
+    var intersects = mouse_raycaster.intersectObject
+    return false;
+  }
+
+  var intersects = mouse_raycaster.intersectObjects(videocameraArr, true );
 
   var click_cam = null;
   // найдем камеру среди кликнутых объктов:
@@ -1793,3 +1804,213 @@ function arcWall(data) {
 }
 var $arcWall = {};
 arcWall($arcWall);
+
+
+//Стены
+function initEditor(obj){
+
+  var SCREEN_WIDTH = window.innerWidth;
+	var SCREEN_HEIGHT = window.innerHeight;
+	var aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+  var frustumSize = 1000;
+
+  var currentCamera;
+
+  obj.wall_mode = false;
+  obj.plane = null;
+  obj.lineHelper = null;
+  obj.lineHelperGeometry = new THREE.Geometry();
+
+
+
+
+  obj.on = function()
+  {
+    $wallEditor.wall_mode = !$wallEditor.wall_mode;
+    currentCamera = camera.clone();
+    this.cameraAdd();
+    this.planeHelperAdd();
+  }
+  obj.off = function(){
+    $wallEditor.wall_mode = !$wallEditor.wall_mode;
+    camera = currentCamera.clone();
+    controls = new THREE.OrbitControls( camera, renderer.domElement );
+    currentCamera = null;
+    scene.remove(obj.plane);
+
+  }
+
+  obj.cameraAdd = function()
+  {
+    camera = new THREE.OrthographicCamera(
+                                          frustumSize * aspect / - 2,
+                                          frustumSize * aspect / 2,
+                                          frustumSize / 2,
+                                          frustumSize / - 2,
+                                          10,
+                                          1000
+                                        );
+    camera.position.set(0, 500, 0);
+    camera.lookAt(new THREE.Vector3(0,0,0));
+  }
+
+  obj.planeHelperAdd = function(){
+    var geometry = new THREE.PlaneBufferGeometry( 1000, 1000, 32 );
+    var material = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.2,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      color: 'green'
+
+    });
+    obj.plane = new THREE.Mesh( geometry, material );
+    obj.plane.rotateX(Math.PI/2);
+    scene.add( obj.plane );
+  }
+
+  obj.lineHelperPointAdd = function(point, temp) {
+    var temp = temp || -1;
+
+
+      switch (obj.lineHelperGeometry.vertices.length) {
+        case 0:
+          if(temp == -1)
+          obj.lineHelperGeometry.vertices [0] = point;
+          break;
+        case 1:
+          obj.lineHelperGeometry.vertices.push(point);
+
+
+  //        obj.wallAdd();
+          break;
+        case 2:
+          if(temp == 1){
+            obj.lineHelperGeometry.vertices [1] = point;
+
+          } else {
+            obj.lineHelperGeometry.vertices = [];
+            obj.lineHelperGeometry.vertices.push(point);
+          }
+          break;
+
+
+    }
+
+  }
+
+  obj.wallAdd = function(vertices){
+    var line = new THREE.Line3(vertices[0],vertices[1]);
+    var length = line.distance();
+    var width = 50;
+    var height = 150;
+    var wallShape = new THREE.Shape();
+				wallShape.moveTo(  0, width/2 );
+				wallShape.lineTo(  length, width/2 );
+				wallShape.lineTo( length, -width/2 );
+				wallShape.lineTo(  0, -width/2 );
+        wallShape.lineTo(  0, width/2 );
+
+
+    var extrudeSettings = {
+      amount: height,
+      bevelEnabled: false
+    }
+
+    var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
+    var material = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.5,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      color: 'green'
+
+    });
+
+
+
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.x = -Math.PI/2;
+    mesh.translateZ( height);
+    mesh.position.set(line.start.x, 0 , line.start.z)
+    mesh.rotateZ(-line.delta().angleTo(new THREE.Vector3(1,0,0)))
+//        mesh.translateX( - theCenter.x);
+//        mesh.translateY( - theCenter.y);
+    var axis = new THREE.AxisHelper(100);
+    mesh.add(axis);
+    scene.add(mesh);
+
+  }
+
+  obj.lineHelperAdd = function(temp){
+
+    if(obj.lineHelperGeometry.vertices.length == 2){
+
+      var material = new THREE.LineBasicMaterial({ color: 0x0000ff });
+      obj.lineHelper = new THREE.Line(obj.lineHelperGeometry.clone(), material);
+
+      if(!temp){
+        obj.wallAdd(obj.lineHelperGeometry.vertices);
+        obj.lineHelperGeometry.vertices = [];
+      } else {
+
+        obj.lineHelperGeometry.vertices.length = 1;
+      }
+      scene.add(obj.lineHelper);
+    }
+  }
+
+  obj.lineHelperRemove = function(){
+    scene.remove(obj.lineHelper)
+    obj.lineHelper = null;
+  }
+
+  document.addEventListener( 'keydown', onKeyDownCam, false );
+  document.addEventListener( 'keyup', onKeyUpCam, false );
+  document.addEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
+
+
+  function onDocumentMouseDownWallEditor( event )
+  {
+    if (!obj.wall_mode)
+      return false;
+//    event.preventDefault();
+
+    document.addEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
+  //  document.addEventListener( 'mouseup', onDocumentMouseUpWallEditor, false );
+
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+   var mouse_raycaster = new THREE.Raycaster();
+    mouse_raycaster.setFromCamera( mouse, camera );
+
+    var intersectObjects = mouse_raycaster.intersectObject(obj.plane)
+    if(intersectObjects.length > 0){
+      obj.lineHelperPointAdd(intersectObjects[0].point);
+      obj.lineHelperAdd();
+    }
+
+  }
+  function onDocumentMouseMoveWallEditor(event){
+
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+		mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    var mouse_raycaster = new THREE.Raycaster();
+    mouse_raycaster.setFromCamera( mouse, camera );
+
+    var intersectObjects = mouse_raycaster.intersectObject(obj.plane)
+    if(intersectObjects.length > 0){
+      obj.lineHelperPointAdd(intersectObjects[0].point, true);
+       obj.lineHelperRemove();
+      obj.lineHelperAdd(true);
+    }
+//
+
+  }
+}
+$wallEditor = {};
+initEditor($wallEditor);
