@@ -226,6 +226,7 @@ function cameraWrapper(videocamera_one){
 function addCameraRay(scene)
 {
   var roomHeight = 150; //высота комнаты ????????
+  var floor_scale = 40;
   var near = 2; //начало видимой области
   var far = 800;//окончание видимой области
   var angle = THREE.Math.degToRad(30);//угол обзора камеры
@@ -252,6 +253,7 @@ function addCameraRay(scene)
       videocamera.near = near;
       videocamera.far = far;
       videocamera.angle = angle;
+	  videocamera.floor_scale = floor_scale;
 
       if (videocamera.userData.camera_props)
         videocamera.roomHeight = videocamera.userData.camera_props.roomHeight;
@@ -259,6 +261,8 @@ function addCameraRay(scene)
         videocamera.far = videocamera.userData.camera_props.far;
       if (videocamera.userData.camera_props)
         videocamera.angle = THREE.Math.degToRad(videocamera.userData.camera_props.angle);
+	  if (videocamera.userData.camera_props && videocamera.userData.camera_props.floor_scale)
+        videocamera.floor_scale = videocamera.userData.camera_props.floor_scale;
 
       //луч
       {
@@ -1175,8 +1179,8 @@ function noteMaker( obj, message, parameters )
 
     if(self.sprite){
       self.message = this.getMessage();
-      self.textWidth = self.getTextWidth(self.message);
-      self.fontheight = self.getFontHeight(self.context.font);
+      self.textWidth = self.getTextWidth(self.message) * 1.0;
+      self.fontheight = self.getFontHeight(self.context.font) * 1.0;
       self.addRectangle();
       self.addText();
       self.toCanvas2();
@@ -1243,14 +1247,16 @@ function noteCameraInfo ()
 		    text += window.opener.i18next.t('cam_angle_3d') + ' ' + Math.ceil(THREE.Math.radToDeg(self.obj.angle)) + ' ' + window.opener.i18next.t('cam_angle_degrees_3d') + ' \n';
 		    text += window.opener.i18next.t('cam_angle_vert_3d') + ' ' + self.getAngleVert() + '\n';
 		    text += window.opener.i18next.t('cam_angle_hor_3d') + ' ' + self.getAngleGorizont() + '\n';
-		    text += window.opener.i18next.t('cam_level_3d') + Math.ceil(self.obj.getWorldPosition().y) + '\n';
+		    //text += window.opener.i18next.t('cam_level_3d') + Math.ceil(self.obj.getWorldPosition().y / self.obj.floor_scale) + '\n';
+			text += window.opener.i18next.t('cam_level_3d') + (self.obj.getWorldPosition().y / self.obj.floor_scale - self.obj.userData.camera_props.camera_off_z).toFixed(2) + '\n';
 		}
 		else {
-		    text += "Объект: камера \n" ;
+			text += "Объект: камера \n" ;
 		    text += "Угол обзора: " + Math.ceil(THREE.Math.radToDeg(self.obj.angle)) + " градусов\n";
 		    text += "Угол вертикальный: " + self.getAngleVert() + "\n";
 		    text += "Угол горизонтальный: " + self.getAngleGorizont() + "\n";
-		    text += "Высота: " + Math.ceil(self.obj.getWorldPosition().y) + "\n";
+		    //text += "Высота: " + Math.ceil(self.obj.getWorldPosition().y / self.obj.floor_scale) + "\n";
+		    text += "Высота: " + (self.obj.getWorldPosition().y / self.obj.floor_scale - self.obj.userData.camera_props.camera_off_z).toFixed(2) + "\n";
 		}
 
     }
@@ -1259,18 +1265,27 @@ function noteCameraInfo ()
   }
 
   this.getAngleVert = function(){
-    var vector = self.obj.getWorldDirection().projectOnPlane (  new THREE.Vector3(1, 0, 0) )
+
+	/*
+	var vector = self.obj.getWorldDirection().projectOnPlane (  new THREE.Vector3(1, 0, 0) )
     var inRad = self.obj.getWorldDirection().angleTo( vector );
 //    return inRad;
     var inDeg = Math.ceil(THREE.Math.radToDeg(inRad));
+	*/
+    var vector = self.obj.getWorldDirection();
+    var inDeg = parseFloat(THREE.Math.radToDeg(Math.acos(-vector.y)).toFixed(0));
     return inDeg;
   }
 
   this.getAngleGorizont = function(){
+    /*
     var vector = self.obj.getWorldDirection().projectOnPlane (  new THREE.Vector3(0, 1, 0) )
     var inRad = self.obj.getWorldDirection().angleTo( vector );
 //    return inRad;
     var inDeg = Math.ceil(THREE.Math.radToDeg(inRad));
+	*/
+    var vector = self.obj.getWorldDirection();
+    var inDeg = parseFloat(THREE.Math.radToDeg(Math.atan2(vector.x,vector.z)).toFixed(0));
     return inDeg;
   }
 
@@ -1402,6 +1417,7 @@ function dimension(obj, parameters)
 
       self.line.setLength(self.ray_distance, 10);
       self.ray_distance = Math.ceil(self.ray_distance);
+
       if(self.ray_distance === Infinity){
         self.note.visible = false;
         self.line.visible = false;
@@ -1409,7 +1425,13 @@ function dimension(obj, parameters)
         self.note.visible = true;
         self.line.visible = true;
       }
-      self.note.setMessage(self.ray_distance.toString());
+	  if( self.ray_distance != Infinity)
+	  {
+		self.note.setMessage( (parseFloat(self.ray_distance) / self.obj.floor_scale).toFixed(2) );
+	  }
+	  else {
+		self.note.setMessage(self.ray_distance.toString());
+	  }
       self.setNotePosition();
 
 	  self.note.update();
