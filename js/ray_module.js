@@ -1244,7 +1244,7 @@ function noteSimple()
   this.note_type = 'noteSimple';
   return this.view();
 }
-function noteCameraInfo ()
+function noteCameraInfo()
 {
   var self = this;
   noteMaker.apply(this, arguments);
@@ -1807,7 +1807,7 @@ arcWall($arcWall);
 
 
 //Стены
-function initEditor(obj){
+function initWallEditor(obj){
 
   var SCREEN_WIDTH = window.innerWidth;
 	var SCREEN_HEIGHT = window.innerHeight;
@@ -1820,8 +1820,6 @@ function initEditor(obj){
   obj.plane = null;
   obj.lineHelper = null;
   obj.lineHelperGeometry = new THREE.Geometry();
-
-
 
 
   obj.on = function()
@@ -1912,7 +1910,6 @@ function initEditor(obj){
 				wallShape.lineTo(  0, -width/2 );
         wallShape.lineTo(  0, width/2 );
 
-
     var extrudeSettings = {
       amount: height,
       bevelEnabled: false
@@ -1929,18 +1926,18 @@ function initEditor(obj){
 
     });
 
-
-
     var mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.x = -Math.PI/2;
     mesh.translateZ( height);
     mesh.position.set(line.start.x, 0 , line.start.z)
     mesh.rotateZ(-line.delta().angleTo(new THREE.Vector3(1,0,0)))
-//        mesh.translateX( - theCenter.x);
-//        mesh.translateY( - theCenter.y);
     var axis = new THREE.AxisHelper(100);
     mesh.add(axis);
-    scene.add(mesh);
+
+    var mesh2 = mesh.clone();
+    mesh2.material =  new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } )
+
+    scene.add(mesh, mesh2);
 
   }
 
@@ -1967,10 +1964,7 @@ function initEditor(obj){
     obj.lineHelper = null;
   }
 
-  document.addEventListener( 'keydown', onKeyDownCam, false );
-  document.addEventListener( 'keyup', onKeyUpCam, false );
   document.addEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
-
 
   function onDocumentMouseDownWallEditor( event )
   {
@@ -2013,4 +2007,4 @@ function initEditor(obj){
   }
 }
 $wallEditor = {};
-initEditor($wallEditor);
+initWallEditor($wallEditor);
