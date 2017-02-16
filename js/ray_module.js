@@ -865,12 +865,19 @@ function onDocumentMouseDownCam( event )
   mouse_raycaster.setFromCamera( mouse, camera );
 
   if($wallEditor.wall_mode){
-
     var intersects = mouse_raycaster.intersectObject
     return false;
   }
 
+
+
   var intersects = mouse_raycaster.intersectObjects(videocameraArr, true );
+
+
+ var intersects2 = mouse_raycaster.intersectObjects( scene.children );
+  if(intersects2.length > 0 && intersects2[ 0 ].object.name === 'wall'){
+    window.console.log(intersects2[ 0 ].object);
+  }
 
   var click_cam = null;
   // найдем камеру среди кликнутых объктов:
@@ -1820,7 +1827,9 @@ function initWallEditor(obj){
   obj.plane = null;
   obj.lineHelper = null;
   obj.lineHelperGeometry = new THREE.Geometry();
-
+  obj.magnitVertex = [];//массив точек для примагничивания
+  obj.pointerHelper = null; //объект указателя
+  obj.dashedLineArr = [];//массив пунктирных
 
   obj.on = function()
   {
@@ -1828,6 +1837,9 @@ function initWallEditor(obj){
     currentCamera = camera.clone();
     this.cameraAdd();
     this.planeHelperAdd();
+    this.pointerHelperAdd();
+    this.magnitVertexCreate();
+
   }
   obj.off = function(){
     $wallEditor.wall_mode = !$wallEditor.wall_mode;
@@ -1835,6 +1847,7 @@ function initWallEditor(obj){
     controls = new THREE.OrbitControls( camera, renderer.domElement );
     currentCamera = null;
     scene.remove(obj.plane);
+    scene.remove(obj.pointerHelper);
 
   }
 
@@ -1867,33 +1880,61 @@ function initWallEditor(obj){
     obj.plane.rotateX(Math.PI/2);
     scene.add( obj.plane );
   }
-
-  obj.lineHelperPointAdd = function(point, temp) {
-    var temp = temp || -1;
-
-
-      switch (obj.lineHelperGeometry.vertices.length) {
-        case 0:
-          if(temp == -1)
-          obj.lineHelperGeometry.vertices [0] = point;
-          break;
-        case 1:
-          obj.lineHelperGeometry.vertices.push(point);
-
-
-  //        obj.wallAdd();
-          break;
-        case 2:
-          if(temp == 1){
-            obj.lineHelperGeometry.vertices [1] = point;
-
-          } else {
-            obj.lineHelperGeometry.vertices = [];
-            obj.lineHelperGeometry.vertices.push(point);
+  //массив для примагничивания опорных точек
+  obj.magnitVertexCreate = function(){
+    obj.magnitVertex = [];
+    scene.children.forEach(function(item, idx) {
+      if(item.name == 'wall'){
+        var arr = [];
+        item.geometry.vertices.forEach(function(item2, idx) {
+          arr.push(item2.clone().applyMatrix4(item.matrixWorld));
+          //обрезаем кол-во точек
+          if(arr[arr.length - 1].y > 5){
+            arr.length = arr.length - 1;
           }
-          break;
+        })
+        obj.magnitVertex = obj.magnitVertex.concat(arr);
+      }
+    })
 
+    //красная сфера для наглядности
+    window.console.log(obj.magnitVertex.length);
+    obj.magnitVertex.forEach(function(item, idx) {
+      var geometry = new THREE.SphereBufferGeometry( 3, 32, 32 );
+      var material = new THREE.MeshBasicMaterial( {color: 'red'} );
+      var mesh = new THREE.Mesh( geometry, material );
 
+      mesh.position.x = item.x;
+      mesh.position.z = item.z;
+      scene.add(mesh);
+
+    })
+  }
+
+  obj.lineHelperPointAdd = function( temp ) {
+    var temp = temp || -1;
+    var point = obj.pointerHelper.position.clone();
+
+    switch (obj.lineHelperGeometry.vertices.length) {
+      case 0:
+        if(temp == -1){
+          obj.lineHelperGeometry.vertices [0] = point;
+          obj.magnitVertex.push(point);//для примагничивания
+        }
+        break;
+      case 1:
+        obj.lineHelperGeometry.vertices.push(point);
+
+        break;
+      case 2:
+        if(temp == 1){
+          obj.lineHelperGeometry.vertices [1] = point;
+
+        } else {
+          obj.lineHelperGeometry.vertices = [];
+          obj.lineHelperGeometry.vertices.push(point);
+        }
+        break;
     }
 
   }
@@ -1918,26 +1959,33 @@ function initWallEditor(obj){
     var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
     var material = new THREE.MeshBasicMaterial({
       wireframe: false,
-      opacity: 0.5,
+      opacity: 0.8,
       transparent: true,
       depthWrite: false,
-      side: THREE.DoubleSide,
       color: 'green'
-
     });
 
     var mesh = new THREE.Mesh(geometry, material);
+    mesh.name = 'wall';
     mesh.rotation.x = -Math.PI/2;
-    mesh.translateZ( height);
+    mesh.translateZ( height );
     mesh.position.set(line.start.x, 0 , line.start.z)
-    mesh.rotateZ(-line.delta().angleTo(new THREE.Vector3(1,0,0)))
-    var axis = new THREE.AxisHelper(100);
-    mesh.add(axis);
+    if(line.start.z > line.end.z){
+      mesh.rotateZ(line.delta().angleTo(new THREE.Vector3(1,0,0)))
+    } else {
+      mesh.rotateZ(-line.delta().angleTo(new THREE.Vector3(1,0,0)))
+    }
 
     var mesh2 = mesh.clone();
+    mesh2.name = '';
     mesh2.material =  new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } )
 
     scene.add(mesh, mesh2);
+    mesh.geometry.verticesNeedUpdate = true
+    setTimeout(function(){
+      obj.magnitVertexCreate(); //пересоздание магнитных точек
+    },1000)
+
 
   }
 
@@ -1959,21 +2007,79 @@ function initWallEditor(obj){
     }
   }
 
+
   obj.lineHelperRemove = function(){
     scene.remove(obj.lineHelper)
     obj.lineHelper = null;
   }
 
+  obj.dashedLineAdd = function(start, end){
+    var material = new THREE.LineDashedMaterial( {
+      color: 0xffffff,
+      linewidth: 1,
+      scale: 1,
+      dashSize: 3,
+      gapSize: 1,
+    } );
+    var geometry = new THREE.Geometry();
+    geometry.vertices.push(new THREE.Vector3(start.x, 1, start.z));
+    geometry.vertices.push(new THREE.Vector3(end.x, 1, end.z));
+
+    var line = new THREE.Line(geometry, material);
+    obj.dashedLineArr.push(line);
+    scene.add(line);
+  }
+
+  obj.dashedLineRemoveAll = function(){
+    for(var key in obj.dashedLineArr){
+      scene.remove(obj.dashedLineArr[key]);
+    }
+  }
+
+  obj.pointerHelperAdd = function(){
+    var geometry = new THREE.SphereBufferGeometry( 5, 32, 32 );
+    var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+    obj.pointerHelper = new THREE.Mesh( geometry, material );
+    scene.add( obj.pointerHelper );
+  }
+
+  obj.getMagnitObject = function (point){
+
+  var result = {};
+  result.distanceX = Infinity ;
+  result.distanceZ = Infinity ;
+
+  if(obj.magnitVertex.length){
+    obj.magnitVertex.forEach(function(item, i, arr) {
+
+      var distanceX = Math.abs((item.x) - (point.x));
+      var distanceZ = Math.abs((item.z) - (point.z));
+
+      if(result.distanceX > distanceX){
+        result.distanceX = distanceX;
+        result.itemX = item;
+      }
+
+      if(result.distanceZ > distanceZ){
+        result.distanceZ = distanceZ;
+        result.itemZ = item;
+      }
+    });
+  }
+  return result;
+}
+
+  /*===================*/
   document.addEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
+  document.addEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
+  //  document.addEventListener( 'mouseup', onDocumentMouseUpWallEditor, false );
 
   function onDocumentMouseDownWallEditor( event )
   {
     if (!obj.wall_mode)
       return false;
-//    event.preventDefault();
+    event.preventDefault();
 
-    document.addEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
-  //  document.addEventListener( 'mouseup', onDocumentMouseUpWallEditor, false );
 
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
@@ -1983,12 +2089,16 @@ function initWallEditor(obj){
 
     var intersectObjects = mouse_raycaster.intersectObject(obj.plane)
     if(intersectObjects.length > 0){
-      obj.lineHelperPointAdd(intersectObjects[0].point);
+      obj.lineHelperPointAdd();
       obj.lineHelperAdd();
     }
 
   }
   function onDocumentMouseMoveWallEditor(event){
+
+    if (!obj.wall_mode)
+      return false;
+    event.preventDefault();
 
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 		mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
@@ -1998,13 +2108,32 @@ function initWallEditor(obj){
 
     var intersectObjects = mouse_raycaster.intersectObject(obj.plane)
     if(intersectObjects.length > 0){
-      obj.lineHelperPointAdd(intersectObjects[0].point, true);
-       obj.lineHelperRemove();
+      obj.lineHelperPointAdd( true );
+      obj.lineHelperRemove();
       obj.lineHelperAdd(true);
+
+      //удаляем пунктирныеж
+      obj.dashedLineRemoveAll();
+      //позиционирование хелпера указателя
+      var magnitObject = obj.getMagnitObject(intersectObjects[0].point)
+      if(magnitObject.distanceX < 20){
+        obj.pointerHelper.position.x = magnitObject.itemX.x;
+        obj.dashedLineAdd(obj.pointerHelper.position.clone(), magnitObject.itemX);
+      } else {
+        obj.pointerHelper.position.x = intersectObjects[0].point.x;
+      }
+
+      if(magnitObject.distanceZ < 20){
+        obj.pointerHelper.position.z = magnitObject.itemZ.z;
+        obj.dashedLineAdd(obj.pointerHelper.position.clone(), magnitObject.itemZ);
+      } else {
+        obj.pointerHelper.position.z = intersectObjects[0].point.z;
+      }
     }
-//
+
 
   }
+
 }
 $wallEditor = {};
 initWallEditor($wallEditor);
