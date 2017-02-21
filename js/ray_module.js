@@ -5,6 +5,7 @@ var videocameraArr = [];
 var videocameraName = 'videocamera';
 var active_camera = null;
 var ctrl = 0; //флаг клавиши ctrl
+var alt = 0; //флаг клавиши alt
 var delta = 0.02; //шаг перемещения луча активной камеры
 var delta2 = 5;   //шаг линейного перемещения активной камеры
 var rayMaterial = new THREE.MeshBasicMaterial({
@@ -678,7 +679,7 @@ function onKeyUpCam ( event )
       ctrl = false;
       break;
     case 18: /*alt*/
-//      controls.enabled = false;
+      alt = false;
       break;
     case 37:/*left*/
       controls.enabled = true;
@@ -749,14 +750,45 @@ function onKeyDownCam ( event )
         } else {
           $wallEditor.on();
         }
-        break;
-      }
+      }  
       break;
     case 17: /*ctrl*/
       ctrl = true;
       break;
     case 18: /*alt*/
-//      controls.enabled = true;
+      alt = true;
+      break;
+    case 49: /*1*/
+      if(alt){
+        if($projection.mode){
+          $projection.off();
+        } else {
+          $projection.on('top');
+        }
+      }
+      break;
+    case 50: /*2*/
+      if(alt){
+        if($projection.mode){
+          $projection.off();
+        } else {
+          $projection.on('left');
+        }
+      }
+      break;
+    case 51: /*3*/
+      if(alt){
+        if($projection.mode){
+          $projection.off();
+        } else {
+          $projection.on('right');
+        }
+      }
+      break;
+    case 57: /*9*/
+      if(alt){
+        $projection.off();
+      }
       break;
     case 82: /*r*/
       if(active_camera){
@@ -874,10 +906,6 @@ function onDocumentMouseDownCam( event )
   var intersects = mouse_raycaster.intersectObjects(videocameraArr, true );
 
 
- var intersects2 = mouse_raycaster.intersectObjects( scene.children );
-  if(intersects2.length > 0 && intersects2[ 0 ].object.name === 'wall'){
-    window.console.log(intersects2[ 0 ].object);
-  }
 
   var click_cam = null;
   // найдем камеру среди кликнутых объктов:
@@ -1338,7 +1366,7 @@ function noteAdd(obj, message, type, parameters)
 
 }
 
-//Размеры
+//Размеры камеры
 function dimensionCameraAdd(obj, parameters){
   var dim = new dimension(obj, parameters);
 }
@@ -1833,7 +1861,7 @@ function initWallEditor(obj){
 
   obj.on = function()
   {
-    $wallEditor.wall_mode = !$wallEditor.wall_mode;
+    obj.wall_mode = !obj.wall_mode;
     currentCamera = camera.clone();
     this.cameraAdd();
     this.planeHelperAdd();
@@ -1842,13 +1870,14 @@ function initWallEditor(obj){
 
   }
   obj.off = function(){
-    $wallEditor.wall_mode = !$wallEditor.wall_mode;
+    obj.wall_mode = !obj.wall_mode;
     camera = currentCamera.clone();
     controls = new THREE.OrbitControls( camera, renderer.domElement );
     currentCamera = null;
     scene.remove(obj.plane);
     scene.remove(obj.pointerHelper);
-
+    delete obj.plane;
+    delete obj.pointerHelper;
   }
 
   obj.cameraAdd = function()
@@ -2137,3 +2166,240 @@ function initWallEditor(obj){
 }
 $wallEditor = {};
 initWallEditor($wallEditor);
+
+
+
+//Проекция
+function initProjection(obj){
+  var SCREEN_WIDTH = window.innerWidth;
+	var SCREEN_HEIGHT = window.innerHeight;
+	var aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+  var frustumSize = 400;
+
+  var currentCamera;
+
+  obj.mode = false;
+  obj.type = false;
+  obj.plane = null;
+  obj.raycaster = new THREE.Raycaster();
+  obj.currentEdge = {};
+  obj.currentEdge.material = {};
+  obj.currentPoint = {}
+  obj.currentPoint.material = {};
+  obj.selected1 = null;
+  obj.selected2 = null;
+  
+
+  obj.on = function(type)
+  {
+    obj.mode = !obj.mode;
+    currentCamera = camera.clone();
+    obj.type = type || 'top';
+    obj.raycaster.setFromCamera( mouse, camera );
+    this.cameraAdd();
+    this.planeHelperAdd();
+
+    //ребра
+    this.edgesAdd();
+    //узлы
+    this.pointsAdd();
+
+//    this.pointerHelperAdd();
+//    this.magnitVertexCreate();
+
+  }
+  obj.off = function(){
+    obj.mode = !obj.mode;
+    camera = currentCamera.clone();
+    controls = new THREE.OrbitControls( camera, renderer.domElement );
+    currentCamera = null;   
+    scene.remove(obj.plane);
+    delete obj.plane;
+//    scene.remove(obj.pointerHelper);
+
+  }
+
+  obj.cameraAdd = function()
+  {
+    camera = new THREE.OrthographicCamera(
+                                          frustumSize * aspect / - 2,
+                                          frustumSize * aspect / 2,
+                                          frustumSize / 2,
+                                          frustumSize / - 2,
+                                          10,
+                                          10000
+                                        );
+    switch (obj.type) {
+      case 'top':
+        camera.position.set(0, 300, 0);
+        break;
+      case 'left':
+        camera.position.set(-300, 0, 0);
+        break;
+      case 'right':
+        camera.position.set(300, 0, 0);
+        break;
+    }
+
+    camera.lookAt(new THREE.Vector3(0,0,0));
+  }
+
+  obj.planeHelperAdd = function(){
+    var geometry = new THREE.PlaneBufferGeometry( 1000, 1000, 32 );
+    var material = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.2,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      color: 'green'
+
+    });
+    obj.plane = new THREE.Mesh( geometry, material );
+    obj.plane.rotateX(Math.PI/2);
+    scene.add( obj.plane );
+  }
+
+  obj.edgesAdd = function(){
+
+    scene.children.forEach(function(item, idx) {
+      if(item.name == 'wall'){
+        var edges = new THREE.EdgesGeometry( item.geometry );
+        var positions = edges.attributes.position.array;
+        for(var i = 0; i < positions.length;i+=2)
+        {
+          var material = new THREE.LineBasicMaterial({
+            color: 'red',
+            opacity: 0.1,
+            visible: false
+          });
+          var geometry = new THREE.Geometry();
+          geometry.vertices.push(
+            new THREE.Vector3().fromArray(positions,i*3),
+            new THREE.Vector3().fromArray(positions,i*3+3)
+          );
+          var line = new THREE.Line( geometry, material );
+          line.applyMatrix(item.matrixWorld);
+          scene.add( line );
+        }
+      }
+    })
+  }
+
+  obj.pointsAdd = function(){
+    var geometry = new THREE.SphereGeometry( 3 );
+		obj.currentPointMaterial = new THREE.MeshBasicMaterial( { color: 'red', visible: false } );
+		obj.currentPoint = new THREE.Mesh( geometry, obj.currentPointMaterial );
+    scene.add( obj.currentPoint );
+
+    scene.children.forEach(function(item, idx) {
+      if(item.name == 'wall'){
+
+          var material2 = new THREE.PointsMaterial({
+            color: 'red',
+            opacity: 0.1,
+            visible: false
+          });
+          var points = new THREE.Points( item.geometry, material2 );
+          points.applyMatrix(item.matrixWorld);
+          scene.add( points );
+
+      }
+    })
+  }
+
+  obj.setSelected = function(selectObj){
+
+    var selected = selectObj.clone();
+    selected.geometry = selectObj.geometry.clone();
+    selected.material = selectObj.material.clone();
+    selected.position.copy(selectObj.getWorldPosition())
+
+    if( ! obj.selected1 || (obj.selected1 && obj.selected2)){
+      scene.remove(obj.selected1,obj.selected2);
+      obj.selected1 = obj.selected2 = null;
+      obj.selected1 = selected;
+      scene.add(selected);
+      return;
+    }
+    if( ! obj.selected2 ){
+      obj.selected2 = selected;
+      scene.add(selected);
+      return;
+    }
+  }
+
+
+  /*===================*/
+  document.addEventListener( 'mousedown', onDocumentMouseDownProjection, false );
+  document.addEventListener( 'mousemove', onDocumentMouseMoveProjection, false );
+  //  document.addEventListener( 'mouseup', onDocumentMouseUpProjection, false );
+
+  function onDocumentMouseDownProjection( event )
+  {
+    if (!obj.mode)
+      return false;
+    event.preventDefault();
+
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    if( obj.currentEdge.material.visible ){
+      obj.setSelected( obj.currentEdge );
+    }
+    if( obj.currentPoint.material.visible ){
+      obj.setSelected( obj.currentPoint );
+    }
+
+  }
+
+
+  function onDocumentMouseMoveProjection(event){
+
+    if (!obj.mode)
+      return false;
+    event.preventDefault();
+
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+		mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    var mouse_raycaster = new THREE.Raycaster();
+    mouse_raycaster.setFromCamera( mouse, camera );
+
+    obj.raycaster.setFromCamera( mouse, camera );
+    mouse_raycaster.params = {Points: { threshold: 2 }};
+    var intersectObjects = mouse_raycaster.intersectObjects(scene.children);
+    if(intersectObjects.length > 0){
+
+      //определение линии
+      if(intersectObjects[ 0 ].object.isLine ){
+        intersectObjects[ 0 ].object.material.visible = true;
+        obj.currentEdge = intersectObjects[ 0 ].object;
+      } else {
+        obj.currentEdge.material.visible = false;
+      }
+      
+      //определение точки
+      if(intersectObjects[ 0 ].object.isPoints ){
+        obj.currentPoint.position.copy(intersectObjects[ 0 ].point.clone().round());
+        //TODO
+        //Найти ближайшую точку на объекте, установить позицию
+        obj.currentPoint.material.visible = true;
+      } else {
+        obj.currentPoint.material.visible = false;
+        obj.currentPoint.position.set(0,0,0)
+      }
+    } 
+
+  }
+}
+$projection = {};
+initProjection($projection);
+
+
+//Размеры проекции
+function initDimEditor(obj){
+
+}
+$dimEditor = {};
+initDimEditor($dimEditor);

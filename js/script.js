@@ -161,7 +161,7 @@ function init()
   var wire_material =  new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } )
   w11.material = w12.material = w13.material = w14.material = wire_material;
 
-  scene.add(w11, w12, w13, w14);
+//  scene.add(w11, w12, w13, w14);
   scene.add( w1, w2, w3, w4 );
   scene.add(ceiling);
 
