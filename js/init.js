@@ -8,6 +8,9 @@ $(document).ready(function() {
 
   include("js/lib/three-master/examples/js/Detector.js");
   include("js/lib/three-master/examples/js/controls/OrbitControls.js");
+  include("js/lib/three-master/examples/js/controls/OrthographicTrackballControls.js");
+  include("js/lib/three-master/examples/js/controls/TrackballControls.js");
+
   include("js/lib/three-master/examples/js/loaders/OBJLoader.js");
   include("js/lib/three-master/examples/js/controls/DragControls.js");
   

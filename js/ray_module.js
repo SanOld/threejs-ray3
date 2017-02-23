@@ -1,6 +1,7 @@
 
 
 //=== to addCameraRay
+var Dimensions = new THREE.Object3D(0,200,0); //объект хранилище размеров
 var videocameraArr = [];
 var videocameraName = 'videocamera';
 var active_camera = null;
@@ -234,6 +235,9 @@ function addCameraRay(scene)
 //  var ray_axis_x; // доп ось камеры
 //  var ray_axis_y; // доп ось камеры
   var allCamArr = [];
+
+  //глобальный объект размеров
+  scene.add(Dimensions);
 
   scene.children.forEach(function(videocamera_one, idx) {
       if(videocamera_one.userData.is_camera == true && videocamera_one.parent.name != 'ray_axis_x')
@@ -760,7 +764,7 @@ function onKeyDownCam ( event )
       break;
     case 49: /*1*/
       if(alt){
-        if($projection.mode){
+        if($projection.enabled){
           $projection.off();
         } else {
           $projection.on('top');
@@ -769,7 +773,7 @@ function onKeyDownCam ( event )
       break;
     case 50: /*2*/
       if(alt){
-        if($projection.mode){
+        if($projection.enabled){
           $projection.off();
         } else {
           $projection.on('left');
@@ -778,7 +782,7 @@ function onKeyDownCam ( event )
       break;
     case 51: /*3*/
       if(alt){
-        if($projection.mode){
+        if($projection.enabled){
           $projection.off();
         } else {
           $projection.on('right');
@@ -1846,7 +1850,7 @@ function initWallEditor(obj){
 
   var SCREEN_WIDTH = window.innerWidth;
 	var SCREEN_HEIGHT = window.innerHeight;
-	var aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+	var ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT;
   var frustumSize = 1000;
 
   var currentCamera;
@@ -1883,8 +1887,8 @@ function initWallEditor(obj){
   obj.cameraAdd = function()
   {
     camera = new THREE.OrthographicCamera(
-                                          frustumSize * aspect / - 2,
-                                          frustumSize * aspect / 2,
+                                          frustumSize * ASPECT / - 2,
+                                          frustumSize * ASPECT / 2,
                                           frustumSize / 2,
                                           frustumSize / - 2,
                                           10,
@@ -1927,7 +1931,7 @@ function initWallEditor(obj){
     })
 
     //красная сфера для наглядности
-    window.console.log(obj.magnitVertex.length);
+//    window.console.log(obj.magnitVertex.length);
     obj.magnitVertex.forEach(function(item, idx) {
       var geometry = new THREE.SphereBufferGeometry( 3, 32, 32 );
       var material = new THREE.MeshBasicMaterial( {color: 'red'} );
@@ -2173,15 +2177,17 @@ initWallEditor($wallEditor);
 function initProjection(obj){
   var SCREEN_WIDTH = window.innerWidth;
 	var SCREEN_HEIGHT = window.innerHeight;
-	var aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
-  var frustumSize = 400;
-
+	var ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT;
+  var frustumSize = 1000;
   var currentCamera;
 
-  obj.mode = false;
+  var current_dim = null;
+
+  obj.enabled = false;
+  obj.dim_mode = false; //возможно будут еще режимы
   obj.type = false;
   obj.plane = null;
-  obj.raycaster = new THREE.Raycaster();
+  obj.planeMousePoint; //точка пересечения луча с плоскостью
   obj.currentEdge = {};
   obj.currentEdge.material = {};
   obj.currentPoint = {}
@@ -2189,46 +2195,48 @@ function initProjection(obj){
   obj.selected1 = null;
   obj.selected2 = null;
   
-
-  obj.on = function(type)
-  {
-    obj.mode = !obj.mode;
+  obj.on = function(type){
+    obj.enabled = !obj.enabled;
     currentCamera = camera.clone();
     obj.type = type || 'top';
-    obj.raycaster.setFromCamera( mouse, camera );
-    this.cameraAdd();
-    this.planeHelperAdd();
+    obj.cameraAdd();
+    controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.enableRotate = false;
+
+    obj.planeHelperAdd();
 
     //ребра
-    this.edgesAdd();
+    obj.edgesAdd();
     //узлы
-    this.pointsAdd();
+    obj.pointsAdd();
 
+    Dimensions.visible = true;
 //    this.pointerHelperAdd();
 //    this.magnitVertexCreate();
 
   }
   obj.off = function(){
-    obj.mode = !obj.mode;
+    obj.enabled = !obj.enabled;
     camera = currentCamera.clone();
     controls = new THREE.OrbitControls( camera, renderer.domElement );
     currentCamera = null;   
-    scene.remove(obj.plane);
+//    scene.remove(obj.plane);
     delete obj.plane;
+
+//    Dimensions.visible = false;
 //    scene.remove(obj.pointerHelper);
 
   }
-
-  obj.cameraAdd = function()
-  {
+  obj.cameraAdd = function(){
     camera = new THREE.OrthographicCamera(
-                                          frustumSize * aspect / - 2,
-                                          frustumSize * aspect / 2,
+                                          frustumSize * ASPECT / - 2,
+                                          frustumSize * ASPECT / 2,
                                           frustumSize / 2,
                                           frustumSize / - 2,
                                           10,
                                           10000
                                         );
+
     switch (obj.type) {
       case 'top':
         camera.position.set(0, 300, 0);
@@ -2242,13 +2250,15 @@ function initProjection(obj){
     }
 
     camera.lookAt(new THREE.Vector3(0,0,0));
-  }
 
+
+
+  }
   obj.planeHelperAdd = function(){
-    var geometry = new THREE.PlaneBufferGeometry( 1000, 1000, 32 );
+    var geometry = new THREE.PlaneGeometry( 1000, 1000, 32 );
     var material = new THREE.MeshBasicMaterial({
       wireframe: false,
-      opacity: 0.2,
+      opacity: 0.5,
       transparent: true,
       depthWrite: false,
       side: THREE.DoubleSide,
@@ -2256,10 +2266,10 @@ function initProjection(obj){
 
     });
     obj.plane = new THREE.Mesh( geometry, material );
-    obj.plane.rotateX(Math.PI/2);
+    obj.plane.rotateX(-Math.PI/2);
+    obj.plane.translateZ (-100);
     scene.add( obj.plane );
   }
-
   obj.edgesAdd = function(){
 
     scene.children.forEach(function(item, idx) {
@@ -2285,7 +2295,6 @@ function initProjection(obj){
       }
     })
   }
-
   obj.pointsAdd = function(){
     var geometry = new THREE.SphereGeometry( 3 );
 		obj.currentPointMaterial = new THREE.MeshBasicMaterial( { color: 'red', visible: false } );
@@ -2307,7 +2316,20 @@ function initProjection(obj){
       }
     })
   }
+  obj.dimensionAdd = function(){
 
+    var param1 = null;
+    var param2 = null;
+
+    if(obj.selected1)
+    param1 = obj.selected1.isLine ? obj.selected1 : obj.selected1.position
+    if(obj.selected2)
+    param2 = obj.selected2.isLine ? obj.selected2 : obj.selected2.position
+     
+    current_dim = new Dimension(param1, param2, obj.plane);
+
+//    window.console.log(dim);
+  }
   obj.setSelected = function(selectObj){
 
     var selected = selectObj.clone();
@@ -2317,27 +2339,38 @@ function initProjection(obj){
 
     if( ! obj.selected1 || (obj.selected1 && obj.selected2)){
       scene.remove(obj.selected1,obj.selected2);
-      obj.selected1 = obj.selected2 = null;
-      obj.selected1 = selected;
+        obj.selected1 = obj.selected2 = null;
+        obj.selected1 = selected;
       scene.add(selected);
+
+      if(selected.isLine){
+        obj.dimensionAdd();
+      }
       return;
     }
     if( ! obj.selected2 ){
       obj.selected2 = selected;
       scene.add(selected);
+
+      if(current_dim && current_dim.enabled == true){
+        current_dim.remove();
+      }
+      obj.dimensionAdd();
+    
+      scene.remove(obj.selected1,obj.selected2);
+      current_dim = null;
       return;
     }
   }
-
-
   /*===================*/
   document.addEventListener( 'mousedown', onDocumentMouseDownProjection, false );
   document.addEventListener( 'mousemove', onDocumentMouseMoveProjection, false );
-  //  document.addEventListener( 'mouseup', onDocumentMouseUpProjection, false );
+  document.addEventListener( 'keydown', onKeyDownProjection, false );
+  document.addEventListener( 'keyup', onKeyUpProjection, false );
 
   function onDocumentMouseDownProjection( event )
   {
-    if (!obj.mode)
+    if (!obj.enabled)
       return false;
     event.preventDefault();
 
@@ -2346,17 +2379,29 @@ function initProjection(obj){
 
     if( obj.currentEdge.material.visible ){
       obj.setSelected( obj.currentEdge );
-    }
-    if( obj.currentPoint.material.visible ){
+    } else if(obj.currentPoint.material.visible){
       obj.setSelected( obj.currentPoint );
+    }else {
+      scene.remove(obj.selected1,obj.selected2);
     }
+
+
+    //возможность перемещать размер
+    var mouse_raycaster = new THREE.Raycaster();
+    mouse_raycaster.setFromCamera( mouse, camera );
+    var intersectObjects = mouse_raycaster.intersectObjects(Dimensions.children);
+    if(intersectObjects.length > 0){
+      if(intersectObjects[0].object.name == 'dimensionBoundingSphere'){
+        intersectObjects[0].object.dimension.enabled = true;
+        intersectObjects[0].object.dimension.ready = false;
+      }
+    }
+
 
   }
-
-
-  function onDocumentMouseMoveProjection(event){
-
-    if (!obj.mode)
+  function onDocumentMouseMoveProjection(event)
+  {
+    if (!obj.enabled)
       return false;
     event.preventDefault();
 
@@ -2366,11 +2411,13 @@ function initProjection(obj){
     var mouse_raycaster = new THREE.Raycaster();
     mouse_raycaster.setFromCamera( mouse, camera );
 
-    obj.raycaster.setFromCamera( mouse, camera );
-    mouse_raycaster.params = {Points: { threshold: 2 }};
+    mouse_raycaster.params = {Points: { threshold: 5 }, Line: { threshold: 5 }};
     var intersectObjects = mouse_raycaster.intersectObjects(scene.children);
     if(intersectObjects.length > 0){
 
+      obj.currentEdge.material.visible = false;
+      obj.currentPoint.material.visible = false;
+      
       //определение линии
       if(intersectObjects[ 0 ].object.isLine ){
         intersectObjects[ 0 ].object.material.visible = true;
@@ -2381,25 +2428,317 @@ function initProjection(obj){
       
       //определение точки
       if(intersectObjects[ 0 ].object.isPoints ){
-        obj.currentPoint.position.copy(intersectObjects[ 0 ].point.clone().round());
-        //TODO
+        
         //Найти ближайшую точку на объекте, установить позицию
+        var distance = Infinity;
+        var position = intersectObjects[ 0 ].point;
+        intersectObjects[ 0 ].object.geometry.vertices.forEach(function(item, i, arr){
+          var point = item.clone().applyMatrix4(intersectObjects[ 0 ].object.matrixWorld)
+          var clculate_distance = point.distanceTo(intersectObjects[ 0 ].point)
+          if(clculate_distance < distance){
+            distance = clculate_distance;
+            position = point;
+          }
+        });
+
+        obj.currentPoint.position.copy(position);
+        
         obj.currentPoint.material.visible = true;
       } else {
         obj.currentPoint.material.visible = false;
         obj.currentPoint.position.set(0,0,0)
       }
-    } 
+
+    }
+
 
   }
+  function onKeyDownProjection ( event )
+  {
+    if (!obj.enabled)
+      return false;
+//    event.preventDefault();
+
+    switch( event.keyCode ) {
+      case 27: /*esc*/
+        scene.remove(obj.selected1,obj.selected2);
+        break;
+    }
+  }
+  function onKeyUpProjection ( event )
+  {
+  if (!obj.enabled)
+        return false;
+//      event.preventDefault();
+    }
 }
 $projection = {};
 initProjection($projection);
 
 
 //Размеры проекции
-function initDimEditor(obj){
+/*
+ * @param1 - vector3 | line
+ * @param1 - vector3 | line
+ */
+function Dimension(param1, param2, plane){
+  THREE.Group.call( this );
 
+  this.enabled = true;
+  this.ready = false;
+  this.type = 'dimension';
+  this.dim_type = '';
+  this.planeNormal
+  this.dimLine = null;
+
+  var point1 = null;
+  var point2 = null;
+  var direction = null;
+  var plane = plane || null;
+  var planeMousePoint = new THREE.Vector3();
+  var raycaster = new THREE.Raycaster();
+  
+  var self = this;
+  self.arguments = arguments;
+
+  function defineDimType(){
+    if(self.arguments.length > 0)
+    for( var key = 0;key < 2; key++ ){
+      if(self.arguments[key] && self.arguments[key].isVector3)
+        self.dim_type +='P';
+      if(self.arguments[key] && self.arguments[key].isLine)
+        self.dim_type +='L';
+    }
+  }
+  function setPlaneNormal(){
+    if(plane){
+      planeNormal = plane.geometry.faces[0].normal.clone();
+      planeNormal.applyMatrix4(plane.matrixWorld).round();
+    }
+  }
+  function definePoints(){
+    switch (self.dim_type) {
+      case 'LP':
+      point1 = getLineCenter(  self.arguments[0].geometry.vertices[0].clone().applyMatrix4(self.arguments[0].matrixWorld),
+                                    self.arguments[0].geometry.vertices[1].clone().applyMatrix4(self.arguments[0].matrixWorld)
+                                    );
+      direction = getDirection(  self.arguments[0].geometry.vertices[0].clone().applyMatrix4(self.arguments[0].matrixWorld),
+                                      self.arguments[0].geometry.vertices[1].clone().applyMatrix4(self.arguments[0].matrixWorld)
+                                   );
+
+      point2 = self.arguments[1];
+      break;
+      case 'PL':
+        point1 = getLineCenter(  self.arguments[1].geometry.vertices[0].clone().applyMatrix4(self.arguments[1].matrixWorld),
+                                      self.arguments[1].geometry.vertices[1].clone().applyMatrix4(self.arguments[1].matrixWorld)
+                                    );
+        direction = getDirection(  self.arguments[1].geometry.vertices[0].clone().applyMatrix4(self.arguments[1].matrixWorld),
+                                        self.arguments[1].geometry.vertices[1].clone().applyMatrix4(self.arguments[1].matrixWorld)
+                                      );
+
+        point2 = self.arguments[0];
+        break;
+      case 'PP':
+        point1 = self.arguments[0];
+        point2 = self.arguments[1];
+        direction = getDirectionPP(point1, point2);
+        break;
+      case 'L':
+        point1 = self.arguments[0].geometry.vertices[0].clone().applyMatrix4(self.arguments[0].matrixWorld);
+        point2 = self.arguments[0].geometry.vertices[1].clone().applyMatrix4(self.arguments[0].matrixWorld);
+        direction = getDirectionPP(point1, point2);
+        break;
+      default:
+        console.warn("Данные некорректны");
+        self.enabled = false;
+        break;
+    }
+  }
+  function projectOnPlane(){
+    if(planeNormal){
+      point1.projectOnPlane(planeNormal);
+      point2.projectOnPlane(planeNormal);
+      direction.projectOnPlane(planeNormal).normalize();
+    }
+  }
+  function init(){
+    defineDimType();
+    setPlaneNormal();
+    definePoints()
+    if(self.enabled)
+    projectOnPlane();
+  }
+
+  function getLineCenter(start, end){
+    var result = new THREE.Vector3();
+		return result.addVectors( start, end ).multiplyScalar( 0.5 );
+  }
+  function getDirection(start, end){
+    var result = new THREE.Vector3();
+		return result.subVectors( end, start );
+  }
+  function getDirectionPP(p1, p2){
+
+    var result = new THREE.Vector3();
+
+    result.z = planeMousePoint.x > p1.x && planeMousePoint.x < p2.x ? 1 : 0;
+    if(result.z) return result;
+    result.z = planeMousePoint.x > p2.x && planeMousePoint.x < p1.x ? 1 : 0;
+    if(result.z) return result;
+
+    result.y = planeMousePoint.y > p1.y && planeMousePoint.y < p2.y ? 1 : 0;
+    if(result.y) return result;
+    result.y = planeMousePoint.y > p2.y && planeMousePoint.y < p1.y ? 1 : 0;
+    if(result.y) return result;
+
+    result.x = planeMousePoint.z > p1.z && planeMousePoint.z < p2.z ? 1 : 0;
+    if(result.x) return result;
+    result.x = planeMousePoint.z > p2.z && planeMousePoint.z < p1.z ? 1 : 0;
+    if(result.x) return result;
+
+    var d = getDirection(p1, p2);
+    var dx = d.x;
+    var dz = d.z;
+    d.x = dz;
+    d.z = -dx;
+
+    result = d;
+    return result.projectOnPlane(planeNormal).normalize();
+
+  }
+  
+  function drawExtline(){
+    var m = planeMousePoint;
+    var p1_start = point1;
+    var p2_start = point2;
+    var p1_end, p2_end;
+
+    if (self.dim_type == 'PP' || self.dim_type == 'L'){
+      direction = getDirectionPP(point1, point2);
+    }
+
+    var n = direction.clone();
+    
+    var l_m =        m.clone().projectOnVector( n );
+    var l1  = p1_start.clone().projectOnVector( n );
+    var l2  = p2_start.clone().projectOnVector( n );
+
+    var point_var1 = new THREE.Vector3().addVectors(p1_start, n.clone().multiplyScalar(l_m.distanceTo ( l1 )));
+    var point_var2 = new THREE.Vector3().addVectors(p1_start, n.clone().negate().multiplyScalar(l_m.distanceTo ( l1 )));
+    m.distanceTo(point_var1) < m.distanceTo(point_var2) ? p1_end = point_var1.clone(): p1_end = point_var2.clone()
+
+    var point_var1 = new THREE.Vector3().addVectors(p2_start, n.clone().multiplyScalar(l_m.distanceTo ( l2 )));
+    var point_var2 = new THREE.Vector3().addVectors(p2_start, n.clone().negate().multiplyScalar(l_m.distanceTo ( l2 )));
+    m.distanceTo(point_var1) < m.distanceTo(point_var2) ? p2_end = point_var1.clone(): p2_end = point_var2.clone()
+
+
+    var material = new THREE.LineBasicMaterial({
+      color: 0x0000ff
+    });
+
+    var geometry1 = new THREE.Geometry();
+    geometry1.vertices.push( p1_start, p1_end );
+
+    var geometry2 = new THREE.Geometry();
+    geometry2.vertices.push( p2_start, p2_end );
+
+    Dimensions.remove(self.ln1, self.ln2);
+      self.ln1 = new THREE.Line( geometry1, material );
+      self.ln2 = new THREE.Line( geometry2, material );
+    Dimensions.add(self.ln1, self.ln2);
+
+    self.dimLine = new THREE.Line3(p1_end, p2_end)
+    
+  };
+  function drawDimline(){
+
+    Dimensions.remove(self.line_part1, self.line_part2, self.note );
+      self.line_part1 = new THREE.ArrowHelper( self.dimLine.delta().normalize(), self.dimLine.getCenter(), self.dimLine.distance()/2, 'blue', 10 );
+      self.line_part2 = new THREE.ArrowHelper( self.dimLine.delta().normalize().negate(), self.dimLine.getCenter(), self.dimLine.distance()/2, 'blue', 10 );
+
+      //примечание (текст размера)
+      var geometry = new THREE.SphereGeometry( 5, 32, 32 );
+      var material = new THREE.MeshBasicMaterial( { transparent: true, opacity: 0} );
+      self.note = new THREE.Mesh( geometry, material );
+      self.note.name = 'dimensionBoundingSphere';
+
+      //спрайт текста
+      noteAdd(self.note,self.dimLine.distance().toFixed(2));
+      self.note.position.copy(self.dimLine.getCenter().clone());
+      self.note.dimension = self;
+    Dimensions.add(self.line_part1, self.line_part2, self.note );
+
+    self.ready = true;
+  }
+
+  this.update = function(){
+    drawExtline();
+    drawDimline();
+  }
+  this.remove = function(){
+    Dimensions.remove(self.ln1, self.ln2);
+    Dimensions.remove(self.line_part1, self.line_part2, self.note);
+    self.enabled = false;
+  }
+
+ 
+  
+  /*=Interaction==================*/
+  document.addEventListener( 'mousedown', onDocumentMouseDownDimension, false );
+  document.addEventListener( 'mousemove', onDocumentMouseMoveDimension, false );
+  document.addEventListener( 'keydown', onKeyDownDimension, false );
+  document.addEventListener( 'keyup', onKeyUpDimension, false );
+
+  function onDocumentMouseDownDimension( event ){
+    if (!self.enabled)
+      return false;
+    event.preventDefault();
+
+    mouse.x =   ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    if(self.ready){
+      self.enabled = false;
+    }
+
+  }
+  function onDocumentMouseMoveDimension(event){
+
+    if (!self.enabled)
+      return false;
+    event.preventDefault();
+
+    mouse.x =   ( event.clientX / window.innerWidth ) * 2 - 1;
+		mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    raycaster.setFromCamera( mouse, camera );
+
+    var intersectPointsOnPlane = [];
+    plane.raycast(raycaster,intersectPointsOnPlane )
+    if(intersectPointsOnPlane.length > 0){
+      planeMousePoint = intersectPointsOnPlane[0].point;
+    }
+
+    self.update();
+  }
+  function onKeyDownDimension ( event ){
+    if (!self.enabled)
+      return false;
+//    event.preventDefault();
+    window.console.log(event.keyCode);
+    switch( event.keyCode ) {
+      case 46: /*del*/
+      case 27: /*esc*/
+        self.remove();
+        break;
+    }
+  }
+  function onKeyUpDimension ( event ){
+  if (!self.enabled)
+        return false;
+//      event.preventDefault();
+    }
+  /*=Interaction==================*/
+
+  return  init();
 }
-$dimEditor = {};
-initDimEditor($dimEditor);
