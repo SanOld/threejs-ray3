@@ -1866,6 +1866,8 @@ function initWallEditor(obj){
   var frustumSize = 1000;
 
   var currentCamera;
+  var currentWall = null; //стена над которой находится поинтер
+  var intersectWalls = []; //стены под т-образное соединение
 
   obj.enabled = false;
   obj.plane = null;
@@ -2017,20 +2019,25 @@ function initWallEditor(obj){
       case 0:
         if(temp == -1){
           obj.lineHelperGeometry.vertices [0] = point;
+          intersectWalls [0] = currentWall;
           obj.magnitVerticies.push(point);//для примагничивания
         }
         break;
       case 1:
         obj.lineHelperGeometry.vertices.push(point);
-
+        intersectWalls.push(currentWall);
         break;
       case 2:
         if(temp == 1){
           obj.lineHelperGeometry.vertices [1] = point;
+          intersectWalls [1] = currentWall;
 
         } else {
           obj.lineHelperGeometry.vertices = [];
           obj.lineHelperGeometry.vertices.push(point);
+
+          intersectWalls = [];
+          intersectWalls.push(currentWall);
         }
         break;
     }
@@ -2050,6 +2057,7 @@ function initWallEditor(obj){
    * @returns {type Mesh}
    */
 
+
   obj.wallAdd = function(vertices, params){
     var vertices = vertices;
     var params = params || {};
@@ -2060,9 +2068,6 @@ function initWallEditor(obj){
       obj.walls.push(wall);
       wall.index = obj.walls.length - 1;
 
-      
-
-      window.console.log(wall);
       scene.add(wall);
 
     //Обновляем состояние стен
@@ -2077,29 +2082,31 @@ function initWallEditor(obj){
       magnitVerticiesCreate(); //пересоздание магнитных точек
     },200)
 
-  }/*
-   *
-   * @param {type} temp
-   * @returns {undefined}
-   */
+  }
 
   obj.lineHelperAdd = function(temp){
 
     if(obj.lineHelperGeometry.vertices.length == 2){
 
+      //Добавленеи линии хелпера
       if( obj.lineHelper ){
         obj.lineHelper.material.visible = true;
         obj.lineHelper.geometry = obj.lineHelperGeometry.clone();
       } else {
         obj.lineHelper = new THREE.Line(obj.lineHelperGeometry.clone(), obj.lineHelperMaterial);
       }
-      
+
+      //если клик
       if(!temp){
         obj.wallAdd(obj.lineHelperGeometry.vertices);
         obj.lineHelperGeometry.vertices = [];
+
+        intersectWalls = [];
       } else {
 
         obj.lineHelperGeometry.vertices.length = 1;
+
+        intersectWalls.length = 1;
       }
 
       obj.lineHelper.geometry.computeLineDistances();
@@ -2131,47 +2138,47 @@ function initWallEditor(obj){
   
   obj.getMagnitObject = function (point){
 
-  var result = {};
-  result.distanceX = Infinity ;
-  result.distanceZ = Infinity ;
-  result.distanceToWallAxis = Infinity ;
-  result.distanceToStart = Infinity;
-  result.distanceToEnd = Infinity;
+    var result = {};
+    result.distanceX = Infinity ;
+    result.distanceZ = Infinity ;
+    result.distanceToWallAxis = Infinity ;
+    result.distanceToStart = Infinity;
+    result.distanceToEnd = Infinity;
 
-  if(obj.magnitVerticies.length){
-    obj.magnitVerticies.forEach(function(item, i, arr) {
+    if(obj.magnitVerticies.length){
+      obj.magnitVerticies.forEach(function(item, i, arr) {
 
-      var distanceX = Math.abs((item.x) - (point.x));
-      var distanceZ = Math.abs((item.z) - (point.z));
+        var distanceX = Math.abs((item.x) - (point.x));
+        var distanceZ = Math.abs((item.z) - (point.z));
 
-      if(result.distanceX > distanceX){
-        result.distanceX = distanceX;
-        result.itemX = item;
-      }
+        if(result.distanceX > distanceX){
+          result.distanceX = distanceX;
+          result.itemX = item;
+        }
 
-      if(result.distanceZ > distanceZ){
-        result.distanceZ = distanceZ;
-        result.itemZ = item;
-      }
-    });
+        if(result.distanceZ > distanceZ){
+          result.distanceZ = distanceZ;
+          result.itemZ = item;
+        }
+      });
+    }
+
+    obj.walls.forEach(function(wall, i, arr) {
+      var clampToLine, optionalTarget;
+      var pointOnAxis = wall.axisLine.closestPointToPoint ( point, clampToLine, optionalTarget )
+      var distanceToWallAxis = pointOnAxis.distanceTo ( point );
+
+      if(result.distanceToWallAxis > distanceToWallAxis){
+          result.distanceToWallAxis = distanceToWallAxis;
+          result.itemOnWallAxis = pointOnAxis;
+          result.wall = wall;
+          result.distanceToStart = pointOnAxis.distanceTo ( wall.axisLine.start );;
+          result.distanceToEnd = pointOnAxis.distanceTo ( wall.axisLine.end );;
+        }
+    })
+
+    return result;
   }
-
-  obj.walls.forEach(function(wall, i, arr) {
-    var clampToLine, optionalTarget;
-    var pointOnAxis = wall.axisLine.closestPointToPoint ( point, clampToLine, optionalTarget )
-    var distanceToWallAxis = pointOnAxis.distanceTo ( point );
-
-    if(result.distanceToWallAxis > distanceToWallAxis){
-        result.distanceToWallAxis = distanceToWallAxis;
-        result.itemOnWallAxis = pointOnAxis;
-        result.wall = wall;
-        result.distanceToStart = pointOnAxis.distanceTo ( wall.axisLine.start );;
-        result.distanceToEnd = pointOnAxis.distanceTo ( wall.axisLine.end );;
-      }
-  })
-
-  return result;
-}
 
   /*===================*/
   document.addEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
@@ -2199,6 +2206,7 @@ function initWallEditor(obj){
 
   }
   function onDocumentMouseMoveWallEditor(event){
+    currentWall = null;//стена над которой находится поинтер
 
     if (!obj.enabled)
       return false;
@@ -2229,6 +2237,7 @@ function initWallEditor(obj){
       if(magnitObject.distanceToWallAxis < obj.magnitValue){
         obj.pointerHelper.position.x = magnitObject.itemOnWallAxis.x;
         obj.pointerHelper.position.z = magnitObject.itemOnWallAxis.z;
+        currentWall = magnitObject.wall;//стена над которой находится поинтер
       }
 
       //позиционирование хелпера указателя к точкам
@@ -2245,6 +2254,8 @@ function initWallEditor(obj){
 
       //позиционирование при смешанном совпадении
       if(magnitObject.distanceToWallAxis < obj.magnitValue){
+
+        currentWall = magnitObject.wall;//стена над которой находится поинтер
 
         var ray = new THREE.Ray(magnitObject.wall.v1, magnitObject.wall.direction);
         var  optionalPointOnSegment = new THREE.Vector3();
