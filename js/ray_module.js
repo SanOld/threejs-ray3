@@ -2259,8 +2259,8 @@ function initWallEditor(obj){
               optionalPointOnRay,
               optionalPointOnSegment );
 
-          if( optionalPointOnRay ){
-            obj.pointerHelper.position.x = optionalPointOnRay.x;
+          if( optionalPointOnRay && Math.abs(optionalPointOnRay.x) != 10000 ){
+            obj.pointerHelper.position.x =  optionalPointOnRay.x;
             obj.pointerHelper.position.z = optionalPointOnRay.z;
           }
 
@@ -2274,7 +2274,7 @@ function initWallEditor(obj){
               optionalPointOnRay,
               optionalPointOnSegment );
 
-          if( optionalPointOnRay ){
+          if( optionalPointOnRay && Math.abs(optionalPointOnRay.z) != 10000){
             obj.pointerHelper.position.x = optionalPointOnRay.x;
             obj.pointerHelper.position.z = optionalPointOnRay.z;
           }
