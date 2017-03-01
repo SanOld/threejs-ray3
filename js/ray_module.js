@@ -2055,7 +2055,7 @@ function initWallEditor(obj){
     var wall = null;
 
     intersectWalls.forEach(function( item, i ){
-      if( item.wall && (! item.wall.v1.distanceTo(item.point) < item.wall.width || ! item.wall.v2.distanceTo(item.point) < item.wall.width) ){
+      if( item.wall && (item.wall.v1.distanceTo(item.point) > item.wall.width/2 && item.wall.v2.distanceTo(item.point) > item.wall.width/2) ){
 
         wall = item.wall;
 
@@ -2461,7 +2461,7 @@ function initProjection(obj){
 
   obj.edgesAdd = function(){
 
-    scene.children.forEach(function(item, idx) {
+    scene.traverse(function(item, idx) {
       if(item.name == 'wall'){
         var edges = new THREE.EdgesGeometry( item.geometry );
         var positions = edges.attributes.position.array;
@@ -2489,7 +2489,7 @@ function initProjection(obj){
 		obj.currentPoint = new THREE.Mesh( geometry, obj.currentPointMaterial );
     scene.add( obj.currentPoint );
 
-    scene.children.forEach(function(item, idx) {
+    scene.traverse(function(item, idx) {
       if(item.name == 'wall'){
 
           var material2 = new THREE.PointsMaterial({
@@ -2975,8 +2975,8 @@ function Wall(vertices, parameters){
 
     this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 10;
     this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 150;
-    this.v1 = vertices[0];
-    this.v2 = vertices[1];
+    this.v1 = vertices[0].round ();
+    this.v2 = vertices[1].round ();
 
     this.axisLine = new THREE.Line3(this.v1,this.v2);
     this.direction = this.axisLine.delta().normalize();
