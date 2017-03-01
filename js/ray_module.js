@@ -1875,7 +1875,7 @@ function initWallEditor(obj){
   obj.lineHelperGeometry = new THREE.Geometry();//хранилище точек линии хелпера
   obj.magnitVerticies = [];//массив точек для примагничивания
   obj.magnitVerticiesSphere = [];//массив сфер в точка для примагничивания
-  obj.magnitValue = 30;
+  obj.magnitValue = 10;
   obj.pointerHelper = null; //объект указателя
   obj.dashedLineArr = [];//массив пунктирных
   obj.lineHelperMaterial = new THREE.LineDashedMaterial( {
@@ -1888,7 +1888,6 @@ function initWallEditor(obj){
       dashSize: 10,
       gapSize: 3,
     } );
-
 
 
   obj.walls = [];//массив установленных стен TODO - заполнить при инициализации редактора
@@ -2010,39 +2009,7 @@ function initWallEditor(obj){
   }
 
 
-  //добавление точки для построения линии по кликам
-  obj.lineHelperPointAdd = function( temp ) {
-    var temp = temp || -1;//-1 при клике мыши; true - при движении курсора
-    var point = obj.pointerHelper.position.clone();
 
-    switch (obj.lineHelperGeometry.vertices.length) {
-      case 0:
-        if(temp == -1){
-          obj.lineHelperGeometry.vertices [0] = point;
-          intersectWalls [0] = currentWall;
-          obj.magnitVerticies.push(point);//для примагничивания
-        }
-        break;
-      case 1:
-        obj.lineHelperGeometry.vertices.push(point);
-        intersectWalls.push(currentWall);
-        break;
-      case 2:
-        if(temp == 1){
-          obj.lineHelperGeometry.vertices [1] = point;
-          intersectWalls [1] = currentWall;
-
-        } else {
-          obj.lineHelperGeometry.vertices = [];
-          obj.lineHelperGeometry.vertices.push(point);
-
-          intersectWalls = [];
-          intersectWalls.push(currentWall);
-        }
-        break;
-    }
-
-  }
 
 
   obj.updateWalls = function(){
@@ -2052,17 +2019,15 @@ function initWallEditor(obj){
   }
   /*
    *
-   * @param {type Array[Vector3, Vector3]} vertices
-   * @param {type Object} params
+   * @param {Array} [Vector3, Vector3] vertices
+   * @param {Object} params
    * @returns {type Mesh}
    */
 
-
   obj.wallAdd = function(vertices, params){
     var vertices = vertices;
-    var params = params || {};
+    var params = params || {width: obj.wall_width};
 
-    params.width = obj.wall_width ;
     var wall = new Wall(vertices, params);
     if(wall){
       obj.walls.push(wall);
@@ -2082,9 +2047,81 @@ function initWallEditor(obj){
       magnitVerticiesCreate(); //пересоздание магнитных точек
     },200)
 
+    window.console.log('obj.walls:');
+    window.console.log(obj.walls);
+
+  }
+  function changeIntersectWalls (){
+    var wall = null;
+
+    intersectWalls.forEach(function( item, i ){
+      if( item.wall && (! item.wall.v1.distanceTo(item.point) < item.wall.width || ! item.wall.v2.distanceTo(item.point) < item.wall.width) ){
+
+        wall = item.wall;
+
+        var vertices1 = [item.wall.v1, item.point];
+        var vertices2 = [item.point, item.wall.v2];
+        var params = {width: item.wall.width, heigth: item.wall.heigth};
+
+        delete obj.walls[item.wall.index];
+        scene.remove(item.wall);
+        item.wall = null;
+
+        obj.wallAdd(vertices1, params);
+        obj.wallAdd(vertices2, params);
+//        setTimeout(function(){
+//
+//        }, 200);
+        
+      }
+    })
+
+
   }
 
-  obj.lineHelperAdd = function(temp){
+  //добавление точки для построения линии по кликам
+  obj.lineHelperPointAdd = function( isMove ) {
+    var isMove = isMove || false;//false при клике мыши; true - при движении курсора
+    var isClick = !isMove;
+    var point = obj.pointerHelper.position.clone();
+
+    //текущая стена при совпадении с одной из крайних точек
+    if( currentWall && (currentWall.v1.equals(obj.pointerHelper.position) || currentWall.v2.equals(obj.pointerHelper.position)) ){
+      currentWall = null;
+    }
+
+    switch (obj.lineHelperGeometry.vertices.length) {
+      case 0:
+        if(isClick){
+          obj.lineHelperGeometry.vertices[0] = point;
+          intersectWalls[0] = {wall:currentWall, point:point};
+          obj.magnitVerticies.push(point);//для примагничивания
+        }
+        break;
+      case 1:
+        obj.lineHelperGeometry.vertices.push(point);
+        if(currentWall !== intersectWalls[0].wall)
+        intersectWalls.push({wall:currentWall, point:point});
+        break;
+      case 2:
+        if(isMove){
+          obj.lineHelperGeometry.vertices[1] = point;
+        } else {
+          obj.lineHelperGeometry.vertices = [];
+          obj.lineHelperGeometry.vertices.push(point);
+
+          intersectWalls = [];
+          intersectWalls.push({wall:currentWall, point:point});
+        }
+        break;
+    }
+
+    
+
+  }
+  obj.lineHelperAdd = function(isMove){
+    var isMove = isMove || false;//false при клике мыши; true - при движении курсора
+    var isClick = !isMove;
 
     if(obj.lineHelperGeometry.vertices.length == 2){
 
@@ -2097,10 +2134,13 @@ function initWallEditor(obj){
       }
 
       //если клик
-      if(!temp){
+      if(isClick){
+        window.console.log("intersectWalls: ");
+        window.console.log(intersectWalls);
         obj.wallAdd(obj.lineHelperGeometry.vertices);
         obj.lineHelperGeometry.vertices = [];
 
+        changeIntersectWalls();
         intersectWalls = [];
       } else {
 
@@ -2164,8 +2204,8 @@ function initWallEditor(obj){
     }
 
     obj.walls.forEach(function(wall, i, arr) {
-      var clampToLine, optionalTarget;
-      var pointOnAxis = wall.axisLine.closestPointToPoint ( point, clampToLine, optionalTarget )
+      var clampToLine = true;
+      var pointOnAxis = wall.axisLine.closestPointToPoint ( point, clampToLine )
       var distanceToWallAxis = pointOnAxis.distanceTo ( point );
 
       if(result.distanceToWallAxis > distanceToWallAxis){
@@ -2233,36 +2273,39 @@ function initWallEditor(obj){
       obj.pointerHelper.position.x = intersectObjects[0].point.x;
       obj.pointerHelper.position.z = intersectObjects[0].point.z;
 
-      //позиционирование хелпера указателя к осевой
-      if(magnitObject.distanceToWallAxis < obj.magnitValue){
-        obj.pointerHelper.position.x = magnitObject.itemOnWallAxis.x;
-        obj.pointerHelper.position.z = magnitObject.itemOnWallAxis.z;
-        currentWall = magnitObject.wall;//стена над которой находится поинтер
-      }
+      
 
       //позиционирование хелпера указателя к точкам
       if(magnitObject.distanceX < obj.magnitValue){
         obj.pointerHelper.position.x = magnitObject.itemX.x;
         obj.dashedLineAdd(obj.pointerHelper.position.clone(), magnitObject.itemX);
+        currentWall = null;
       }
 
       if(magnitObject.distanceZ < obj.magnitValue){
         obj.pointerHelper.position.z = magnitObject.itemZ.z;
         obj.dashedLineAdd(obj.pointerHelper.position.clone(), magnitObject.itemZ);
+        currentWall = null;
       }
 
+      
+      if(magnitObject.distanceToWallAxis < obj.magnitValue){
+        
+      }
 
-      //позиционирование при смешанном совпадении
+      //позиционирование хелпера указателя к осевой
       if(magnitObject.distanceToWallAxis < obj.magnitValue){
 
+        obj.pointerHelper.position.x = magnitObject.itemOnWallAxis.x;
+        obj.pointerHelper.position.z = magnitObject.itemOnWallAxis.z;
         currentWall = magnitObject.wall;//стена над которой находится поинтер
 
         var ray = new THREE.Ray(magnitObject.wall.v1, magnitObject.wall.direction);
         var  optionalPointOnSegment = new THREE.Vector3();
         var  optionalPointOnRay = new THREE.Vector3();
 
-
-        if(magnitObject.distanceZ < obj.magnitValue){
+        //позиционирование при смешанном совпадении
+        if(magnitObject.distanceZ < obj.magnitValue  && magnitObject.distanceZ < 0.5 * magnitObject.distanceToWallAxis && magnitObject.wall.direction.clone().cross(new THREE.Vector3(1,0,0)).length()){
 
           ray.distanceSqToSegment (
               new THREE.Vector3(-10000,0,magnitObject.itemZ.z),
@@ -2273,11 +2316,12 @@ function initWallEditor(obj){
           if( optionalPointOnRay && Math.abs(optionalPointOnRay.x) != 10000 ){
             obj.pointerHelper.position.x =  optionalPointOnRay.x;
             obj.pointerHelper.position.z = optionalPointOnRay.z;
+//            currentWall = magnitObject.wall;//стена над которой находится поинтер
           }
 
         }
-
-        if(magnitObject.distanceX < obj.magnitValue){
+        //позиционирование при смешанном совпадении
+        if(magnitObject.distanceX < obj.magnitValue  && magnitObject.distanceX < 0.5 * magnitObject.distanceToWallAxis && magnitObject.wall.direction.clone().cross(new THREE.Vector3(0,0,1)).length()){
 
           ray.distanceSqToSegment ( 
               new THREE.Vector3(magnitObject.itemX.x,0,-10000),
@@ -2288,9 +2332,12 @@ function initWallEditor(obj){
           if( optionalPointOnRay && Math.abs(optionalPointOnRay.z) != 10000){
             obj.pointerHelper.position.x = optionalPointOnRay.x;
             obj.pointerHelper.position.z = optionalPointOnRay.z;
+//            currentWall = magnitObject.wall;//стена над которой находится поинтер
           }
 
         }
+
+        
 
       }
 
@@ -2469,7 +2516,6 @@ function initProjection(obj){
      
     current_dim = new Dimension(param1, param2, obj.plane);
 
-//    window.console.log(dim);
   }
   obj.setSelected = function(selectObj){
 
@@ -2900,7 +2946,6 @@ function Dimension(param1, param2, plane){
     if (!self.enabled)
       return false;
 //    event.preventDefault();
-//    window.console.log(event.keyCode);
     switch( event.keyCode ) {
       case 46: /*del*/
       case 27: /*esc*/
@@ -2949,19 +2994,34 @@ function Wall(vertices, parameters){
     this.geometry.vertices.push( this.v2 );
 
     var geometry = this.geometryBuild();
-    var material = new THREE.MeshBasicMaterial({
+    
+    var material_1 = new THREE.MeshBasicMaterial({
       wireframe: false,
       opacity: 0.8,
       transparent: true,
       depthWrite: false,
-      color: 'green'
+      color: 'gray'
+    });
+    var material_2 = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.8,
+      transparent: true,
+      depthWrite: false
     });
 
-    this.mesh = new THREE.Mesh(geometry, material);
-//    this.mesh = new THREE.Mesh(geometry);
+
+    this.mesh = new THREE.Mesh(geometry);
+    this.mesh.material.transparent = true;
+    this.mesh.material.opacity = 0.8;
+
+    
+
+    //    this.mesh = new THREE.Mesh(geometry, material_1);
     this.mesh.name = 'wall';
     this.mesh.rotation.x = Math.PI/2;
     this.mesh.translateZ( -self.height );
+
+
 
     this.add(this.mesh);
     this.mesh.geometry.verticesNeedUpdate = true;
