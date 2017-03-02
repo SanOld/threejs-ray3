@@ -2009,9 +2009,6 @@ function initWallEditor(obj){
   }
 
 
-
-
-
   obj.updateWalls = function(){
     obj.walls.forEach(function( item, i, arr ){
       item.update( obj.walls );
@@ -2028,6 +2025,11 @@ function initWallEditor(obj){
     var vertices = vertices;
     var params = params || {width: obj.wall_width};
 
+    if(vertices && vertices[0].equals(vertices[1]) || vertices[0].distanceTo(vertices[1]) < params.width/2){
+      window.console.warn("Неверные параметры для создания стены!");
+      return false;
+    }
+
     var wall = new Wall(vertices, params);
     if(wall){
       obj.walls.push(wall);
@@ -2040,6 +2042,7 @@ function initWallEditor(obj){
 
     } else {
       window.console.warn("Ошибка при создании стены!");
+      return false;
     }
     
 
@@ -2047,8 +2050,6 @@ function initWallEditor(obj){
       magnitVerticiesCreate(); //пересоздание магнитных точек
     },200)
 
-    window.console.log('obj.walls:');
-    window.console.log(obj.walls);
 
   }
   function changeIntersectWalls (){
@@ -2164,7 +2165,7 @@ function initWallEditor(obj){
     intersectWalls = [];
     currentWall = null;
     obj.lineHelperRemove();
-    dashedLineRemoveAll();
+    obj.dashedLineRemoveAll();
   }
 
   obj.dashedLineAdd = function(start, end){
@@ -2194,6 +2195,9 @@ function initWallEditor(obj){
     result.distanceToStart = Infinity;
     result.distanceToEnd = Infinity;
 
+    //проход по массиву опорных точек
+    //(при использовании стен построенных в редакторе
+    //проверка будет осуществляться в массиве стен )
     if(obj.magnitVerticies.length){
       obj.magnitVerticies.forEach(function(item, i, arr) {
 
@@ -2212,6 +2216,7 @@ function initWallEditor(obj){
       });
     }
 
+    //проход по массиву стен
     obj.walls.forEach(function(wall, i, arr) {
       var clampToLine = true;
       var pointOnAxis = wall.axisLine.closestPointToPoint ( point, clampToLine )
