@@ -2025,6 +2025,7 @@ function initWallEditor(obj){
     var vertices = vertices;
     var params = params || {width: obj.wall_width};
 
+    //проверка doubleclck и расстояние меньше половины ширины стены
     if(vertices && vertices[0].equals(vertices[1]) || vertices[0].distanceTo(vertices[1]) < params.width/2){
       window.console.warn("Неверные параметры для создания стены!");
       return false;
@@ -2325,7 +2326,9 @@ function initWallEditor(obj){
         var  optionalPointOnRay = new THREE.Vector3();
 
         //позиционирование при смешанном совпадении
-        if(magnitObject.distanceZ < obj.magnitValue  && magnitObject.distanceZ < 0.5 * magnitObject.distanceToWallAxis && magnitObject.wall.direction.clone().cross(new THREE.Vector3(1,0,0)).length()){
+        if(magnitObject.distanceZ < obj.magnitValue  && 
+           magnitObject.distanceZ < 2 * magnitObject.distanceToWallAxis &&
+           magnitObject.wall.direction.clone().cross(new THREE.Vector3(1,0,0)).length()){
 
           ray.distanceSqToSegment (
               new THREE.Vector3(-10000,0,magnitObject.itemZ.z),
@@ -2341,7 +2344,9 @@ function initWallEditor(obj){
 
         }
         //позиционирование при смешанном совпадении
-        if(magnitObject.distanceX < obj.magnitValue  && magnitObject.distanceX < 0.5 * magnitObject.distanceToWallAxis && magnitObject.wall.direction.clone().cross(new THREE.Vector3(0,0,1)).length()){
+        if(magnitObject.distanceX < obj.magnitValue  && 
+           magnitObject.distanceX < 2 * magnitObject.distanceToWallAxis &&
+           magnitObject.wall.direction.clone().cross(new THREE.Vector3(0,0,1)).length()){
 
           ray.distanceSqToSegment ( 
               new THREE.Vector3(magnitObject.itemX.x,0,-10000),
