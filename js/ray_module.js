@@ -2135,13 +2135,14 @@ function initWallEditor(obj){
 
       //если клик
       if(isClick){
-        window.console.log("intersectWalls: ");
-        window.console.log(intersectWalls);
         obj.wallAdd(obj.lineHelperGeometry.vertices);
-        obj.lineHelperGeometry.vertices = [];
-
         changeIntersectWalls();
+
+        //очистка
+        obj.lineHelperGeometry.vertices = [];
         intersectWalls = [];
+        //установка следующей точки
+        obj.lineHelperPointAdd();
       } else {
 
         obj.lineHelperGeometry.vertices.length = 1;
@@ -2156,6 +2157,12 @@ function initWallEditor(obj){
   obj.lineHelperRemove = function(){
     if(obj.lineHelper)
     obj.lineHelper.material.visible = false;
+  }
+
+  obj.reset = function(){
+    obj.lineHelperGeometry.vertices = [];
+    intersectWalls = [];
+    obj.lineHelperRemove();
   }
 
   obj.dashedLineAdd = function(start, end){
@@ -2226,23 +2233,32 @@ function initWallEditor(obj){
   document.addEventListener( 'keydown', onKeyDownWallEditor, false );
 
   function onDocumentMouseDownWallEditor( event ){
-    if (!obj.enabled || event.which != 1)
+    if (!obj.enabled)
       return false;
     event.preventDefault();
-
-
 
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-   var mouse_raycaster = new THREE.Raycaster();
-    mouse_raycaster.setFromCamera( mouse, camera );
+    switch (event.which) {
+      case 1: //ЛКМ
+        var mouse_raycaster = new THREE.Raycaster();
+        mouse_raycaster.setFromCamera( mouse, camera );
 
-    var intersectObjects = mouse_raycaster.intersectObject(obj.plane)
-    if(intersectObjects.length > 0){
-      obj.lineHelperPointAdd();
-      obj.lineHelperAdd();
+        var intersectObjects = mouse_raycaster.intersectObject(obj.plane)
+        if(intersectObjects.length > 0){
+          obj.lineHelperPointAdd();
+          obj.lineHelperAdd();
+        }
+        break;
+
+      case 3: //ПКМ
+        obj.reset();
+        break;
     }
+    
+
+   
 
   }
   function onDocumentMouseMoveWallEditor(event){
@@ -2288,10 +2304,7 @@ function initWallEditor(obj){
         currentWall = null;
       }
 
-      
-      if(magnitObject.distanceToWallAxis < obj.magnitValue){
-        
-      }
+   
 
       //позиционирование хелпера указателя к осевой
       if(magnitObject.distanceToWallAxis < obj.magnitValue){
@@ -2355,6 +2368,7 @@ function initWallEditor(obj){
     switch( event.keyCode ) {
       case 46: /*del*/
       case 27: /*esc*/
+
         break;
       case 49: /*1*/
         obj.wall_width = 10;
@@ -3062,6 +3076,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
     var segment_start = new THREE.Vector3();
     var segment_end = new THREE.Vector3();
 
+    var target = null;
+    var target_foundation = null;
     var self = this;
 
     walls.forEach(function(item, i){
@@ -3076,6 +3092,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
             angle_max = angle;
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
+            target = item;
+            target_foundation = {p1: item.v1, p2: item.v12};
           }
         }
 
@@ -3089,12 +3107,27 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
             angle_max = angle;
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
+            target = item;
+            target_foundation = {p1: item.v2, p2: item.v21};
           } 
         }
       }
 
     })
-    
+
+    //при разнице оснований и угол меньше 45 примыкание к основанию
+    if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
+
+      segment_start = target_foundation.p1;
+      segment_end = target_foundation.p2;
+
+    }
+    if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
+
+      angle_max = 0;
+
+    }
+    //пересечение
     if(angle_max > -Math.PI && angle_max != 0){
       var ray = new THREE.Ray(self.v12, self.direction);
 
@@ -3127,6 +3160,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
     var segment_start = new THREE.Vector3();
     var segment_end = new THREE.Vector3();
 
+    var target = null;
+    var target_foundation = null;
     var self = this;
 
     walls.forEach(function(item, i){
@@ -3141,6 +3176,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
             angle_max = angle;
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
+            target = item;
+            target_foundation = {p1: item.v1, p2: item.v11};
           }
         }
 
@@ -3154,12 +3191,28 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
             angle_max = angle;
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
+            target = item;
+            target_foundation = {p1: item.v2, p2: item.v22};
           }
         }
       }
 
     })
 
+
+    //при разнице оснований и угол меньше 45 примыкание к основанию
+    if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
+      
+      segment_start = target_foundation.p1;
+      segment_end = target_foundation.p2;
+      
+    }
+    if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
+
+      angle_max = 0;
+
+    }
+    //пересечение
     if(angle_max < Math.PI && angle_max != 0){
 
       var ray = new THREE.Ray(self.v11, self.direction);
@@ -3177,6 +3230,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
     var segment_start = new THREE.Vector3();
     var segment_end = new THREE.Vector3();
 
+    var target = null;
+    var target_foundation = null;
     var self = this;
 
     walls.forEach(function(item, i){
@@ -3191,6 +3246,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
             angle_max = angle;
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
+            target = item;
+            target_foundation = {p1: item.v2, p2: item.v22};
           }
         }
 
@@ -3204,12 +3261,27 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
             angle_max = angle;
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
+            target = item;
+            target_foundation = {p1: item.v1, p2: item.v11};
           }
         }
       }
 
     })
 
+    //при разнице оснований и угол меньше 45 примыкание к основанию
+    if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
+
+      segment_start = target_foundation.p1;
+      segment_end = target_foundation.p2;
+
+    }
+    if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
+
+      angle_max = 0;
+
+    }
+    //пересечение
     if(angle_max < Math.PI && angle_max != 0){
 
       var ray = new THREE.Ray(self.v22, self.direction.clone().negate());
@@ -3226,7 +3298,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
 
     var segment_start = new THREE.Vector3();
     var segment_end = new THREE.Vector3();
-
+    
+    var target = null;
+    var target_foundation = null;;
     var self = this;
 
     walls.forEach(function(item, i){
@@ -3241,6 +3315,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
             angle_max = angle;
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
+            target = item;
+            target_foundation = {p1: item.v2, p2: item.v21};
           }
         }
 
@@ -3254,12 +3330,27 @@ Wall.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
             angle_max = angle;
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
+            target = item;
+            target_foundation = {p1: item.v1, p2: item.v12};
           }
         }
       }
 
     })
 
+    //при разнице оснований и угол меньше 45 примыкание к основанию
+    if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
+
+      segment_start = target_foundation.p1;
+      segment_end = target_foundation.p2;
+      
+    }
+    if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
+
+      angle_max = 0;
+
+    }
+    //пересечение
     if(angle_max > -Math.PI && angle_max != 0){
       
       var ray = new THREE.Ray(self.v21, self.direction.clone().negate());
