@@ -2162,7 +2162,9 @@ function initWallEditor(obj){
   obj.reset = function(){
     obj.lineHelperGeometry.vertices = [];
     intersectWalls = [];
+    currentWall = null;
     obj.lineHelperRemove();
+    dashedLineRemoveAll();
   }
 
   obj.dashedLineAdd = function(start, end){
