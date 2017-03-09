@@ -2271,18 +2271,18 @@ function initWallCreator(obj){
 
     //наполнение массива точек
     scene.children.forEach(function(item, idx) {
-      if(item.name == 'wall'){
-
-        item.geometry.vertices.forEach(function(item2, idx) {
-          obj.magnitVerticies.push(item2.clone().applyMatrix4(item.matrixWorld).projectOnPlane ( new THREE.Vector3(0,1,0) ));
-        })
-
-      }
+//      if(item.name == 'wall'){
+//
+//        item.geometry.vertices.forEach(function(item2, idx) {
+//          obj.magnitVerticies.push(item2.clone().applyMatrix4(item.matrixWorld).projectOnPlane ( new THREE.Vector3(0,1,0) ));
+//        })
+//
+//      }
 
       if(item.type == 'Wall'){
 
         item.geometry.vertices.forEach(function(item2, idx) {
-          obj.magnitVerticies.push(item2.clone().projectOnPlane ( new THREE.Vector3(0,1,0) ));
+           obj.magnitVerticies.push(item2.clone().applyMatrix4(item.matrixWorld).projectOnPlane ( new THREE.Vector3(0,1,0) ));
         })
 
       }
@@ -2332,6 +2332,7 @@ function initWallCreator(obj){
     var vertices = vertices;
     var params = params || {width: obj.wall_width};
 
+    if(!params.auto_building)
     //проверка doubleclck и расстояние меньше половины ширины стены
     if(vertices && vertices[0].equals(vertices[1]) || vertices[0].distanceTo(vertices[1]) < params.width/2){
       window.console.warn("Неверные параметры для создания стены!");
@@ -2748,11 +2749,11 @@ function initWallEditor( obj ){
 
         mouse_raycaster.setFromCamera( mouse, camera );
 
-        if(obj.currentWall)
-        intersectObjects = mouse_raycaster.intersectObject(obj.currentWall.mover);
-        if(intersectObjects.length > 0){
-          intersectObjects[0].object.drag2();
-        }
+//        if(obj.currentWall)
+//        intersectObjects = mouse_raycaster.intersectObject(obj.currentWall.mover);
+//        if(intersectObjects.length > 0){
+//          intersectObjects[0].object.drag2();
+//        }
         break;
 
       case 3: //ПКМ
@@ -2776,7 +2777,7 @@ function initWallEditor( obj ){
     var intersectObjects = mouse_raycaster.intersectObjects(obj.walls);
     if(intersectObjects.length > 0){
         obj.currentWall = intersectObjects[0].object;
-        intersectObjects[0].object.mover.material.visible = true;
+        intersectObjects[0].object.mover.drag2();
     }
     
     
@@ -3127,11 +3128,7 @@ function Wall(vertices, parameters){
     this.position.set( 0, self.height, 0 )
 
     this.mover = new WallMover(this);
-    this.mover.rotation.x = Math.PI/2;
-    this.mover.position.set( 0, self.height, 0 )
-    this.mover.translateZ( - this.mover.height );
-    this.mover.material.visible = false;
-
+    
     scene.add( this.mover );
 
     var axisHelper = new THREE.AxisHelper( 50 );
@@ -3499,9 +3496,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
 
 function WallMover(wall){
+  THREE.Mesh.call( this, new THREE.Geometry());
   var self = this;
   this.wall = wall;
   this.height = 1;
+
+  this.v1_neighbors = [];
+  this.v2_neighbors = [];
 
   var material_1 = new THREE.MeshBasicMaterial({
       wireframe: false,
@@ -3511,12 +3512,13 @@ function WallMover(wall){
       color: 'blue'
     });
 
-    this.geometry = this.geometryBuild();
-    this.material = material_1;
+  this.geometry = this.geometryBuild();
+  this.material = material_1;
+  this.material.visible = false;
 
-    THREE.Mesh.call( this, this.geometry, this.material );
-
-		this.type = 'WallMoverMesh';
+	this.type = 'WallMoverMesh';
+  //позиционирование
+  this.startPosition();
 
 }
 
@@ -3545,34 +3547,268 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     return geometry;
   },
 
+  startPosition: function(){
+    this.rotation.x = this.wall.rotation.x;
+    this.position.set( 0, this.wall.height + this.height, 0);
+  },
+
   update: function(){
     this.geometry = this.geometryBuild();
     this.geometry.verticesNeedUpdate = true;
+    this.position.set(0,0,0);
+    this.startPosition();
+    
   },
   
-
   drag2: function(){
     var self = this;
+    
+    var _ray = new THREE.Ray();
+
     var dragControls = new DragControls2( [self], camera, renderer.domElement );
+
 		  dragControls.addEventListener( 'dragstart', function ( event ) {
+
         controls.enabled = false;
+        self.checkEnvironment();
+        
 		  } );
+
+      dragControls.addEventListener( 'drag', function ( event ) {
+
+        var y = event.object.position.y;
+        event.object.position.projectOnVector ( event.object.wall.direction90 );
+        event.object.position.setY( y );
+
+        if( self.v1_neighbors.length > 0 || self.v2_neighbors.length > 0){
+          event.object.wall.v1 = self.geometry.vertices[0].clone().applyMatrix4(self.matrixWorld).round();
+          event.object.wall.v2 = self.geometry.vertices[3].clone().applyMatrix4(self.matrixWorld).round();
+
+          event.object.wall.v1.multiply(new THREE.Vector3(1,0,1));
+          event.object.wall.v2.multiply(new THREE.Vector3(1,0,1));
+
+          if( self.v1_neighbors.length > 1 ){
+
+            if( event.object.wall.v1.distanceTo(self.v1_neighbors[0].point) > 1 ){
+              $wallCreator.wallAdd([
+                self.v1_neighbors[0].point,
+                event.object.wall.v1
+              ],
+              {
+                width: $wallCreator.wall_width,
+                auto_building: true
+              });
+
+              self.v1_neighbors.length = 0;
+              self.checkEnvironment();
+            }
+
+            return;
+          }
+
+          if( self.v2_neighbors.length > 1 ){
+
+            if( event.object.wall.v2.distanceTo(self.v2_neighbors[0].point) > 1 ){
+              $wallCreator.wallAdd([
+                self.v2_neighbors[0].point,
+                event.object.wall.v2
+              ],
+              {
+                width: $wallCreator.wall_width,
+                auto_building: true
+              });
+
+              self.v2_neighbors.length = 0;
+              self.checkEnvironment();
+
+            }
+
+            return;
+          }
+
+
+          if(self.v1_neighbors.length == 1){
+
+            _ray.origin = event.object.wall.v2.clone().add( event.object.wall.direction.clone().multiplyScalar(1000));
+            _ray.direction = event.object.wall.direction.clone().negate();
+
+
+            var result_point = new THREE.Vector3();
+            _ray.distanceSqToSegment ( self.v1_neighbors[0].line_segment.start, self.v1_neighbors[0].line_segment.end, result_point );
+
+            if( ! result_point.equals(new THREE.Vector3()) ){
+
+              event.object.wall.v1 = result_point.clone().round();
+              self.v1_neighbors[0].point.set(event.object.wall.v1.x, event.object.wall.v1.y, event.object.wall.v1.z) ;
+
+            }
+          }
+
+          if(self.v2_neighbors.length == 1){
+
+            _ray.origin = event.object.wall.v1.clone().add( event.object.wall.direction.clone().negate().multiplyScalar(1000));;
+            _ray.direction = event.object.wall.direction.clone();
+
+            var result_point = new THREE.Vector3();
+            _ray.distanceSqToSegment ( self.v2_neighbors[0].line_segment.start, self.v2_neighbors[0].line_segment.end, result_point );
+
+
+            if( ! result_point.equals(new THREE.Vector3()) ){
+
+              event.object.wall.v2 = result_point.clone().round();
+              self.v2_neighbors[0].point.set(event.object.wall.v2.x, event.object.wall.v2.y, event.object.wall.v2.z) ;
+
+            }
+
+  //             //вспомогательные
+  //            var material_ray = new THREE.LineBasicMaterial({ color: 'red' });
+  //            var material = new THREE.LineBasicMaterial({ color: 'green' });
+  //
+  //            var geometry_ray = new THREE.Geometry();
+  //            geometry_ray.vertices.push(_ray.origin );
+  //            geometry_ray.vertices.push(_ray.origin.clone().add( _ray.direction.clone().multiplyScalar(200) ));
+  //
+  //            var geometry = new THREE.Geometry();
+  //            geometry.vertices.push( self.v2_neighbors[0].line_segment.start );
+  //            geometry.vertices.push( self.v2_neighbors[0].line_segment.end );
+  //
+  //            var line_ray = new THREE.Line(geometry_ray, material_ray);
+  //            var line = new THREE.Line(geometry, material);
+  //            scene.add(line_ray, line);
+          }
+
+        } else {
+          self.checkEnvironment();
+          self.update();
+        }
+        //обновление затронутых стен
+        self.updateEnvironment();
+
+        
+		  } );
+      
 		  dragControls.addEventListener( 'dragend', function ( event ) {
+
+        setTimeout( function(){
+
+//          self.wall.v1 = self.geometry.vertices[0].clone().applyMatrix4(self.matrixWorld).round();
+//          self.wall.v2 = self.geometry.vertices[3].clone().applyMatrix4(self.matrixWorld).round();
+
+//          $wallCreator.updateWalls();
+
+        }, 200 );
+        
+        
         controls.enabled = true;
 
-        self.wall.v1 = self.geometry.vertices[0].clone().applyMatrix4(self.matrixWorld).round();
-        self.wall.v2 = self.geometry.vertices[3].clone().applyMatrix4(self.matrixWorld).round();
+		  } );
 
+      dragControls.addEventListener( 'hoveron', function ( event ) {
 
+        self.material.visible = true;
+        
 
-        $wallCreator.updateWalls();
-        self.update();
+		  } );
+
+      dragControls.addEventListener( 'hoveroff', function ( event ) {
+
+        self.material.visible = false;
 
 		  } );
   },
 
-  rebuildEnvironment: function(){
+  checkEnvironment: function(){
 
+    var self = this;
+
+    self.v1_neighbors = [];
+    self.v2_neighbors = [];
+
+    this.wall.walls.forEach(function( item, i ){
+
+      if(item.type == 'Wall' && self.wall.index != i){
+
+        switch (true) {
+          case self.wall.v1.equals(item.v1):
+            var arr = 'v1_neighbors';
+            var arg1 = 'v1';
+            var arg2 = 'v1';
+            break;
+          case self.wall.v1.equals(item.v2):
+            var arr = 'v1_neighbors';
+            var arg1 = 'v1';
+            var arg2 = 'v2';
+            break;
+          case self.wall.v2.equals(item.v1):
+            var arr = 'v2_neighbors';
+            var arg1 = 'v2';
+            var arg2 = 'v1';
+            break;
+          case self.wall.v2.equals(item.v2):
+            var arr = 'v2_neighbors';
+            var arg1 = 'v2';
+            var arg2 = 'v2';
+
+            break;  
+
+        }
+
+
+        if(arr){
+          self[arr].push({
+              wall: item,
+              point: item[arg2],
+              line_segment: {
+                start: item[arg1].clone().add( item.direction.clone().negate().multiplyScalar(10000) ),
+                end: item[arg1].clone().add( item.direction.clone().multiplyScalar(10000) )
+              },
+  //            angle: angle
+            })
+        }
+
+
+//        if(self.wall.v1.equals(item.v2)){
+//
+//          var angle = self.wall.direction.clone().negate().angleTo(item.direction.clone().negate()) ;
+////          var cross = this.wall.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
+////          angle = cross < 0 ? angle : - angle;
+//
+//          self.v1_neighbors.push({
+//            wall: item,
+//            point: item.v2,
+//            line_segment: {
+//              start: item.v1,
+//              end: item.v1.clone().add( item.direction.clone().multiplyScalar(1000) )
+//            },
+//            angle: angle
+//          })
+//        }
+//
+
+      }
+    
+    })
+
+
+  },
+
+  updateEnvironment: function(){
+
+    
+
+//    this.v1_neighbors.forEach(function(item){
+//      item.wall.update();
+//    });
+//    this.v2_neighbors.forEach(function(item){
+//      item.wall.update();
+//    });
+//
+//    this.wall.update();
+//
+//    this.update();
+    
+    $wallCreator.updateWalls();
+    
   }
 });
 
@@ -3637,8 +3873,7 @@ DragControls2 = function ( _objects, _camera, _domElement ) {
 			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
 
         _selected.position.copy(_intersection.sub( _offset )) ;
-        _selected.position.projectOnVector ( _selected.wall.direction90 );
-
+        
 			}
 
 			scope.dispatchEvent( { type: 'drag', object: _selected } );
@@ -3647,37 +3882,37 @@ DragControls2 = function ( _objects, _camera, _domElement ) {
 
 		}
 
-//		_raycaster.setFromCamera( _mouse, _camera );
-//
-//		var intersects = _raycaster.intersectObjects( _objects );
-//
-//		if ( intersects.length > 0 ) {
-//
-//			var object = intersects[ 0 ].object;
-//
-//			_plane.setFromNormalAndCoplanarPoint( _camera.getWorldDirection( _plane.normal ), object.position );
-//
-//			if ( _hovered !== object ) {
-//
-//				scope.dispatchEvent( { type: 'hoveron', object: object } );
-//
-//				_domElement.style.cursor = 'pointer';
-//				_hovered = object;
-//
-//			}
-//
-//		} else {
-//
-//			if ( _hovered !== null ) {
-//
-//				scope.dispatchEvent( { type: 'hoveroff', object: _hovered } );
-//
-//				_domElement.style.cursor = 'auto';
-//				_hovered = null;
-//
-//			}
-//
-//		}
+		_raycaster.setFromCamera( _mouse, _camera );
+
+		var intersects = _raycaster.intersectObjects( _objects );
+
+		if ( intersects.length > 0 ) {
+
+			var object = intersects[ 0 ].object;
+
+			_plane.setFromNormalAndCoplanarPoint( _camera.getWorldDirection( _plane.normal ), object.position );
+
+			if ( _hovered !== object ) {
+
+				scope.dispatchEvent( { type: 'hoveron', object: object } );
+
+				_domElement.style.cursor = 'pointer';
+				_hovered = object;
+
+			}
+
+		} else {
+
+			if ( _hovered !== null ) {
+
+				scope.dispatchEvent( { type: 'hoveroff', object: _hovered } );
+
+				_domElement.style.cursor = 'auto';
+				_hovered = null;
+
+			}
+
+		}
 
 	}
 
@@ -3715,10 +3950,9 @@ DragControls2 = function ( _objects, _camera, _domElement ) {
 		event.preventDefault();
 
 		if ( _selected ) {
-      setTimeout(function(){
-        scope.dispatchEvent( { type: 'dragend', object: _selected } );
+
+      scope.dispatchEvent( { type: 'dragend', object: _selected } );
         _selected = null;
-      },200)
 			
 		}
 
