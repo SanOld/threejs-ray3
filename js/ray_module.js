@@ -3561,7 +3561,6 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     var self = this;
     
     var _ray = new THREE.Ray();
-    var dir_90;
 
     var dragControls = new DragControls2( [self], camera, renderer.domElement );
 
@@ -3681,19 +3680,21 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
           self.update();
         }
         //обновление затронутых стен
-        self.updateEnvironment();
+        $wallCreator.updateWalls();
         self.checkEnvironment();
+        self.updateEnvironment();
+        
 
 		  } );
       
 		  dragControls.addEventListener( 'dragend', function ( event ) {
 
-        setTimeout( function(){
-
-//          $wallCreator.updateWalls();
-          self.update();
-
-        }, 200 );
+//        setTimeout( function(){
+//
+////          $wallCreator.updateWalls();
+//          self.update();
+//
+//        }, 200 );
         
         
         controls.enabled = true;
@@ -3725,29 +3726,31 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
       if(item.type == 'Wall' && self.wall.index != i){
 
+        var arr = null;
+        var arg1;
+        var arg2;
+
         switch (true) {
           case self.wall.v1.equals(item.v1):
-            var arr = 'v1_neighbors';
-            var arg1 = 'v1';
-            var arg2 = 'v1';
+            arr = 'v1_neighbors';
+            arg1 = 'v1';
+            arg2 = 'v1';
             break;
           case self.wall.v1.equals(item.v2):
-            var arr = 'v1_neighbors';
-            var arg1 = 'v1';
-            var arg2 = 'v2';
+            arr = 'v1_neighbors';
+            arg1 = 'v1';
+            arg2 = 'v2';
             break;
           case self.wall.v2.equals(item.v1):
-            var arr = 'v2_neighbors';
-            var arg1 = 'v2';
-            var arg2 = 'v1';
+            arr = 'v2_neighbors';
+            arg1 = 'v2';
+            arg2 = 'v1';
             break;
           case self.wall.v2.equals(item.v2):
-            var arr = 'v2_neighbors';
-            var arg1 = 'v2';
-            var arg2 = 'v2';
-
+            arr = 'v2_neighbors';
+            arg1 = 'v2';
+            arg2 = 'v2';
             break;
-
         }
 
 
@@ -3763,76 +3766,6 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             })
         }
 
-
-//        if(self.wall.v1.equals(item.v2)){
-//
-//          var angle = self.wall.direction.clone().negate().angleTo(item.direction.clone().negate()) ;
-////          var cross = this.wall.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
-////          angle = cross < 0 ? angle : - angle;
-//
-//          self.v1_neighbors.push({
-//            wall: item,
-//            point: item.v2,
-//            line_segment: {
-//              start: item.v1,
-//              end: item.v1.clone().add( item.direction.clone().multiplyScalar(1000) )
-//            },
-//            angle: angle
-//          })
-//        }
-//
-//        if(self.wall.v1.equals(item.v1)){
-//
-//          var angle = self.wall.direction.clone().negate().angleTo(item.direction.clone().negate()) ;
-////          var cross = this.wall.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
-////          angle = cross < 0 ? angle : - angle;
-//
-//          self.v1_neighbors.push({
-//            wall: item,
-//            point: item.v1,
-//            line_segment: {
-//              start: item.v2,
-//              end: item.v2.clone().add( item.direction.clone().negate().multiplyScalar(1000) )
-//            },
-//            angle: angle
-//          })
-//        }
-//
-//        if(self.wall.v2.equals(item.v2)){
-//
-//          var angle = self.wall.direction.clone().negate().angleTo(item.direction.clone().negate()) ;
-////          var cross = this.wall.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
-////          angle = cross < 0 ? angle : - angle;
-//
-//          self.v2_neighbors.push({
-//            wall: item,
-//            point: item.v2,
-//            line_segment: {
-//              start: item.v1,
-//              end: item.v1.clone().add( item.direction.clone().multiplyScalar(1000) )
-//            },
-//            angle: angle
-//          })
-//        }
-//
-//
-//        if(self.wall.v2.equals(item.v1)){
-//
-//          var angle = self.wall.direction.clone().negate().angleTo(item.direction.clone().negate()) ;
-////          var cross = this.wall.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
-////          angle = cross < 0 ? angle : - angle;
-//
-//          self.v2_neighbors.push({
-//            wall: item,
-//            point: item.v1,
-//            line_segment: {
-//              start: item.v2,
-//              end: item.v2.clone().add( item.direction.clone().negate().multiplyScalar(1000) )
-//            },
-//            angle: angle
-//          })
-//        }
-
       }
     
     })
@@ -3841,8 +3774,13 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   },
 
   updateEnvironment: function(){
-    
-    $wallCreator.updateWalls();
+
+    this.v1_neighbors.forEach(function(item){
+      item.wall.mover.update();
+    })
+    this.v2_neighbors.forEach(function(item){
+      item.wall.mover.update();
+    })
     
   }
 });
