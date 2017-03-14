@@ -59,19 +59,21 @@ var loader = new THREE.TextureLoader();
 // load a resource
 loader.load(
 	// resource URL
-	'/js/lib/three-master/examples/textures/brick_bump.jpg',
+//	'/js/lib/three-master/examples/textures/brick_bump.jpg',
+  '/img/pimgpsh_fullsize_distr.jpg',
 	// Function when resource is loaded
 	function ( floorTexture ) {
 		// do something with the texture
 //      var floorTexture = new THREE.ImageUtils.loadTexture( '../textures/brick_bump.jpg' );
-      floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
-      floorTexture.repeat.set( 10, 10 );
-      var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
-      var floorGeometry = new THREE.PlaneBufferGeometry(1000, 1000, 10, 10);
+//      floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+ 
+      floorTexture.repeat.set( 1, 1 );
+      var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
+      var floorGeometry = new THREE.PlaneBufferGeometry(1000, 700, 10, 10);
       var floor = new THREE.Mesh(floorGeometry, floorMaterial);
       floor.name = 'floor'
       floor.position.y = 0;
-      floor.rotation.x = Math.PI / 2;
+      floor.rotation.x = -Math.PI / 2;
       scene.add(floor);
 	},
 	// Function called when download progresses
@@ -110,62 +112,62 @@ function init()
 //  //
 //
   var ceiling = new THREE.Mesh(
-//    new THREE.BoxBufferGeometry( 500, 150, 10 ),
-    new THREE.BoxGeometry( 500, 500, 10 ),
+    new THREE.BoxBufferGeometry( 500, 150, 10 ),
+//    new THREE.BoxGeometry( 500, 500, 10 ),
      new THREE.MeshNormalMaterial({wireframe: false, opacity: 0.3, transparent: true, depthWrite: false})
   );
   ceiling.position.y = 130;
   ceiling.rotation.x = Math.PI/2;
 
 
-  var w1 = new THREE.Mesh(
-//    new THREE.BoxBufferGeometry( 500, 150, 10 ),
-    new THREE.BoxGeometry( 500, 150, 10 ),
-    new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false } )
-  );
-  w1.position.y = 75;
-
-  var w2 = w1.clone();
-  w2.position.x = -255;
-  w2.position.y = 75;
-  w2.rotateY ( Math.PI/2 );
-  w2.position.z = 250+5;
-
-  var w3 = new THREE.Mesh(
-//    new THREE.BoxBufferGeometry( 30, 150, 30 ),
-    new THREE.BoxGeometry( 30, 150, 30 ),
-
-    new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false } )
-  );
-  w3.position.y = 75;
-  w3.position.z = -125;
-
-
-  w2.position.z += -500;
-  w1.position.z += -500;
-
-  var w4 = w2.clone();
-  w4.geometry = new THREE.BoxGeometry( 200, 150, 10 );
-
-  w4.position.x += 200;
-  w4.position.z -= 150;
-
-  w4.rotation.y = Math.PI/4;
-
-  w1.name = w2.name = w3.name = w4.name ='wall';
-
-  var w11 = w1.clone();
-  var w12 = w2.clone();
-  var w13 = w3.clone();
-  var w14 = w4.clone();
-  var wire_material =  new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } )
-  w11.material = w12.material = w13.material = w14.material = wire_material;
+//  var w1 = new THREE.Mesh(
+////    new THREE.BoxBufferGeometry( 500, 150, 10 ),
+//    new THREE.BoxGeometry( 500, 150, 10 ),
+//    new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false } )
+//  );
+//  w1.position.y = 75;
+//
+//  var w2 = w1.clone();
+//  w2.position.x = -255;
+//  w2.position.y = 75;
+//  w2.rotateY ( Math.PI/2 );
+//  w2.position.z = 250+5;
+//
+//  var w3 = new THREE.Mesh(
+////    new THREE.BoxBufferGeometry( 30, 150, 30 ),
+//    new THREE.BoxGeometry( 30, 150, 30 ),
+//
+//    new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false } )
+//  );
+//  w3.position.y = 75;
+//  w3.position.z = -125;
+//
+//
+//  w2.position.z += -500;
+//  w1.position.z += -500;
+//
+//  var w4 = w2.clone();
+//  w4.geometry = new THREE.BoxGeometry( 200, 150, 10 );
+//
+//  w4.position.x += 200;
+//  w4.position.z -= 150;
+//
+//  w4.rotation.y = Math.PI/4;
+//
+//  w1.name = w2.name = w3.name = w4.name ='wall';
+//
+//  var w11 = w1.clone();
+//  var w12 = w2.clone();
+//  var w13 = w3.clone();
+//  var w14 = w4.clone();
+//  var wire_material =  new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } )
+//  w11.material = w12.material = w13.material = w14.material = wire_material;
 
 //  scene.add(w11, w12, w13, w14);
-  scene.add( w1, w2, w3, w4 );
-  scene.add(ceiling);
+//  scene.add( w1, w2, w3, w4 );
+//  scene.add(ceiling);
 
-//test_cams();
+
 
 //
 //var axisHelper = new THREE.AxisHelper( 100 );
@@ -174,14 +176,25 @@ function init()
 //
 
 
+//$wallCreator.wallAdd([new THREE.Vector3(-500,0,-500), new THREE.Vector3(0,0,-500)]);
+//$wallCreator.wallAdd([new THREE.Vector3(-500,0,-500), new THREE.Vector3(-500,0,0)]);
+//
+//$wallCreator.wallAdd([new THREE.Vector3(-350,0,-150), new THREE.Vector3(-150,0,-350)]);
+//
+//$wallCreator.wallAdd([new THREE.Vector3(0,0,-100), new THREE.Vector3(0,0,-50)],{width: 50});//колонна
+
+
+
 //loadScene();
-loadCamera();
+
+
+//loadCamera();
 
 //инициализация возможности отрисовки луча
 setTimeout(addCameraRay,1000,scene);
 
 
-$arcWall.add( scene, wall );
+//$arcWall.add( scene, wall );
 
 }
 

@@ -1938,6 +1938,7 @@ function initProjection(obj){
     obj.plane = new THREE.Mesh( geometry );
     obj.plane.rotateX(-Math.PI/2);
     obj.plane.translateZ (-5);
+    obj.plane.material.visible = false;
     scene.add( obj.plane );
   }
 
@@ -2337,7 +2338,7 @@ function initWallCreator(obj){
    * @returns {type Mesh}
    */
 
-  obj.wallAdd = function( vertices, params ){
+  obj.addWall = function( vertices, params ){
     var vertices = vertices;
     var params = params || {width: obj.wall_width};
 
@@ -2375,24 +2376,24 @@ function initWallCreator(obj){
     var wall = null;
 
     intersectWalls.forEach(function( item, i ){
-      if( item.wall && (item.wall.v1.distanceTo(item.point) > item.wall.width/2 && item.wall.v2.distanceTo(item.point) > item.wall.width/2) ){
+      if( item.wall && (item.wall.v1.distanceTo( item.point ) > item.wall.width/2 && item.wall.v2.distanceTo(item.point) > item.wall.width/2) ){
 
         wall = item.wall;
 
-        var vertices1 = [item.wall.v1, item.point];
-        var vertices2 = [item.point, item.wall.v2];
-        var params = {width: item.wall.width, heigth: item.wall.heigth};
+        var vertices1 = [ item.wall.v1, item.point ];
+        var vertices2 = [ item.point, item.wall.v2 ];
+        var params = { width: item.wall.width, heigth: item.wall.heigth };
 
         delete obj.walls[item.wall.index];
         scene.remove(item.wall);
         item.wall = null;
+        currentWall = null;
 
-        obj.wallAdd(vertices1, params);
-        obj.wallAdd(vertices2, params);
+        obj.addWall( vertices1, params );
+        obj.addWall( vertices2, params );
         
       }
     })
-
 
   }
 
@@ -2452,7 +2453,7 @@ function initWallCreator(obj){
 
       //если клик
       if(isClick){
-        obj.wallAdd(obj.lineHelperGeometry.vertices);
+        obj.addWall(obj.lineHelperGeometry.vertices);
         changeIntersectWalls();
 
         //очистка
@@ -3115,22 +3116,24 @@ function Wall(vertices, parameters){
     this.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
     this.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
 
-    this.geometry = this.geometryBuild();
+    this.geometry = this.buildGeometry();
 
     var material_1 = new THREE.MeshBasicMaterial({
       wireframe: false,
       opacity: 0.8,
       transparent: true,
       depthWrite: false,
-      color: 'gray'
+      color: 'black'
     });
     var material_2 = new THREE.MeshBasicMaterial({
       wireframe: false,
       opacity: 0.8,
       transparent: true,
-      depthWrite: false
+      depthWrite: false,
+      color: '#d5c7ac'//бежевый
     });
 
+//    this.material = material_2;
     this.material.transparent = true;
     this.material.opacity = 0.8;
 
@@ -3148,7 +3151,7 @@ function Wall(vertices, parameters){
 Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   constructor: Wall,
 
-  geometryBuild: function(){
+  buildGeometry: function(){
     var wallShape = new THREE.Shape();
 
 				wallShape.moveTo( this.v1.x,  this.v1.z );
@@ -3173,7 +3176,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   getV22: function (walls){
     var result_point =  new THREE.Vector3();
     var walls = walls || [];
-    var angle_max = -Math.PI;
+    var angle_max = - Math.PI;
 
     var segment_start = new THREE.Vector3();
     var segment_end = new THREE.Vector3();
@@ -3191,7 +3194,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           angle = cross < 0 ? angle : - angle;
 
 
-          if(angle > angle_max) {
+          if(angle > angle_max && angle != 0) {
             angle_max = angle;
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
@@ -3206,7 +3209,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().cross( item.direction.clone().negate() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle > angle_max) {
+          if(angle > angle_max && angle != 0) {
             angle_max = angle;
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
@@ -3276,7 +3279,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().cross(item.direction).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max) {
+          if(angle < angle_max && angle != 0) {
             angle_max = angle;
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
@@ -3291,7 +3294,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().cross( item.direction.clone().negate() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max) {
+          if(angle < angle_max && angle != 0) {
             angle_max = angle;
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
@@ -3346,7 +3349,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max) {
+          if(angle < angle_max && angle != 0) {
             angle_max = angle;
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
@@ -3361,7 +3364,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().negate().cross( item.direction.clone() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max) {
+          if(angle < angle_max && angle != 0) {
             angle_max = angle;
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
@@ -3415,7 +3418,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle > angle_max) {
+          if(angle > angle_max && angle != 0) {
             angle_max = angle;
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
@@ -3430,7 +3433,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().negate().cross( item.direction.clone() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle > angle_max) {
+          if(angle > angle_max && angle != 0) {
             angle_max = angle;
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
@@ -3466,6 +3469,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   },
   //перерасчет при изменении толщины стены
   recalculatePoints: function (){
+
     this.axisLine = new THREE.Line3(this.v1,this.v2);
     this.direction = this.axisLine.delta().normalize();
     this.direction90 = new THREE.Vector3( this.direction.z, 0 , -this.direction.x );
@@ -3475,6 +3479,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.v12 = this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
     this.v21 = this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
     this.v22 = this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
+
   },
 
   update: function(walls){
@@ -3492,7 +3497,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       this.v21 = v21 ? v21 : this.v21 ;
       this.v22 = v22 ? v22 : this.v22 ;
 
-      var new_geometry = this.geometryBuild();
+      var new_geometry = this.buildGeometry();
       if(new_geometry){
         this.geometry = new_geometry;
         this.geometry.verticesNeedUpdate = true;
@@ -3500,27 +3505,26 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       } else {
         this.geometry = new THREE.Geometry();
         this.material.visible = false;
-//        $wallEditor.remove(this);
-//        this = null;
       }
 
-//      this.mover.update();
+
       
   }
-
 
 });
 
 
 function WallMover(wall){
+
   THREE.Mesh.call( this, new THREE.Geometry());
+
   var self = this;
   var _ray = new THREE.Ray();
   var enabled = true;
   
   this.wall = wall;
   this.height = 1;
-
+  //массивы соседних стен
   this.v1_neighbors = [];
   this.v2_neighbors = [];
 
@@ -3532,73 +3536,68 @@ function WallMover(wall){
       color: 'blue'
     });
 
-  this.geometry = this.geometryBuild();
+  this.geometry = this.buildGeometry();
   this.material = material_1;
   this.material.visible = false;
 
 	this.type = 'WallMoverMesh';
   //позиционирование
-  this.startPosition();
+  this.setStartPosition();
   
   this.dragControls = null;
   this.needChecked = false; // флаг обновления массива соседей
 
   //проверка перекрытия стен
   function checkCoveration(){
-      self.v1_neighbors.forEach(function( item, i, arr ){
 
-      var dot = self.wall.direction.clone().dot(item.wall.direction);
+    self.v1_neighbors.forEach(function( item, i, arr ){
 
-      if( dot == 1 ){
-        var d1 = self.wall.v1.distanceTo (item.wall.v1);
-        var d2 = self.wall.v1.distanceTo (item.wall.v2);
-        if(d1 <= self.wall.axisLength && d2 <= self.wall.axisLength){
+    var item_vector = item.opposite_point.clone().sub(item.point);
+    var wall_vector = self.wall.v2.clone().sub(self.wall.v1);
+    var dot = wall_vector.clone().dot(item_vector.clone())/ wall_vector.clone().lengthSq();
+    var dot_normalize = wall_vector.clone().normalize().dot(item_vector.clone().normalize());
 
-          wallRemove(item.wall);
+    if( dot > 0 && dot <= 1 && dot_normalize == 1 ){
 
-        }
-
-        var dd1 = item.point.distanceTo (self.wall.v1);
-        var dd2 = item.point.distanceTo (self.wall.v2);
-        if(dd1 <= item.wall.axisLength && dd2 <= item.wall.axisLength){
-
-          wallRemove(self.wall);
-
-        }
+        removeWall(item.wall);
+        self.v1_neighbors.slice(i,1);
+        return;
 
       }
 
-    });
+    if( dot > 0 && dot >= 1 && dot_normalize == 1){
+
+        removeWall(self.wall);
+        return;
+    }
+
+  });
 
     self.v2_neighbors.forEach(function( item, i, arr ){
 
-      var dot = self.wall.direction.clone().dot( item.wall.direction );
+      var item_vector = item.opposite_point.clone().sub(item.point);
+      var wall_vector = self.wall.v1.clone().sub(self.wall.v2);
+      var dot = wall_vector.clone().dot(item_vector.clone())/ wall_vector.clone().lengthSq();
+      var dot_normalize = wall_vector.clone().normalize().dot(item_vector.clone().normalize());
 
-      if( Math.abs(dot) == 1 ){
-        var d1 = self.wall.v2.distanceTo (item.wall.v1);
-        var d2 = self.wall.v2.distanceTo (item.wall.v2);
-        if(d1 <= self.wall.axisLength && d2 <= self.wall.axisLength){
+      if( dot > 0 && dot <= 1 && dot_normalize == 1 ){
 
-          wallRemove(item.wall);
-
-        }
-
-        var dd1 = item.point.distanceTo (self.wall.v1);
-        var dd2 = item.point.distanceTo (self.wall.v2);
-        if(dd1 <= item.wall.axisLength && dd2 <= item.wall.axisLength){
-
-          wallRemove(self.wall);
+          removeWall(item.wall);
+          self.v1_neighbors.slice(i,1);
+          return;
 
         }
+      if( dot > 0 && dot >= 1 && dot_normalize == 1){
 
-      }
+          removeWall(self.wall);
+          return;
+
+        }
 
     });
 
-
   }
-
-//проверка длин соседей (удаление нулевой стены)
+  //проверка длин соседей (удаление нулевой стены)
   function checkNeighborsLength(){
     var result = false;
     var v1_offset = 0;
@@ -3621,7 +3620,6 @@ function WallMover(wall){
       }
 
     });
-
     self.v2_neighbors.forEach(function( item, i, arr ){
 
       var dot = self.wall.direction.clone().dot( item.wall.direction );
@@ -3636,7 +3634,6 @@ function WallMover(wall){
 
     });
 
-
     //проверяем условия
     if(v1_dir && v2_dir && v1_dir.equals(v2_dir)){
       switch (true) {
@@ -3645,8 +3642,8 @@ function WallMover(wall){
           self.wall.v1.add( v1_offset );
           self.wall.v2.add( v1_offset );
 
-          wallRemove(v1_item.wall);
-          wallRemove(v2_item.wall);
+          removeWall(v1_item.wall);
+          removeWall(v2_item.wall);
           
           self.v1_neighbors.splice(v1_index, 1);
           self.v2_neighbors.splice(v2_index, 1);
@@ -3660,7 +3657,7 @@ function WallMover(wall){
           self.wall.v1.add( v1_offset );
           self.wall.v2.add( v1_offset );
 
-          wallRemove(v1_item.wall);
+          removeWall(v1_item.wall);
           self.v1_neighbors.splice(v1_index, 1);
           result = true;
 
@@ -3670,7 +3667,7 @@ function WallMover(wall){
           self.wall.v1.add( v2_offset );
           self.wall.v2.add( v2_offset );
 
-          wallRemove(v2_item.wall);
+          removeWall(v2_item.wall);
           self.v2_neighbors.splice(v2_index, 1);
           result = true;
 
@@ -3688,7 +3685,7 @@ function WallMover(wall){
       self.wall.v2.add( v1_offset );
 
       self.v1_neighbors.splice(v1_index, 1);
-      wallRemove(v1_item.wall);
+      removeWall(v1_item.wall);
       
       result = true;
 
@@ -3700,7 +3697,7 @@ function WallMover(wall){
       self.wall.v2.add( v2_offset );
 
       self.v2_neighbors.splice(v2_index, 1);
-      wallRemove(v2_item.wall);
+      removeWall(v2_item.wall);
       
       result = true;
       
@@ -3709,7 +3706,6 @@ function WallMover(wall){
     
     return result;
   }
-
 
   //проверка движения вдоль стены в варианте один ко многим
   function isIntersect(neighbors, point){
@@ -3741,7 +3737,7 @@ function WallMover(wall){
   };
   //координаты стены после передвижеия курсора
   this.getNewCoord = function(){
-    
+
     var result = {};
     result.v1 = self.geometry.vertices[0].clone().applyMatrix4(self.matrixWorld.clone()).round();
     result.v2 = self.geometry.vertices[3].clone().applyMatrix4(self.matrixWorld.clone()).round();
@@ -3751,9 +3747,9 @@ function WallMover(wall){
 
   }
   //дополнительная стена
-  this.wallAdd = function(vertices, width){
+  this.addWall = function(vertices, width){
     var width = width || $wallCreator.wall_width;
-    $wallCreator.wallAdd( vertices,
+    $wallCreator.addWall( vertices,
                           {
                             width: width,
                             auto_building: true
@@ -3761,15 +3757,15 @@ function WallMover(wall){
     $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
   }
   //Удаление стены
-  function wallRemove(wall){
+  function removeWall(wall){
 
     $wallEditor.remove(wall)
     $wallCreator.updateWalls();
-    self.update();
 
   }
 
-  this.dragstart = function ( event ) {
+  //события
+  this.dragstart =  function ( event ) {
 
         controls.enabled = false;
         self.material.visible = false;
@@ -3777,8 +3773,8 @@ function WallMover(wall){
         self.checkEnvironment();
 
 		  }
-  this.drag =      function ( event ) {
-
+  this.drag =       function ( event ) {        
+        
         self.needChecked = false;
 
         if(!enabled) return;
@@ -3786,22 +3782,22 @@ function WallMover(wall){
         //проверка длин соседей (удаление нулевой стены)
         if( checkNeighborsLength() ){
 
-          self.hoveroff();
-          self.dragend();
+//          self.hoveroff();
+//          self.dragend();
+          var newCoord = {v1: self.wall.v1, v2: self.wall.v2};
           self.needChecked = true;
           enabled = false;
-          checkCoveration(); 
-
+           
         }
 
-
-        //проекция вектора движения
         if(enabled){
+//          
+          //проекция вектора движения
           var y = event.object.position.y;
           event.object.position.projectOnVector ( event.object.wall.direction90.clone() );
           event.object.position.setY(y);
           //новые координаты стены
-          var newCoord = self.getNewCoord()
+          var newCoord = self.getNewCoord();
           self.writeCoordToWall( event, newCoord );
         }
 
@@ -3844,13 +3840,13 @@ function WallMover(wall){
               var intersected = isIntersect(self.v1_neighbors, newCoord.v1);
 
               if(intersected){
-                self.wallAdd( [intersected.v1, newCoord.v1], event.object.wall.width );
-                self.wallAdd( [intersected.v2, newCoord.v1], event.object.wall.width );
-                wallRemove(intersected);
+                self.addWall( [intersected.v1, newCoord.v1], event.object.wall.width );
+                self.addWall( [intersected.v2, newCoord.v1], event.object.wall.width );
+                removeWall(intersected);
                 self.v1_neighbors.length = 0;
                 self.needChecked = true;
               } else {
-                self.wallAdd( [self.v1_neighbors[0].point, event.object.wall.v1], event.object.wall.width );
+                self.addWall( [self.v1_neighbors[0].point, event.object.wall.v1], event.object.wall.width );
                 self.v1_neighbors.length = 0;
                 self.needChecked = true;
               }
@@ -3865,13 +3861,13 @@ function WallMover(wall){
               var intersected = isIntersect(self.v2_neighbors, newCoord.v2);
 
               if(intersected){
-                self.wallAdd( [intersected.v1, newCoord.v2], event.object.wall.width );
-                self.wallAdd( [intersected.v2, newCoord.v2], event.object.wall.width );
-                wallRemove(intersected);
+                self.addWall( [intersected.v1, newCoord.v2], event.object.wall.width );
+                self.addWall( [intersected.v2, newCoord.v2], event.object.wall.width );
+                removeWall(intersected);
                 self.v2_neighbors.length = 0;
                 self.needChecked = true;
               } else {
-                self.wallAdd( [ self.v2_neighbors[0].point, event.object.wall.v2 ], event.object.wall.width );
+                self.addWall( [ self.v2_neighbors[0].point, event.object.wall.v2 ], event.object.wall.width );
                 self.v2_neighbors.length = 0;
                 self.needChecked = true;
               }
@@ -3889,7 +3885,7 @@ function WallMover(wall){
               case true:
                 if( newCoord.v2.distanceTo(self.v2_neighbors[0].point) > 10 ){
 
-                  self.wallAdd( [ self.v2_neighbors[0].point, event.object.wall.v2 ], event.object.wall.width );
+                  self.addWall( [ self.v2_neighbors[0].point, event.object.wall.v2 ], event.object.wall.width );
                   self.needChecked = true;
 
                 }
@@ -3913,23 +3909,6 @@ function WallMover(wall){
 
             }
 
-  /*
-  //              var material_ray = new THREE.LineBasicMaterial({ color: 'red' });
-  //              var material = new THREE.LineBasicMaterial({ color: 'green' });
-  //
-  //              var geometry_ray = new THREE.Geometry();
-  //              geometry_ray.vertices.push(_ray.origin );
-  //              geometry_ray.vertices.push(_ray.origin.clone().add( _ray.direction.clone().multiplyScalar(200) ));
-  //
-  //              var geometry = new THREE.Geometry();
-  //              geometry.vertices.push( self.v2_neighbors[0].line_segment.start );
-  //              geometry.vertices.push( self.v2_neighbors[0].line_segment.end );
-  //
-  //              var line_ray = new THREE.Line(geometry_ray, material_ray);
-  //              var line = new THREE.Line(geometry, material);
-  //              scene.add(line_ray, line);
-  *///вспомогательные лучи
-
           }
           if(self.v1_neighbors.length == 1){
 
@@ -3940,7 +3919,7 @@ function WallMover(wall){
 
                 if( newCoord.v1.distanceTo(self.v1_neighbors[0].point) > 10 ){
 
-                  self.wallAdd( [ self.v1_neighbors[0].point, event.object.wall.v1 ], event.object.wall.width );
+                  self.addWall( [ self.v1_neighbors[0].point, event.object.wall.v1 ], event.object.wall.width );
                   self.needChecked = true;
 
                 }
@@ -3961,9 +3940,7 @@ function WallMover(wall){
 
                 }
                 break;
-
             }
-
 
           }
 
@@ -3976,30 +3953,27 @@ function WallMover(wall){
         }
         self.updateEnvironment();
 
-        
-      
 		  }
-  this.dragend =   function ( event ) {
+  this.dragend =    function ( event ) {
         
         controls.enabled = true;
         
         $wallCreator.updateWalls();
-        self.update();
-               
-
+        checkCoveration();
+        
 		  }
-  this.hoveron =   function ( event ) {
+  this.hoveron =    function ( event ) {
 
         self.material.visible = true;
 
 		  }
-  this.hoveroff =  function ( event ) {
+  this.hoveroff =   function ( event ) {
 
         self.material.visible = false;
 
 		  }
 
-  this.activate = function() {
+  this.activate =   function() {
     this.dragControls = new DragControls2( [self], camera, renderer.domElement );
     this.dragControls.addEventListener( 'dragstart', this.dragstart );
     this.dragControls.addEventListener( 'drag', this.drag );
@@ -4008,7 +3982,6 @@ function WallMover(wall){
     this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
     
 	};
-
   this.deactivate = function () {
     
     if(this.dragControls){
@@ -4026,7 +3999,7 @@ function WallMover(wall){
 WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   constructor: WallMover,
 
-  geometryBuild: function(){
+  buildGeometry: function(){
     var wallShape = new THREE.Shape();
 				wallShape.moveTo( this.wall.v1.x, this.wall.v1.z );
 				wallShape.lineTo( this.wall.v11.x, this.wall.v11.z );
@@ -4048,20 +4021,20 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     return geometry;
   },
 
-  startPosition: function(){
+  setStartPosition: function(){
     this.rotation.x = this.wall.rotation.x;
     this.position.set( 0, this.wall.height + this.height, 0);
   },
 
   update: function(){
 
-    var geometry = this.geometryBuild();
+    var geometry = this.buildGeometry();
     
     if(geometry){
       this.geometry = geometry;
       this.geometry.verticesNeedUpdate = true;
       this.position.set(0,0,0);
-      this.startPosition();
+      this.setStartPosition();
       this.geometry.verticesNeedUpdate = true;
     } else {
         this.geometry = new THREE.Geometry();
