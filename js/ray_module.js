@@ -3507,7 +3507,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.material.visible = false;
       }
 
-
       
   }
 
