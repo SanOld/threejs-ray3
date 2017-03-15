@@ -2726,16 +2726,19 @@ function initWallEditor( obj ){
 
   obj.enabled = false;
   obj.currentWall = null;
+  obj.selectedWall = null;
 
   obj.on = function(){
     
     obj.enabled = !obj.enabled;
     obj.activateWalMover();
+    obj.activateSelectControls()
 
   }
   obj.off = function(){
     obj.enabled = !obj.enabled;
     obj.deactivateWalMover();
+    obj.deactivateSelectControls();
 
   }
 
@@ -2744,18 +2747,58 @@ function initWallEditor( obj ){
       item.mover.activate();
     })
   }
-
   obj.deactivateWalMover = function(){
     obj.walls.forEach(function(item){
       item.mover.deactivate();
     })
   }
+  
+  obj.activateSelectControls = function(){
+    obj.selectControls = new SelectControls( obj.walls, camera, renderer.domElement );
+    obj.selectControls.addEventListener( 'select', obj.select );
+    obj.selectControls.addEventListener( 'unselect', obj.unselect );
+//    obj.dragControls.addEventListener( 'end', obj.dragend );
+    obj.selectControls.addEventListener( 'hoveron', obj.hoveron );
+    obj.selectControls.addEventListener( 'hoveroff', obj.hoveroff );
+  }
+  obj.deactivateSelectControls = function(){
+
+    if(obj.selectControls ){
+      obj.selectControls.removeEventListener( 'select', obj.select, false );
+  //    obj.dragControls.removeEventListener( 'end', obj.dragend, false );
+      obj.selectControls.removeEventListener( 'hoveron', obj.hoveron, false );
+      obj.selectControls.removeEventListener( 'hoveroff', obj.hoveroff, false );
+      obj.selectControls = null;
+    }
+
+  }
+  obj.select = function(event){
+    obj.hideWallsMenu();
+    event.object.select(event);
+    obj.selectedWall = event.object;
+
+  }
+  obj.unselect = function(event){
+    obj.hideWallsMenu();
+    obj.selectedWall = null;
+  }
+  obj.hoveron = function(event){
+    event.object.hoveron(event);
+  }
+  obj.hoveroff = function(event){
+    event.object.hoveroff(event);
+  }
+  obj.hideWallsMenu = function(){
+    $('.ActiveElementMenu').css('display','none');
+  }
+
 
   obj.remove = function(wall){
       scene.remove(wall.mover);
       scene.remove(wall);
       delete obj.walls[wall.index];
       wall = null;
+      obj.hideWallsMenu();
   }
 
 
@@ -2815,6 +2858,13 @@ function initWallEditor( obj ){
         break;
     }
   }
+
+  /**
+	 * удаление стены
+	 */
+	$('.ActiveElementMenu').on('click', '[action = remove]', function(){
+		obj.remove(obj.selectedWall);
+	});
 
 }
 $wallEditor = {};
@@ -3146,6 +3196,8 @@ function Wall(vertices, parameters){
 
     this.mover = new WallMover(this);
     scene.add( this.mover );
+
+
 
 }
 Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
@@ -3507,7 +3559,46 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.material.visible = false;
       }
 
+//      this.mover.update();
       
+  },
+  
+  select: function(event) {
+    this.showMenu(event.screenCoord);
+  },
+  hoveron: function(event) {
+//    alert('hoveron');
+  },
+  hoveroff: function(event) {
+//    alert('hoveroff');
+  },
+  hideMenu: function() {
+    $('.ActiveElementMenu').css('display','none');
+  },
+  showMenu: function(center){
+    var elements =  $('.ActiveElementMenuAnimated');
+    var coordinates = [];
+
+    //считываем координаты для восстановления
+    elements.each( function( i, item ){
+      coordinates[i] = ( {left: item.style.left, top: item.style.top} );
+      item.style.left = 0;
+      item.style.top = 0;
+    })
+
+    //отображаем меню
+    $('.ActiveElementMenu').css('display','block');
+    $('.ActiveElementMenu').css('left',center.x);
+    $('.ActiveElementMenu').css('top',center.y);
+
+    //отображаем пункты меню
+    setTimeout(function(){
+      elements.each( function( i, item ){
+        item.style.left = coordinates[i].left;
+        item.style.top = coordinates[i].top;
+      })
+    }, 100);
+    
   }
 
 });
@@ -3518,6 +3609,7 @@ function WallMover(wall){
   THREE.Mesh.call( this, new THREE.Geometry());
 
   var self = this;
+  var _raycaster = new THREE.Raycaster();
   var _ray = new THREE.Ray();
   var enabled = true;
   
@@ -3736,6 +3828,8 @@ function WallMover(wall){
   };
   //координаты стены после передвижеия курсора
   this.getNewCoord = function(){
+//    self.updateMatrix();
+//    self.updateMatrixWorld();
 
     var result = {};
     result.v1 = self.geometry.vertices[0].clone().applyMatrix4(self.matrixWorld.clone()).round();
@@ -3765,6 +3859,7 @@ function WallMover(wall){
 
   //события
   this.dragstart =  function ( event ) {
+
 
         controls.enabled = false;
         self.material.visible = false;
@@ -3972,14 +4067,42 @@ function WallMover(wall){
 
 		  }
 
+//  this.onDocumentMouseDown = function( event ) {
+//
+//    var _mouse = new THREE.Vector2();
+//
+//		event.preventDefault();
+//    _mouse.x = ( event.clientX / renderer.domElement.width ) * 2 - 1;
+//		_mouse.y = - ( event.clientY / renderer.domElement.height ) * 2 + 1;
+//
+//		_raycaster.setFromCamera( _mouse, camera );
+//
+//		var intersects = _raycaster.intersectObjects( [self] );
+//
+//		if ( intersects.length > 0 ) {
+//
+//      $('.ActiveElementMenu').css('display','block');
+//      $('.ActiveElementMenu').css('left',event.clientX);
+//      $('.ActiveElementMenu').css('top',event.clientY);
+//
+//		} else {
+//      $('.ActiveElementMenu').css('display','none');
+//    }
+//
+//
+//	}
+
   this.activate =   function() {
-    this.dragControls = new DragControls2( [self], camera, renderer.domElement );
-    this.dragControls.addEventListener( 'dragstart', this.dragstart );
-    this.dragControls.addEventListener( 'drag', this.drag );
-    this.dragControls.addEventListener( 'dragend', this.dragend );
-    this.dragControls.addEventListener( 'hoveron', this.hoveron );
-    this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
+
+//    renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );
     
+//    this.dragControls = new DragControls2( [self], camera, renderer.domElement );
+//    this.dragControls.addEventListener( 'dragstart', this.dragstart );
+//    this.dragControls.addEventListener( 'drag', this.drag );
+//    this.dragControls.addEventListener( 'dragend', this.dragend );
+//    this.dragControls.addEventListener( 'hoveron', this.hoveron );
+//    this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
+
 	};
   this.deactivate = function () {
     
@@ -4289,3 +4412,153 @@ DragControls2 = function ( _objects, _camera, _domElement ) {
 };
 DragControls2.prototype = Object.create( THREE.EventDispatcher.prototype );
 DragControls2.prototype.constructor = DragControls2;
+
+//выбор элемента
+SelectControls = function ( objects, _camera, _domElement ){
+
+  var _objects =  [];
+
+  objects.forEach( function( item ){
+    if(item)
+    _objects.push(item);
+  })
+
+
+  if ( _objects instanceof THREE.Camera ) {
+
+		console.warn( 'SelectControls: Constructor now expects ( objects, camera, domElement )' );
+		var temp = _objects; _objects = _camera; _camera = temp;
+
+	}
+
+
+  var _plane = new THREE.Plane();
+  _plane.normal = new THREE.Vector3( 0, 1, 0 );
+	var _raycaster = new THREE.Raycaster();
+
+	var _mouse = new THREE.Vector2();
+	var _offset = new THREE.Vector3();
+	var _intersection = new THREE.Vector3();
+
+	var _selected = null, _hovered = null;
+  var _coord = null;
+
+	//
+
+	var scope = this;
+
+  function activate() {
+
+		_domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
+		_domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
+		_domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
+
+	}
+
+	function deactivate() {
+
+		_domElement.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+		_domElement.removeEventListener( 'mousedown', onDocumentMouseDown, false );
+		_domElement.removeEventListener( 'mouseup', onDocumentMouseUp, false );
+
+	}
+
+  function onDocumentMouseMove( event ) {
+
+		event.preventDefault();
+
+		_mouse.x = ( event.clientX / _domElement.width ) * 2 - 1;
+		_mouse.y = - ( event.clientY / _domElement.height ) * 2 + 1;
+
+		_raycaster.setFromCamera( _mouse, _camera );
+
+
+		_raycaster.setFromCamera( _mouse, _camera );
+
+    intersects = [];
+
+		var intersects = _raycaster.intersectObjects( _objects );
+
+		if ( intersects.length > 0 ) {
+
+			var object = intersects[ 0 ].object;
+
+			_plane.setFromNormalAndCoplanarPoint( _camera.getWorldDirection( _plane.normal ), object.position );
+
+			if ( _hovered !== object ) {
+
+				scope.dispatchEvent( { type: 'hoveron', object: object } );
+
+				_domElement.style.cursor = 'pointer';
+				_hovered = object;
+
+			}
+
+		} else {
+
+			if ( _hovered !== null ) {
+
+				scope.dispatchEvent( { type: 'hoveroff', object: _hovered } );
+
+				_domElement.style.cursor = 'auto';
+				_hovered = null;
+
+			}
+
+		}
+
+	}
+
+	function onDocumentMouseDown( event ) {
+
+		event.preventDefault();
+    _mouse.x = ( event.clientX / _domElement.width ) * 2 - 1;
+		_mouse.y = - ( event.clientY / _domElement.height ) * 2 + 1;
+
+		_raycaster.setFromCamera( _mouse, _camera );
+
+		var intersects = _raycaster.intersectObjects( _objects );
+
+		if ( intersects.length > 0 ) {
+
+			_selected = intersects[ 0 ].object;
+
+//			_domElement.style.cursor = 'move';
+      _coord = {x:event.clientX, y:event.clientY};
+			scope.dispatchEvent( { type: 'select', object: _selected, screenCoord: _coord } );
+
+		} else {
+      scope.dispatchEvent( { type: 'unselect', object: _selected, screenCoord: _coord } );
+    }
+
+
+	}
+
+	function onDocumentMouseUp( event ) {
+
+		event.preventDefault();
+
+		if ( _selected ) {
+
+      scope.dispatchEvent( { type: 'end', object: _selected } );
+        _selected = null;
+
+		}
+
+		_domElement.style.cursor = 'auto';
+
+	}
+
+  activate();
+
+	// API
+
+	this.enabled = true;
+
+	this.activate = activate;
+	this.deactivate = deactivate;
+
+
+}
+SelectControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+SelectControls.prototype.constructor = SelectControls;

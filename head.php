@@ -11,7 +11,7 @@
 <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">-->
 <link href="css/helper.css?<?php echo $hash;?>" rel="stylesheet">
 <link href="css/style.css?<?php echo $hash;?>" rel="stylesheet">
-
+<link href="css/menu.css?<?php echo $hash;?>" rel="stylesheet">
 
 <script src="js/lib/jquery-latest.js"></script>
 <!--<script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>-->
