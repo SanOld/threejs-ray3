@@ -1882,7 +1882,6 @@ function initProjection(obj){
   obj.selected2 = null;
   obj.walls = [];//массив установленных стен TODO - заполнить при инициализации редактора
 
-
   obj.on = function(type){
     obj.enabled = !obj.enabled;
     currentCamera = camera.clone();
@@ -2325,11 +2324,29 @@ function initWallCreator(obj){
 
   }
 
-
+  obj.hideWallsMenu = function(){
+    $('.ActiveElementMenu').css('display','none');
+  }
+  obj.reIndexWall = function(){
+    obj.walls.forEach(function( item, i ){
+      item.index = i;
+    });
+  }
   obj.updateWalls = function(){
     obj.walls.forEach(function( item, i, arr ){
       item.update( obj.walls );
     })
+  }
+  obj.removeWall = function(wall){
+      scene.remove(wall.mover);
+      scene.remove(wall);
+
+      obj.walls.splice( wall.index, 1 );
+      obj.reIndexWall();
+      wall = null;
+      $wallCreator.updateWalls();
+
+      obj.hideWallsMenu();
   }
   /*
    *
@@ -2384,8 +2401,7 @@ function initWallCreator(obj){
         var vertices2 = [ item.point, item.wall.v2 ];
         var params = { width: item.wall.width, heigth: item.wall.heigth };
 
-        delete obj.walls[item.wall.index];
-        scene.remove(item.wall);
+        obj.removeWall(item.wall);
         item.wall = null;
         currentWall = null;
 
@@ -2731,23 +2747,23 @@ function initWallEditor( obj ){
   obj.on = function(){
     
     obj.enabled = !obj.enabled;
-    obj.activateWalMover();
+    obj.activateWallMover();
     obj.activateSelectControls()
 
   }
   obj.off = function(){
     obj.enabled = !obj.enabled;
-    obj.deactivateWalMover();
+    obj.deactivateWallMover();
     obj.deactivateSelectControls();
 
   }
 
-  obj.activateWalMover = function(){
+  obj.activateWallMover = function(){
     obj.walls.forEach(function(item){
       item.mover.activate();
     })
   }
-  obj.deactivateWalMover = function(){
+  obj.deactivateWallMover = function(){
     obj.walls.forEach(function(item){
       item.mover.deactivate();
     })
@@ -2788,19 +2804,10 @@ function initWallEditor( obj ){
   obj.hoveroff = function(event){
     event.object.hoveroff(event);
   }
-  obj.hideWallsMenu = function(){
-    $('.ActiveElementMenu').css('display','none');
+  
+  obj.removeWall = function(wall){
+    $wallCreator.removeWall(wall);
   }
-
-
-  obj.remove = function(wall){
-      scene.remove(wall.mover);
-      scene.remove(wall);
-      delete obj.walls[wall.index];
-      wall = null;
-      obj.hideWallsMenu();
-  }
-
 
   /*===================*/
   document.addEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
@@ -2863,7 +2870,7 @@ function initWallEditor( obj ){
 	 * удаление стены
 	 */
 	$('.ActiveElementMenu').on('click', '[action = remove]', function(){
-		obj.remove(obj.selectedWall);
+		obj.removeWall(obj.selectedWall);
 	});
 
 }
@@ -3246,7 +3253,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           angle = cross < 0 ? angle : - angle;
 
 
-          if(angle > angle_max && angle != 0) {
+          if(angle > angle_max) {
             angle_max = angle;
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
@@ -3261,7 +3268,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().cross( item.direction.clone().negate() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle > angle_max && angle != 0) {
+          if(angle > angle_max) {
             angle_max = angle;
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
@@ -3331,7 +3338,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().cross(item.direction).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max && angle != 0) {
+          if(angle < angle_max) {
             angle_max = angle;
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
@@ -3346,7 +3353,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().cross( item.direction.clone().negate() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max && angle != 0) {
+          if(angle < angle_max) {
             angle_max = angle;
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
@@ -3401,7 +3408,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max && angle != 0) {
+          if(angle < angle_max) {
             angle_max = angle;
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
@@ -3416,7 +3423,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().negate().cross( item.direction.clone() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max && angle != 0) {
+          if(angle < angle_max) {
             angle_max = angle;
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
@@ -3470,7 +3477,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle > angle_max && angle != 0) {
+          if(angle > angle_max) {
             angle_max = angle;
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
@@ -3485,7 +3492,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().negate().cross( item.direction.clone() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle > angle_max && angle != 0) {
+          if(angle > angle_max) {
             angle_max = angle;
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
@@ -3852,8 +3859,7 @@ function WallMover(wall){
   //Удаление стены
   function removeWall(wall){
 
-    $wallEditor.remove(wall)
-    $wallCreator.updateWalls();
+    $wallEditor.removeWall(wall);
 
   }
 
@@ -3867,7 +3873,9 @@ function WallMover(wall){
         self.checkEnvironment();
 
 		  }
-  this.drag =       function ( event ) {        
+  this.drag =       function ( event ) { 
+    
+        $wallEditor.hideWallsMenu();
         
         self.needChecked = false;
 
@@ -4067,41 +4075,14 @@ function WallMover(wall){
 
 		  }
 
-//  this.onDocumentMouseDown = function( event ) {
-//
-//    var _mouse = new THREE.Vector2();
-//
-//		event.preventDefault();
-//    _mouse.x = ( event.clientX / renderer.domElement.width ) * 2 - 1;
-//		_mouse.y = - ( event.clientY / renderer.domElement.height ) * 2 + 1;
-//
-//		_raycaster.setFromCamera( _mouse, camera );
-//
-//		var intersects = _raycaster.intersectObjects( [self] );
-//
-//		if ( intersects.length > 0 ) {
-//
-//      $('.ActiveElementMenu').css('display','block');
-//      $('.ActiveElementMenu').css('left',event.clientX);
-//      $('.ActiveElementMenu').css('top',event.clientY);
-//
-//		} else {
-//      $('.ActiveElementMenu').css('display','none');
-//    }
-//
-//
-//	}
-
   this.activate =   function() {
-
-//    renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );
     
-//    this.dragControls = new DragControls2( [self], camera, renderer.domElement );
-//    this.dragControls.addEventListener( 'dragstart', this.dragstart );
-//    this.dragControls.addEventListener( 'drag', this.drag );
-//    this.dragControls.addEventListener( 'dragend', this.dragend );
-//    this.dragControls.addEventListener( 'hoveron', this.hoveron );
-//    this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
+    this.dragControls = new DragControls2( [self], camera, renderer.domElement );
+    this.dragControls.addEventListener( 'dragstart', this.dragstart );
+    this.dragControls.addEventListener( 'drag', this.drag );
+    this.dragControls.addEventListener( 'dragend', this.dragend );
+    this.dragControls.addEventListener( 'hoveron', this.hoveron );
+    this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
 
 	};
   this.deactivate = function () {
@@ -4414,15 +4395,7 @@ DragControls2.prototype = Object.create( THREE.EventDispatcher.prototype );
 DragControls2.prototype.constructor = DragControls2;
 
 //выбор элемента
-SelectControls = function ( objects, _camera, _domElement ){
-
-  var _objects =  [];
-
-  objects.forEach( function( item ){
-    if(item)
-    _objects.push(item);
-  })
-
+SelectControls = function ( _objects, _camera, _domElement ){
 
   if ( _objects instanceof THREE.Camera ) {
 
@@ -4437,9 +4410,6 @@ SelectControls = function ( objects, _camera, _domElement ){
 	var _raycaster = new THREE.Raycaster();
 
 	var _mouse = new THREE.Vector2();
-	var _offset = new THREE.Vector3();
-	var _intersection = new THREE.Vector3();
-
 	var _selected = null, _hovered = null;
   var _coord = null;
 
@@ -4548,7 +4518,7 @@ SelectControls = function ( objects, _camera, _domElement ){
 		_domElement.style.cursor = 'auto';
 
 	}
-
+  
   activate();
 
 	// API
