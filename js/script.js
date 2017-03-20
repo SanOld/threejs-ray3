@@ -111,61 +111,7 @@ function init()
 //
 //  //
 //
-  var ceiling = new THREE.Mesh(
-    new THREE.BoxBufferGeometry( 500, 150, 10 ),
-//    new THREE.BoxGeometry( 500, 500, 10 ),
-     new THREE.MeshNormalMaterial({wireframe: false, opacity: 0.3, transparent: true, depthWrite: false})
-  );
-  ceiling.position.y = 130;
-  ceiling.rotation.x = Math.PI/2;
 
-
-//  var w1 = new THREE.Mesh(
-////    new THREE.BoxBufferGeometry( 500, 150, 10 ),
-//    new THREE.BoxGeometry( 500, 150, 10 ),
-//    new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false } )
-//  );
-//  w1.position.y = 75;
-//
-//  var w2 = w1.clone();
-//  w2.position.x = -255;
-//  w2.position.y = 75;
-//  w2.rotateY ( Math.PI/2 );
-//  w2.position.z = 250+5;
-//
-//  var w3 = new THREE.Mesh(
-////    new THREE.BoxBufferGeometry( 30, 150, 30 ),
-//    new THREE.BoxGeometry( 30, 150, 30 ),
-//
-//    new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false } )
-//  );
-//  w3.position.y = 75;
-//  w3.position.z = -125;
-//
-//
-//  w2.position.z += -500;
-//  w1.position.z += -500;
-//
-//  var w4 = w2.clone();
-//  w4.geometry = new THREE.BoxGeometry( 200, 150, 10 );
-//
-//  w4.position.x += 200;
-//  w4.position.z -= 150;
-//
-//  w4.rotation.y = Math.PI/4;
-//
-//  w1.name = w2.name = w3.name = w4.name ='wall';
-//
-//  var w11 = w1.clone();
-//  var w12 = w2.clone();
-//  var w13 = w3.clone();
-//  var w14 = w4.clone();
-//  var wire_material =  new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } )
-//  w11.material = w12.material = w13.material = w14.material = wire_material;
-
-//  scene.add(w11, w12, w13, w14);
-//  scene.add( w1, w2, w3, w4 );
-//  scene.add(ceiling);
 
 
 
@@ -176,18 +122,18 @@ function init()
 //
 
 
-//$wallCreator.wallAdd([new THREE.Vector3(-500,0,-500), new THREE.Vector3(0,0,-500)]);
-//$wallCreator.wallAdd([new THREE.Vector3(-500,0,-500), new THREE.Vector3(-500,0,0)]);
+//$wallCreator.addWall([new THREE.Vector3(-500,0,-500), new THREE.Vector3(0,0,-500)]);
+//$wallCreator.addWall([new THREE.Vector3(-500,0,-500), new THREE.Vector3(-500,0,0)]);
 //
-//$wallCreator.wallAdd([new THREE.Vector3(-350,0,-150), new THREE.Vector3(-150,0,-350)]);
+//$wallCreator.addWall([new THREE.Vector3(-350,0,-150), new THREE.Vector3(-150,0,-350)]);
 //
-//$wallCreator.wallAdd([new THREE.Vector3(0,0,-100), new THREE.Vector3(0,0,-50)],{width: 50});//колонна
+//$wallCreator.addWall([new THREE.Vector3(0,0,-100), new THREE.Vector3(0,0,-50)],{width: 50});//колонна
 
+$wallCreator.addWall([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,200)]);
 
+$wallCreator.addWall([new THREE.Vector3(200,0,0), new THREE.Vector3(200,0,200)]);
 
 //loadScene();
-
-
 //loadCamera();
 
 //инициализация возможности отрисовки луча
