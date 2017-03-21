@@ -3801,6 +3801,7 @@ function WallMover(wall){
   var self = this;
 
   var _ray = new THREE.Ray();
+  var raycaster = new THREE.Raycaster();
   var enabled = true;
   
   this.wall = wall;
@@ -4084,6 +4085,40 @@ function WallMover(wall){
   //установка значений координат
   this.writeCoordToWall = function(event, newCoord){
 
+    var wallsWithoutNeighbors = event.object.wall.walls.slice();
+    self.v1_neighbors.forEach(function(item){
+      var index = wallsWithoutNeighbors.indexOf(item.wall);
+      if( index != -1){
+        wallsWithoutNeighbors.splice( index, 1 );
+      }
+    })
+    self.v2_neighbors.forEach(function(item){
+      var index = wallsWithoutNeighbors.indexOf(item.wall);
+      if( index != -1){
+        wallsWithoutNeighbors.splice( index, 1 );
+      }
+    })
+
+
+    //вычисление пересечения
+    var offset = newCoord.v1.multiply(new THREE.Vector3(1,0,1)).clone().sub(event.object.wall.v1);
+    
+    event.object.wall.geometry.computeBoundingBox();
+    var originPoint = event.object.wall.geometry.boundingBox.getCenter().applyMatrix4( event.object.wall.matrix ).clone().add(offset);
+
+    for (var i = 0; i < event.object.wall.geometry.vertices.length; i++)
+    {
+      var localVertex = event.object.wall.geometry.vertices[i].clone();
+      var globalVertex = localVertex.applyMatrix4( event.object.wall.matrix ).clone().add(offset);;
+      var directionVector = globalVertex.sub( originPoint );
+
+      var ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
+      var collisionResults = ray.intersectObjects( wallsWithoutNeighbors );
+      if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
+        return;
+    }
+
+    //новые координаты
     event.object.wall.v1 = newCoord.v1.clone();
     event.object.wall.v2 = newCoord.v2.clone();
 
@@ -4164,6 +4199,7 @@ function WallMover(wall){
         }
 
         if( enabled ){
+
           //проекция вектора движения
           var y = event.object.position.y;
           event.object.position.projectOnVector ( event.object.wall.direction90.clone() );
@@ -4212,9 +4248,6 @@ function WallMover(wall){
           //global condition1
           if( self.v1_neighbors.length > 1 && !v1_exception1 ){
 
-//            alert('v1_neighbors');
-//            alert(self.wall.index);
-
             if( newCoord.v1.distanceTo(self.v1_neighbors[0].point) > 10 ){
 
               var intersected = isIntersect(self.v1_neighbors, newCoord.v1);
@@ -4228,12 +4261,12 @@ function WallMover(wall){
                 var w1 = self.addWall( [v1, newCoord.v1], event.object.wall.width );
                 var w2 = self.addWall( [v2, newCoord.v1], event.object.wall.width );
                 
-                self.v1_neighbors.length = 0;
-
-                w1.mover.v1_neighbors.length = 0;
-                w2.mover.v1_neighbors.length = 0;
-                w1.mover.v2_neighbors.length = 0;
-                w2.mover.v2_neighbors.length = 0;
+//                self.v1_neighbors.length = 0;
+//
+//                w1.mover.v1_neighbors.length = 0;
+//                w2.mover.v1_neighbors.length = 0;
+//                w1.mover.v2_neighbors.length = 0;
+//                w2.mover.v2_neighbors.length = 0;
 
                 neighborsNeedUpdate = true;
 
@@ -4249,16 +4282,11 @@ function WallMover(wall){
           }
           if( self.v2_neighbors.length > 1 && !v2_exception1 ){
 
-//            alert('v1_neighbors');
-//            alert(self.wall.index);
-
             if( newCoord.v2.distanceTo(self.v2_neighbors[0].point) > 10 ){
 
               var intersected = isIntersect(self.v2_neighbors, newCoord.v2);
 
               if(intersected){
-
-                window.console.log(self.wall.walls);
 
                 var v1 = intersected.v1.clone();
                 var v2 = intersected.v2.clone();
@@ -4267,14 +4295,12 @@ function WallMover(wall){
                 var w1 = self.addWall( [v1, newCoord.v2], event.object.wall.width );
                 var w2 = self.addWall( [v2, newCoord.v2], event.object.wall.width );
 
-                self.v2_neighbors.length = 0;
-                
-                w1.mover.v1_neighbors.length = 0;
-                w2.mover.v1_neighbors.length = 0;
-                w1.mover.v2_neighbors.length = 0;
-                w2.mover.v2_neighbors.length = 0;
-
-                window.console.log(self.wall.walls);
+//                self.v2_neighbors.length = 0;
+//
+//                w1.mover.v1_neighbors.length = 0;
+//                w2.mover.v1_neighbors.length = 0;
+//                w1.mover.v2_neighbors.length = 0;
+//                w2.mover.v2_neighbors.length = 0;
 
                 neighborsNeedUpdate = true;
               } else {
