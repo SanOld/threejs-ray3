@@ -1881,6 +1881,23 @@ function initProjection(obj){
   obj.selected1 = null;
   obj.selected2 = null;
   obj.walls = [];//массив установленных стен TODO - заполнить при инициализации редактора
+  obj.projectionWallMaterial
+  obj.acsWallMaterial
+
+  obj.projectionWallMaterial = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.8,
+      transparent: true,
+      depthWrite: false,
+      color: 'black'
+    });
+  obj.acsWallMaterial = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.8,
+      transparent: true,
+      depthWrite: false,
+      color: '#d5c7ac'//бежевый
+    });
 
   obj.on = function(type){
     obj.enabled = !obj.enabled;
@@ -1892,6 +1909,8 @@ function initProjection(obj){
 
     obj.planeHelperAdd();
 
+    obj.setMaterialToWall(obj.projectionWallMaterial);
+
   }
   obj.off = function(){
     obj.enabled = !obj.enabled;
@@ -1902,7 +1921,7 @@ function initProjection(obj){
     delete obj.plane;
 
     Dimensions.visible = false;
-
+    obj.setMaterialToWall(obj.acsWallMaterial);
 
   }
   obj.cameraAdd = function(){
@@ -2044,6 +2063,11 @@ function initProjection(obj){
 
     return result;
   };
+  obj.setMaterialToWall = function(material){
+    $wallCreator.walls.forEach(function(item){
+      item.material = material;
+    })
+  }
 
   /*===================*/
   document.addEventListener( 'mousedown', onDocumentMouseDownProjection, false );
@@ -2092,12 +2116,16 @@ function initProjection(obj){
             $wallCreator.off();
           } else {
             $wallCreator.on();
+            $wallEditor.off();
+            obj.dim_mode_enabled = false;
           }
         }
         break;
       case 68: /*d*/
         if(alt){
           dimModeSwitch();
+          $wallEditor.off();
+          $wallCreator.off();
         }
         break;
       case 69: /*e*/
@@ -2106,6 +2134,8 @@ function initProjection(obj){
             $wallEditor.off();
           } else {
             $wallEditor.on();
+            $wallCreator.off();
+            obj.dim_mode_enabled = false;
           }
         }
         break;
@@ -2248,6 +2278,10 @@ function initWallCreator(obj){
     pointerHelperAdd();
     magnitVerticiesCreate();
 
+    document.addEventListener( 'mousedown', onDocumentMouseDownWallCreator, false );
+    document.addEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
+    document.addEventListener( 'keydown', onKeyDownWallCreator, false );
+
   }
   obj.off = function(){
     obj.enabled = !obj.enabled;
@@ -2259,15 +2293,20 @@ function initWallCreator(obj){
 
     //удаление временных красных сфер
     pointerHelpersRemove();
+
+    document.removeEventListener( 'mousedown', onDocumentMouseDownWallCreator, false );
+    document.removeEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
+    document.removeEventListener( 'keydown', onKeyDownWallCreator, false );
+
   }
 
   function pointerHelperAdd(){
+    
     var geometry = new THREE.SphereBufferGeometry( 5, 32, 32 );
-    var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+    var material = new THREE.MeshBasicMaterial( {color: '#00FF00'} );
     obj.pointerHelper = new THREE.Mesh( geometry, material );
     scene.add( obj.pointerHelper );
 
-    
   }
 
 
@@ -2399,11 +2438,11 @@ function initWallCreator(obj){
       return false;
     }
     
-
     setTimeout(function(){
       magnitVerticiesCreate(); //пересоздание магнитных точек
     },100)
 
+    return wall;
 
   }
 
@@ -2423,27 +2462,37 @@ function initWallCreator(obj){
 
   function isIntersectCollinear(newWallVertices){
     var result = false;
+
     var result1 = 0;
     var result2 = 0;
     var result3 = 0;
     var result4 = 0;
     var result5 = 0;
+    var result6 = 0;
+    var result7 = 0;
 
     obj.walls.forEach(function( item, i ){
 
+      //принадлежность прямой
       result1 = isBelongToLine(newWallVertices[0], new THREE.Line3(item.v1, item.v2));
       result2 = isBelongToLine(newWallVertices[1], new THREE.Line3(item.v1, item.v2));
+      //совпадение с точками прямой
       result3 = newWallVertices[0].equals(item.v1) || newWallVertices[0].equals(item.v2);
       result4 = newWallVertices[1].equals(item.v1) || newWallVertices[1].equals(item.v2);
 
       var dot = newWallVertices[1].clone().sub(newWallVertices[0]).normalize().dot(item.direction);
-
       result5 = Math.abs(dot) > 0.999;
+
+      //обратная принадлежность прямой
+      result6 = isBelongToLine(item.v1, new THREE.Line3(newWallVertices[0], newWallVertices[1]));
+      result7 = isBelongToLine(item.v2, new THREE.Line3(newWallVertices[0], newWallVertices[1]));
 
 
       //проверка выполнения условий
-      if ((result1 == true && result2 == true) ||
-          ((result3 || result4)  &&   result5) )
+      if ( ( result1 == true && result2 == true ) ||
+           ( result6 == true && result7 == true ) ||
+           ( result5 && (result1 == true || result2 == true ) && !result3 && !result4) ||
+           ( result3 && result4 ) )
       {
         result = true;
         return;
@@ -2655,10 +2704,7 @@ function initWallCreator(obj){
   }
 
   /*===================*/
-  document.addEventListener( 'mousedown', onDocumentMouseDownWallCreator, false );
-  document.addEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
-  document.addEventListener( 'keydown', onKeyDownWallCreator, false );
-
+  
   function onDocumentMouseDownWallCreator( event ){
     if (!obj.enabled)
       return false;
@@ -2684,9 +2730,6 @@ function initWallCreator(obj){
         break;
     }
     
-
-   
-
   }
   function onDocumentMouseMoveWallCreator( event ){
     currentWall = null;//стена над которой находится поинтер
@@ -2832,6 +2875,7 @@ function initWallEditor( obj ){
   obj.selectedWall = null;
 
   obj.maxNeighboorsDistance = 0.5;
+  obj.wallMenuCoord = [];
 
   obj.on = function(){
     
@@ -2844,6 +2888,20 @@ function initWallEditor( obj ){
     obj.enabled = false;
     obj.deactivateWallMover();
     obj.deactivateSelectControls();
+
+  }
+
+  obj.getWallMenuCoord = function(){
+    var elements =  $('.ActiveElementMenuAnimated');
+
+    //считываем координаты для восстановления
+    if(elements){
+      elements.each( function( i, item ){
+        obj.wallMenuCoord[i] = ( {left: item.style.left, top: item.style.top} );
+        item.style.left = 0;
+        item.style.top = 0;
+      });
+    }
 
   }
 
@@ -2976,6 +3034,9 @@ function initWallEditor( obj ){
         break;
     }
   }
+
+  //считываем координаты элементов меню
+  obj.getWallMenuCoord();
 
   /**
 	 * удаление стены
@@ -3286,22 +3347,7 @@ function Wall(vertices, parameters){
 
     this.geometry = this.buildGeometry();
 
-    var material_1 = new THREE.MeshBasicMaterial({
-      wireframe: false,
-      opacity: 0.8,
-      transparent: true,
-      depthWrite: false,
-      color: 'black'
-    });
-    var material_2 = new THREE.MeshBasicMaterial({
-      wireframe: false,
-      opacity: 0.8,
-      transparent: true,
-      depthWrite: false,
-      color: '#d5c7ac'//бежевый
-    });
-
-//    this.material = material_2;
+//    this.material = $projection.projectionWallMaterial
     this.material.transparent = true;
     this.material.opacity = 0.8;
 
@@ -3315,7 +3361,8 @@ function Wall(vertices, parameters){
     this.mover = new WallMover(this);
     scene.add( this.mover );
 
-
+//    this.note = noteAdd(this, "qw");
+//    this.note.position.copy(this.worldToLocal(this.v1.clone().add(new THREE.Vector3(0,250,0))) )
 
 }
 Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
@@ -3682,8 +3729,16 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.material.visible = false;
       }
 
-      this.mover.update();
+//      if( this.mover )
+        this.mover.wall = this;
+        this.mover.update();
+
+//      this.note.setMessage( this.index.toString() );
+//      this.note.update();
+//      this.note.position.copy(this.worldToLocal(this.v1.clone().add(new THREE.Vector3(0,250,0))) )
+
       
+
   },
   
   select: function(event) {
@@ -3703,11 +3758,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   },
   showMenu: function(center){
     var elements =  $('.ActiveElementMenuAnimated');
-    var coordinates = [];
 
-    //считываем координаты для восстановления
+    //сбрасываем в ноль координаты для анимации
     elements.each( function( i, item ){
-      coordinates[i] = ( {left: item.style.left, top: item.style.top} );
       item.style.left = 0;
       item.style.top = 0;
     })
@@ -3720,15 +3773,16 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     //отображаем пункты меню
     setTimeout(function(){
       elements.each( function( i, item ){
-        item.style.left = coordinates[i].left;
-        item.style.top = coordinates[i].top;
+        item.style.left = $wallEditor.wallMenuCoord[i].left;
+        item.style.top = $wallEditor.wallMenuCoord[i].top;
       })
-    }, 100);
+    }, 50);
     
   },
   remove: function(){
 
     scene.remove(this.mover);
+    this.mover.deactivate();
     this.mover = null;
     $wallEditor.removeWall(this);
 
@@ -3740,6 +3794,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 function WallMover(wall){
 
   THREE.Mesh.call( this, new THREE.Geometry());
+
+  this.type = 'WallMover';
+  this.name = 'wall_mover';
 
   var self = this;
 
@@ -3978,7 +4035,6 @@ function WallMover(wall){
 
   }
 
-
   /**
    * проверка движения вдоль стены в варианте один ко многим
    * @param {type} Array neighbors
@@ -3986,23 +4042,44 @@ function WallMover(wall){
    * @returns {neighbors.wall|false}
    */
   function isIntersect(neighbors, point){
-    result = false;
+
+    var result = false;
+    var result1 = 1;
+    var result2 = 1;
     neighbors.forEach(function(item){
-      var dot = self.wall.direction.clone().dot(item.wall.direction);
-      if(  dot < 0.001 ){
+      var dot = self.wall.direction.clone().dot( item.wall.direction );
+      if(  Math.abs( dot ) < 0.001 ){
+
         _ray.origin = point.clone();
         _ray.direction = self.wall.direction.clone();
-        var distance = _ray.distanceSqToSegment (item.wall.v1.clone(), item.wall.v2.clone() );
-        if(! distance) {
+        var distance = _ray.distanceSqToSegment( item.wall.v1.clone(), item.wall.v2.clone() );
+        if( ! distance ) {
           result = item.wall;
           return;
         };
+
+        _ray.origin = point.clone();
+        _ray.direction = self.wall.direction.negate().clone();
+        var distance = _ray.distanceSqToSegment( item.wall.v1.clone(), item.wall.v2.clone() );
+        if( ! distance ) {
+          result = item.wall;
+          return;
+        };
+
+//        _ray.origin = item.wall.v1.clone();
+//        _ray.direction = self.wall.direction.clone();
+//        var result1 = _ray.distanceSqToPoint ( point );
+//
+//        _ray.origin = item.wall.v1.clone();
+//        _ray.direction = self.wall.direction.negate().clone();
+//        var result2 = _ray.distanceSqToPoint ( point );
+
       }
     })
 
-    return result;
+//    return (result1 == 0 && result2 == 0);
+  return result;
   }
-
 
   //установка значений координат
   this.writeCoordToWall = function(event, newCoord){
@@ -4031,17 +4108,23 @@ function WallMover(wall){
   }
   //дополнительная стена
   this.addWall = function(vertices, width){
+    var wall = null;
     var width = width || $wallCreator.wall_width;
-    $wallCreator.addWall( vertices,
+    wall = $wallCreator.addWall( vertices,
                           {
                             width: width,
                             auto_building: true
                           });
     $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
+
+    return wall;
   }
 
   //события
   this.dragstart =  function ( event ) {
+
+//    alert(self.wall.index);
+//    self.material.visible = true;
 
         controls.enabled = false;
         enabled = true;
@@ -4051,6 +4134,8 @@ function WallMover(wall){
 		  }
   this.drag =       function ( event ) {
     var neighborsNeedUpdate = false;
+    var v1_exception1 = false;
+    var v2_exception1 = false;
 
         if(!enabled) return;
 
@@ -4078,7 +4163,7 @@ function WallMover(wall){
           return;
         }
 
-        if(enabled){   
+        if( enabled ){
           //проекция вектора движения
           var y = event.object.position.y;
           event.object.position.projectOnVector ( event.object.wall.direction90.clone() );
@@ -4089,50 +4174,71 @@ function WallMover(wall){
           
         }
 
-        if( self.v1_neighbors.length > 0 || self.v2_neighbors.length > 0){
+        if( self.v1_neighbors.length > 0 || self.v2_neighbors.length > 0 ){
 
-          //particular case condition
+          //particular case exception1
           if( self.v1_neighbors.length == 2 ){
+            
             var dot1 = self.wall.direction.clone().dot( self.v1_neighbors[0].wall.direction );
             var dot2 = self.wall.direction.clone().dot( self.v1_neighbors[1].wall.direction );
-            if(!dot1 && !dot2){
+
+            if( Math.abs(dot1) < 0.001 && Math.abs(dot2) < 0.001 ){
 
               self.v1_neighbors[0].point.copy( event.object.wall.v1.clone() ) ;
               self.v1_neighbors[1].point.copy( event.object.wall.v1.clone() ) ;
 
+              v1_exception1 = true;
+
             }
 
           }
+
           if( self.v2_neighbors.length == 2 ){
+
             var dot1 = self.wall.direction.clone().dot( self.v2_neighbors[0].wall.direction );
             var dot2 = self.wall.direction.clone().dot( self.v2_neighbors[1].wall.direction );
-            if(!dot1 && !dot2){
+
+            if( Math.abs(dot1) < 0.001 && Math.abs(dot2) < 0.001 ){
 
               self.v2_neighbors[0].point.copy( event.object.wall.v2.clone() ) ;
               self.v2_neighbors[1].point.copy( event.object.wall.v2.clone() ) ;
+
+              v2_exception1 = true;
 
             }
 
           }
 
           //global condition1
-          if( self.v1_neighbors.length > 1 ){
+          if( self.v1_neighbors.length > 1 && !v1_exception1 ){
 
-//            if( ! $wallEditor.isPointsNeighboors( newCoord.v1, self.v1_neighbors[0].point, 10 ) ){
-              if( newCoord.v1.distanceTo(self.v1_neighbors[0].point) > 10 ){
+//            alert('v1_neighbors');
+//            alert(self.wall.index);
+
+            if( newCoord.v1.distanceTo(self.v1_neighbors[0].point) > 10 ){
 
               var intersected = isIntersect(self.v1_neighbors, newCoord.v1);
 
               if(intersected){
-                self.addWall( [intersected.v1, newCoord.v1], event.object.wall.width );
-                self.addWall( [intersected.v2, newCoord.v1], event.object.wall.width );
+                
+                var v1 = intersected.v1.clone();
+                var v2 = intersected.v2.clone();
                 intersected.remove();
+
+                var w1 = self.addWall( [v1, newCoord.v1], event.object.wall.width );
+                var w2 = self.addWall( [v2, newCoord.v1], event.object.wall.width );
+                
                 self.v1_neighbors.length = 0;
+
+                w1.mover.v1_neighbors.length = 0;
+                w2.mover.v1_neighbors.length = 0;
+                w1.mover.v2_neighbors.length = 0;
+                w2.mover.v2_neighbors.length = 0;
 
                 neighborsNeedUpdate = true;
 
               } else {
-                self.addWall( [self.v1_neighbors[0].point, event.object.wall.v1], event.object.wall.width );
+                self.addWall( [self.v1_neighbors[0].point.clone(), event.object.wall.v1], event.object.wall.width );
                 self.v1_neighbors.length = 0;
 
                 neighborsNeedUpdate = true;
@@ -4141,18 +4247,34 @@ function WallMover(wall){
             }
             
           }
-          if( self.v2_neighbors.length > 1 ){
+          if( self.v2_neighbors.length > 1 && !v2_exception1 ){
 
-//            if( ! $wallEditor.isPointsNeighboors( newCoord.v2, self.v2_neighbors[0].point, 10 ) ){
+//            alert('v1_neighbors');
+//            alert(self.wall.index);
+
             if( newCoord.v2.distanceTo(self.v2_neighbors[0].point) > 10 ){
 
               var intersected = isIntersect(self.v2_neighbors, newCoord.v2);
 
               if(intersected){
-                self.addWall( [intersected.v1, newCoord.v2], event.object.wall.width );
-                self.addWall( [intersected.v2, newCoord.v2], event.object.wall.width );
+
+                window.console.log(self.wall.walls);
+
+                var v1 = intersected.v1.clone();
+                var v2 = intersected.v2.clone();
                 intersected.remove();
+
+                var w1 = self.addWall( [v1, newCoord.v2], event.object.wall.width );
+                var w2 = self.addWall( [v2, newCoord.v2], event.object.wall.width );
+
                 self.v2_neighbors.length = 0;
+                
+                w1.mover.v1_neighbors.length = 0;
+                w2.mover.v1_neighbors.length = 0;
+                w1.mover.v2_neighbors.length = 0;
+                w2.mover.v2_neighbors.length = 0;
+
+                window.console.log(self.wall.walls);
 
                 neighborsNeedUpdate = true;
               } else {
@@ -4167,13 +4289,13 @@ function WallMover(wall){
           }
 
           //global condition2
-          if(self.v2_neighbors.length == 1){
+          if( self.v2_neighbors.length == 1 ){
 
-            var dot = self.wall.direction.clone().dot(self.v2_neighbors[0].wall.direction);
+            var dot = self.wall.direction.clone().dot( self.v2_neighbors[0].wall.direction );
 
-            switch (Math.abs(dot) == 1) {
+            switch ( Math.abs(dot) > 0.999 ) {
               case true:
-                if( newCoord.v2.distanceTo(self.v2_neighbors[0].point) > 10 ){
+                if( newCoord.v2.distanceTo( self.v2_neighbors[0].point ) > 10 ){
 
                   self.addWall( [ self.v2_neighbors[0].point, event.object.wall.v2 ], event.object.wall.width );
                   neighborsNeedUpdate = true;
@@ -4182,7 +4304,7 @@ function WallMover(wall){
                 break;
               case false:
 
-                _ray.origin = event.object.wall.v1.clone().add( event.object.wall.direction.clone().negate().multiplyScalar(1000));;
+                _ray.origin = event.object.wall.v1.clone().add( event.object.wall.direction.clone().negate().multiplyScalar( 1000 ));;
                 _ray.direction = event.object.wall.direction.clone();
 
                 var result_point = new THREE.Vector3();
@@ -4198,15 +4320,15 @@ function WallMover(wall){
             }
 
           }
-          if(self.v1_neighbors.length == 1){
+          if( self.v1_neighbors.length == 1 ){
 
-            var dot = self.wall.direction.clone().dot(self.v1_neighbors[0].wall.direction);
+            var dot = self.wall.direction.clone().dot( self.v1_neighbors[0].wall.direction );
 
-            switch (Math.abs(dot) == 1) {
+            switch ( Math.abs(dot) > 0.999 ) {
               case true:
-                if( newCoord.v1.distanceTo(self.v1_neighbors[0].point) > 10 ){
+                if( newCoord.v1.distanceTo( self.v1_neighbors[0].point) > 10 ){
 
-                  self.addWall( [ self.v1_neighbors[0].point, event.object.wall.v1 ], event.object.wall.width );
+                  self.addWall( [ self.v1_neighbors[0].point.clone(), event.object.wall.v1 ], event.object.wall.width );
                   neighborsNeedUpdate = true;
                   
                 }
@@ -4214,7 +4336,7 @@ function WallMover(wall){
                 break;
               case false:
 
-                _ray.origin = event.object.wall.v2.clone().add( event.object.wall.direction.clone().multiplyScalar(1000));
+                _ray.origin = event.object.wall.v2.clone().add( event.object.wall.direction.clone().multiplyScalar( 1000 ));
                 _ray.direction = event.object.wall.direction.clone().negate();
 
                 var result_point = new THREE.Vector3();
@@ -4362,25 +4484,25 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
         var opposite_point;
 
         switch (true) {
-          case $wallEditor.isPointsNeighboors( self.wall.v1, item.v1, 10 ) :
+          case $wallEditor.isPointsNeighboors( self.wall.v1, item.v1, 1 ) :
             arr = 'v1_neighbors';
             arg1 = 'v1';
             arg2 = 'v1';
             opposite_point = 'v2';
             break;
-          case $wallEditor.isPointsNeighboors( self.wall.v1, item.v2, 10  ):
+          case $wallEditor.isPointsNeighboors( self.wall.v1, item.v2, 1  ):
             arr = 'v1_neighbors';
             arg1 = 'v1';
             arg2 = 'v2';
             opposite_point = 'v1';
             break;
-          case $wallEditor.isPointsNeighboors( self.wall.v2, item.v1, 10  ):
+          case $wallEditor.isPointsNeighboors( self.wall.v2, item.v1, 1  ):
             arr = 'v2_neighbors';
             arg1 = 'v2';
             arg2 = 'v1';
             opposite_point = 'v2';
             break;
-          case $wallEditor.isPointsNeighboors( self.wall.v2, item.v2, 10  ):
+          case $wallEditor.isPointsNeighboors( self.wall.v2, item.v2, 1  ):
             arr = 'v2_neighbors';
             arg1 = 'v2';
             arg2 = 'v2';

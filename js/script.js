@@ -60,7 +60,8 @@ var loader = new THREE.TextureLoader();
 loader.load(
 	// resource URL
 //	'/js/lib/three-master/examples/textures/brick_bump.jpg',
-  '/img/pimgpsh_fullsize_distr.jpg',
+//  '/img/pimgpsh_fullsize_distr.jpg',
+  '/img/plan2.jpg',
 	// Function when resource is loaded
 	function ( floorTexture ) {
 		// do something with the texture
@@ -69,7 +70,7 @@ loader.load(
  
       floorTexture.repeat.set( 1, 1 );
       var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
-      var floorGeometry = new THREE.PlaneBufferGeometry(1000, 700, 10, 10);
+      var floorGeometry = new THREE.PlaneBufferGeometry(1000, 600, 10, 10);
       var floor = new THREE.Mesh(floorGeometry, floorMaterial);
       floor.name = 'floor'
       floor.position.y = 0;
@@ -129,9 +130,15 @@ function init()
 //
 //$wallCreator.addWall([new THREE.Vector3(0,0,-100), new THREE.Vector3(0,0,-50)],{width: 50});//колонна
 
-$wallCreator.addWall([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,200)]);
 
-$wallCreator.addWall([new THREE.Vector3(200,0,0), new THREE.Vector3(200,0,200)]);
+
+
+//$wallCreator.addWall([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,200)]);
+//
+//$wallCreator.addWall([new THREE.Vector3(200,0,0), new THREE.Vector3(200,0,200)]);
+
+
+
 
 //loadScene();
 //loadCamera();
