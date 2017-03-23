@@ -25,7 +25,7 @@
   </div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 0px; top: 0px; background-position: left -320px; opacity: 0; width: 0px; height: 0px;" action="split">
   </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40.8112px; top: -80.8112px; background-position: left -200px; opacity: 1; width: 40px; height: 40px;" action="favoritesAdd">
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40.8112px; top: -80.8112px; background-position: left -200px; opacity: 1; width: 40px; height: 40px;" action="addDoorway">
   </div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 0px; top: 0px; background-position: left -240px; opacity: 0; width: 0px; height: 0px;" action="favoritesRemove">
   </div>
