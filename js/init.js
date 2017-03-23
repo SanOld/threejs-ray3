@@ -20,7 +20,7 @@ $(document).ready(function() {
   
 
 //  include("js/lib/three-master/examples/js/controls/PointerLockControls.js");
-  include("js/lib/three-master/examples/js/libs/stats.min.js");
+//  include("js/lib/three-master/examples/js/libs/stats.min.js");
   
   include("js/load.js?"+HASH);
   include("js/lib/ThreeCSG.js");

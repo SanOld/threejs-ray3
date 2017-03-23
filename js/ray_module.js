@@ -5,8 +5,7 @@ var Dimensions = new THREE.Object3D(0,200,0); //объект хранилище 
 var videocameraArr = [];
 var videocameraName = 'videocamera';
 var active_camera = null;
-var ctrl = 0; //флаг клавиши ctrl
-var alt = 0; //флаг клавиши alt
+
 var delta = 0.02; //шаг перемещения луча активной камеры
 var delta2 = 5;   //шаг линейного перемещения активной камеры
 var rayMaterial = new THREE.MeshBasicMaterial({
@@ -692,12 +691,6 @@ function onKeyUpCam ( event )
   }
 
   switch( event.keyCode ) {
-    case 17: /*ctrl*/
-      ctrl = false;
-      break;
-    case 18: /*alt*/
-      alt = false;
-      break;
     case 37:/*left*/
       controls.enabled = true;
       setTimeout(function(){
@@ -762,7 +755,7 @@ function onKeyDownCam ( event )
     case 81: /*q*/
 //      getRay2d(active_camera);
 
-//      if(ctrl){
+//      if(event.ctrlKey){
 //        if($wallCreator.enabled){
 //          $wallCreator.off();
 //        } else {
@@ -770,14 +763,8 @@ function onKeyDownCam ( event )
 //        }
 //      }
       break;
-    case 17: /*ctrl*/
-      ctrl = true;
-      break;
-    case 18: /*alt*/
-      alt = true;
-      break;
     case 49: /*1*/
-      if(alt){
+      if(event.altKey){
         if($projection.enabled){
           $projection.off();
         } else {
@@ -786,7 +773,7 @@ function onKeyDownCam ( event )
       }
       break;
     case 50: /*2*/
-      if(alt){
+      if(event.altKey){
         if($projection.enabled){
           $projection.off();
         } else {
@@ -795,7 +782,7 @@ function onKeyDownCam ( event )
       }
       break;
     case 51: /*3*/
-      if(alt){
+      if(event.altKey){
         if($projection.enabled){
           $projection.off();
         } else {
@@ -804,7 +791,7 @@ function onKeyDownCam ( event )
       }
       break;
     case 57: /*9*/
-      if(alt){
+      if(event.altKey){
         $projection.off();
       }
       break;
@@ -862,7 +849,7 @@ function onKeyDownCam ( event )
       showFocus();
     isMoveCamera = true;
     isMoveRay = true;
-      if(ctrl){
+      if(event.ctrlKey){
         if(active_camera){
           active_camera.parent.parent.position.y += ( delta2 );
         }
@@ -886,7 +873,7 @@ function onKeyDownCam ( event )
       showFocus();
       isMoveCamera = true;
       isMoveRay = true;
-      if(ctrl){
+      if(event.ctrlKey){
 
         if(active_camera){
           active_camera.parent.parent.position.y += ( -delta2 );
@@ -2111,7 +2098,7 @@ function initProjection(obj){
         scene.remove(obj.selected1,obj.selected2);
         break;
       case 67: /*c*/
-        if(alt){
+        if(event.altKey){
           if($wallCreator.enabled){
             $wallCreator.off();
           } else {
@@ -2122,14 +2109,14 @@ function initProjection(obj){
         }
         break;
       case 68: /*d*/
-        if(alt){
+        if(event.altKey){
           dimModeSwitch();
           $wallEditor.off();
           $wallCreator.off();
         }
         break;
       case 69: /*e*/
-        if(alt){
+        if(event.altKey){
           if($wallEditor.enabled){
             $wallEditor.off();
           } else {
@@ -2394,7 +2381,7 @@ function initWallCreator(obj){
   }
   obj.removeWall = function(wall){
       
-      scene.remove(wall);
+      wall.parent.remove(wall);
 
       obj.walls.splice( wall.index, 1 );
       obj.reIndexWall();
@@ -3333,7 +3320,7 @@ function Wall(vertices, parameters){
     this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 150;
     this.v1 = vertices[0].clone();
     this.v2 = vertices[1].clone();
-    this.offset = {x: this.v1.x, y: this.v1.z};
+//    this.offset = {x: this.v1.x, y: this.v1.z};
 
     this.axisLine = new THREE.Line3(this.v1,this.v2);
     this.direction = this.axisLine.delta().normalize();
@@ -3351,7 +3338,6 @@ function Wall(vertices, parameters){
     this.material.transparent = true;
     this.material.opacity = 0.8;
 
-    this.name = 'wall';
     this.rotation.x = Math.PI/2;
     this.position.set( 0, self.height, 0 )
 
@@ -3360,6 +3346,10 @@ function Wall(vertices, parameters){
 
     this.mover = new WallMover(this);
     scene.add( this.mover );
+
+    this.door = new Doorway(this);
+    this.add( this.door );
+    this.door.activate();
 
 //    this.note = noteAdd(this, "qw");
 //    this.note.position.copy(this.worldToLocal(this.v1.clone().add(new THREE.Vector3(0,250,0))) )
@@ -3781,9 +3771,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   },
   remove: function(){
 
-    scene.remove(this.mover);
+    this.mover.parent.remove(this.mover);
     this.mover.deactivate();
     this.mover = null;
+    
     $wallEditor.removeWall(this);
 
   }
@@ -3791,7 +3782,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 });
 
 
-function WallMover(wall){
+function WallMover( wall ){
 
   THREE.Mesh.call( this, new THREE.Geometry());
 
@@ -4112,8 +4103,9 @@ function WallMover(wall){
       var globalVertex = localVertex.applyMatrix4( event.object.wall.matrix ).clone().add(offset);;
       var directionVector = globalVertex.sub( originPoint );
 
-      var ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
-      var collisionResults = ray.intersectObjects( wallsWithoutNeighbors );
+      raycaster.origin = originPoint;
+      raycaster.direction = directionVector.clone().normalize()
+      var collisionResults = raycaster.intersectObjects( wallsWithoutNeighbors );
       if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
         return;
     }
@@ -4573,6 +4565,241 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
   }
 
+
+});
+
+//Хелпер проема
+function Doorway( wall, parameters ){
+
+  THREE.Object3D.call( this );
+
+  var parameters = parameters || {};
+  var self = this;
+  var _ray = new THREE.Ray();
+  var raycaster = new THREE.Raycaster();
+  var enabled = true;
+
+  
+  this.type = 'Doorway';
+  this.name = 'doorway';
+  this.wall = wall;
+  
+  this.locations = [ 'left_front', 'rigth_front', 'left_back', 'rigth_back' ];
+
+  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 50;
+  this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 110;
+  this.thickness = parameters.hasOwnProperty("thickness") ? parameters["thickness"] : this.wall.width;
+  this.door_thickness = parameters.hasOwnProperty("thicdoor_thicknesskness") ? parameters["door_thickness"] : 3;
+  this.location = parameters.hasOwnProperty("location") ? parameters["location"] : 4;
+
+
+  var material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
+
+  var geometry_plane = new THREE.PlaneBufferGeometry( this.width, this.thickness );
+  this.plane = new THREE.Mesh( geometry_plane, material );
+
+  var geometry_door = new THREE.PlaneBufferGeometry( this.width, this.door_thickness );
+  this.door = new THREE.Mesh( geometry_door, material );
+
+  //параметры дуги
+  this.ax = 0;
+  this.ay = 0;
+  this.xRadius = this.yRadius = 0;
+  this.aStartAngle = 0;
+  this.aEndAngle =  Math.PI/4;
+  this.aClockwise = 0;
+  this.aRotation = 0;
+
+  //хелпер осей
+  var axisHelper = new THREE.AxisHelper( 50 );
+  this.add( axisHelper );
+
+  //позиционирование
+  this.setStartPosition();
+  this.setDoorPosition();
+  this.arc = this.getArc();
+
+  this.add( this.plane, this.door, this.arc );
+
+  this.dragControls = null;
+
+
+  //события
+  this.dragstart =  function ( event ) {
+
+        controls.enabled = false;
+
+		  }
+  this.drag =       function ( event ) {
+
+    window.console.log('Перемещение проема');
+    
+	}
+  this.dragend =    function ( event ) {
+
+        controls.enabled = true;
+
+		  }
+  this.hoveron =    function ( event ) {
+
+        self.material.visible = true;
+
+		  }
+  this.hoveroff =   function ( event ) {
+
+        self.material.visible = false;
+
+		  }
+
+  this.activate =   function() {
+
+    this.dragControls = new DragControls2( [self], camera, renderer.domElement );
+    this.dragControls.addEventListener( 'dragstart', this.dragstart );
+    this.dragControls.addEventListener( 'drag', this.drag );
+    this.dragControls.addEventListener( 'dragend', this.dragend );
+    this.dragControls.addEventListener( 'hoveron', this.hoveron );
+    this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
+
+	}
+  this.deactivate = function () {
+
+    if(this.dragControls){
+      this.dragControls.removeEventListener( 'dragstart', this.dragstart, false );
+      this.dragControls.removeEventListener( 'drag', this.drag, false );
+      this.dragControls.removeEventListener( 'dragend', this.dragend, false );
+      this.dragControls.removeEventListener( 'hoveron', this.hoveron, false );
+      this.dragControls.removeEventListener( 'hoveroff', this.hoveroff, false );
+    }
+
+    this.dragControls = null;
+
+	}
+
+
+}
+Doorway.prototype = Object.assign( Object.create( THREE.Object3D.prototype ),{
+  constructor: Doorway,
+
+  buildGeometry: function(){
+    var wallShape = new THREE.Shape();
+				wallShape.moveTo( this.wall.v1.x, this.wall.v1.z );
+				wallShape.lineTo( this.wall.v11.x, this.wall.v11.z );
+				wallShape.lineTo( this.wall.v21.x, this.wall.v21.z );
+        wallShape.lineTo( this.wall.v2.x, this.wall.v2.z );
+				wallShape.lineTo( this.wall.v22.x, this.wall.v22.z );
+        wallShape.lineTo( this.wall.v12.x, this.wall.v12.z );
+        wallShape.lineTo( this.wall.v1.x, this.wall.v1.z );
+
+    var extrudeSettings = {
+      amount: this.height,
+      bevelEnabled: false
+    };
+    try{
+      var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
+    } catch (e){
+      return null;
+    }
+    return geometry;
+  },
+
+  setStartPosition: function(){
+
+//    this.applyMatrix(this.wall.matrixWorld );
+
+    this.position.copy( this.wall.axisLine.getCenter() ).add( new THREE.Vector3( 0, this.wall.height+1, 0 ) );
+//    this.rotateX ( Math.PI/2 );
+//
+
+    var cross = this.localToWorld ( new THREE.Vector3(1,0,0) ).cross ( this.wall.direction );
+    var angle = this.localToWorld ( new THREE.Vector3(1,0,0) ).angleTo ( this.wall.direction );
+    
+    if( cross.y > 0 ){
+      angle *= -1;
+    }
+
+    this.rotateZ ( angle );
+
+  },
+  setDoorPosition: function(){
+
+    this.door.rotateZ( Math.PI/2 );
+
+    switch (this.location) {
+      case 1:
+        
+        this.door.position.x = this.width/2 - this.door_thickness/2;
+        this.door.position.y = this.width/2 + this.thickness/2 + 1;
+
+        //параметры дуги
+        this.ax = this.door.position.x;
+        this.ay = this.thickness/2;
+        this.xRadius = this.yRadius = this.width - 2;
+        this.aStartAngle = Math.PI/2;
+        this.aEndAngle = Math.PI ;
+        this.aRotation = 0;
+
+        break;
+      case 2:
+        this.door.position.x = - this.width/2 + this.door_thickness/2;
+        this.door.position.y = this.width/2 + this.thickness/2 + 1;
+
+        //параметры дуги
+        this.ax = this.door.position.x;
+        this.ay = this.thickness/2;
+        this.xRadius = this.yRadius = this.width - 2;
+        this.aStartAngle = 0;
+        this.aEndAngle = Math.PI/2 ;
+
+        break;
+      case 3:
+        this.door.position.x = this.width/2 - this.door_thickness/2;
+        this.door.position.y = -this.width/2 - this.thickness/2 + 1;
+
+        //параметры дуги
+        this.ax = this.door.position.x;
+        this.ay = -this.thickness/2;
+        this.xRadius = this.yRadius = this.width - 2;
+        this.aStartAngle = Math.PI;
+        this.aEndAngle = Math.PI + Math.PI/2 ;
+
+        break;
+      case 4:
+        this.door.position.x = - this.width/2 + this.door_thickness/2;
+        this.door.position.y = - this.width/2 - this.thickness/2 + 1;
+
+        //параметры дуги
+        this.ax = this.door.position.x;
+        this.ay = -this.thickness/2;
+        this.xRadius = this.yRadius = this.width - 2;
+        this.aStartAngle = Math.PI + Math.PI/2 ;
+        this.aEndAngle =  0;
+
+        break;
+    }
+
+
+  },
+  getArc: function(){
+
+    var curve = new THREE.EllipseCurve(
+      this.ax, this.ay,
+      this.xRadius, this.yRadius,
+      this.aStartAngle, this.aEndAngle,
+      this.aClockwise,
+      this.aRotation
+    );
+
+    var path = new THREE.Path( curve.getPoints( 50 ) );
+    var geometry = path.createPointsGeometry( 50 );
+    var material = new THREE.LineBasicMaterial( { color : this.door.material.color } );
+
+        // Create the final object to add to the scene
+    return  (new THREE.Line( geometry, material ) );
+  },
+
+  update: function(){
+
+  }
 
 });
 

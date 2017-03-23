@@ -41,11 +41,11 @@ function initMain()
 	// CONTROLS
 //	controls = new THREE.OrbitControls( camera, renderer.domElement );
 	// STATS
-	stats = new Stats();
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.bottom = '0px';
-	stats.domElement.style.zIndex = 100;
-	container.appendChild( stats.domElement );
+//	stats = new Stats();
+//	stats.domElement.style.position = 'absolute';
+//	stats.domElement.style.bottom = '0px';
+//	stats.domElement.style.zIndex = 100;
+//	container.appendChild( stats.domElement );
 	// LIGHT
 var light = new THREE.PointLight(0xffffff);
 	light.position.set(0,250,0);
@@ -117,8 +117,8 @@ function init()
 
 
 //
-//var axisHelper = new THREE.AxisHelper( 100 );
-//scene.add( axisHelper );
+var axisHelper = new THREE.AxisHelper( 300 );
+scene.add( axisHelper );
 //
 //
 
