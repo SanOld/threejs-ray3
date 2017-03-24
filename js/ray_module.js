@@ -199,21 +199,25 @@ function cameraWrapper(videocamera_one){
     videocamera_one.position.set(0,0,0);
     videocamera_one.rotation.set(0,0,0);
 
+
     var X = camera_g.userData.camera_props.camera_off_x * camera_g.fscale;
     var Y = camera_g.userData.camera_props.camera_off_y * camera_g.fscale;
     var Z = camera_g.userData.camera_props.camera_off_z * camera_g.fscale;
     var rX = THREE.Math.degToRad(camera_g.userData.camera_props.camera_start_angle);
 
+/* //ЗДЕСЬ
+	camera_g.position.y += Y;
+	camera_g.position.x += X;
+	camera_g.position.z += Z;
+*/
+	           	/* //    camera_g.rotateX( rX ); //вращать нельзя!!! */
 
-	  camera_g.position.y += Y;
-		camera_g.position.x += X;
-		camera_g.position.z += Z;
-//    camera_g.rotateX( rX ); //вращать нельзя!!!
-
-	  videocamera_one.position.y -= Y;
-		videocamera_one.position.x -= X;
-		videocamera_one.position.z -= Z;
+/* //ЗДЕСЬ
+	videocamera_one.position.y -= Y;
+	videocamera_one.position.x -= X;
+	videocamera_one.position.z -= Z;
     videocamera_one.rotateX( -rX );
+*/	
 
     videocamera_one.matrixWorldNeedsUpdate = true;
     camera_g.matrixWorldNeedsUpdate = true;
@@ -253,7 +257,7 @@ function addCameraRay(scene)
       videocamera.near = near;
       videocamera.far = far;
       videocamera.angle = angle;
-	  videocamera.floor_scale = floor_scale;
+	  videocamera.floor_scale = floor_scale; 
 
       if (videocamera.userData.camera_props)
         videocamera.roomHeight = videocamera.userData.camera_props.roomHeight;
@@ -278,8 +282,16 @@ function addCameraRay(scene)
        var geometry3 = new THREE.CylinderGeometry( 1, radiusB3+1, videocamera.far/3, 4 ); //геометрия луча
        var rayMesh3 = new THREE.Mesh( geometry3);
 
-       rayMesh.rotation.x = rayMesh2.rotation.x = rayMesh3.rotation.x = -Math.PI/2;
-       rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = Math.PI/4;
+       //для камеры
+//       rayMesh.rotation.x = rayMesh2.rotation.x = rayMesh3.rotation.x = -Math.PI/2;
+//       rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = Math.PI/4;
+
+      //для столба
+      
+        rayMesh.position.copy(rayMesh2.position.copy( rayMesh3.position.copy( new THREE.Vector3(0,200,45) ) ) );
+        rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = Math.PI/4;
+
+      
 
        rayMesh.translateY(-videocamera.far/2);
        rayMesh.visible = false;
@@ -305,8 +317,10 @@ function addCameraRay(scene)
       //ось вращения1
       var ray_axis_x = new THREE.Object3D();
       ray_axis_x.name = 'ray_axis_x';
-      ray_axis_x.rotateX( THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
-
+      /* // ЗДЕСЬ
+	  ray_axis_x.rotateX( THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
+	  */	
+	
       //ось вращения2
       var ray_axis_y = new THREE.Object3D();
       ray_axis_y.name = 'ray_axis_y';
@@ -1265,7 +1279,7 @@ function noteCameraInfo ()
   }
 
   this.getAngleVert = function(){
-
+    
 	/*
 	var vector = self.obj.getWorldDirection().projectOnPlane (  new THREE.Vector3(1, 0, 0) )
     var inRad = self.obj.getWorldDirection().angleTo( vector );
@@ -1273,7 +1287,7 @@ function noteCameraInfo ()
     var inDeg = Math.ceil(THREE.Math.radToDeg(inRad));
 	*/
     var vector = self.obj.getWorldDirection();
-    var inDeg = parseFloat(THREE.Math.radToDeg(Math.acos(-vector.y)).toFixed(0));
+    var inDeg = parseFloat(THREE.Math.radToDeg(Math.acos(-vector.y)).toFixed(0));	
     return inDeg;
   }
 
@@ -1417,7 +1431,7 @@ function dimension(obj, parameters)
 
       self.line.setLength(self.ray_distance, 10);
       self.ray_distance = Math.ceil(self.ray_distance);
-
+	  
       if(self.ray_distance === Infinity){
         self.note.visible = false;
         self.line.visible = false;
@@ -1431,7 +1445,7 @@ function dimension(obj, parameters)
 	  }
 	  else {
 		self.note.setMessage(self.ray_distance.toString());
-	  }
+	  }	
       self.setNotePosition();
 
 	  self.note.update();
