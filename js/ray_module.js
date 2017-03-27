@@ -1898,6 +1898,8 @@ function initProjection(obj){
 
     obj.setMaterialToWall(obj.projectionWallMaterial);
 
+    obj.hideDoorways();
+
   }
   obj.off = function(){
     obj.enabled = !obj.enabled;
@@ -1909,6 +1911,9 @@ function initProjection(obj){
 
     Dimensions.visible = false;
     obj.setMaterialToWall(obj.acsWallMaterial);
+
+
+    obj.showDoorways();
 
   }
   obj.cameraAdd = function(){
@@ -2053,6 +2058,16 @@ function initProjection(obj){
   obj.setMaterialToWall = function(material){
     $wallCreator.walls.forEach(function(item){
       item.material = material;
+    })
+  }
+  obj.showDoorways = function(){
+    $wallCreator.walls.forEach(function(item){
+      item.showDoorway();
+    })
+  };
+  obj.hideDoorways = function(){
+    $wallCreator.walls.forEach(function(item){
+      item.hideDoorway();
     })
   }
 
@@ -2503,7 +2518,7 @@ function initWallCreator(obj){
 
           var vertices1 = [ item.wall.v1, item.point ];
           var vertices2 = [ item.point, item.wall.v2 ];
-          var params = { width: item.wall.width, heigth: item.wall.heigth };
+          var params = { width: item.wall.width, height: item.wall.height };
 
           obj.removeWall(item.wall);
           item.wall = null;
@@ -3379,6 +3394,7 @@ function Wall(vertices, parameters){
     if ( parameters === undefined ) parameters = {};
     this.type = 'Wall';
     this.name = 'wall';
+    this._wall = null; // объект стены с проемами
     this.index = '';//присваивается в редакторе
     this.walls = []//заполнение при обновлении
     this.doors = [];
@@ -3418,8 +3434,8 @@ function Wall(vertices, parameters){
 
 
     //хелпер осей
-//  var axisHelper = new THREE.AxisHelper( 50 );
-//  this.add( axisHelper );
+  var axisHelper = new THREE.AxisHelper( 50 );
+  this.add( axisHelper );
 
 }
 Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
@@ -3858,7 +3874,49 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     $wallEditor.deactivateSelectControls();
     $wallEditor.activateSelectControls();
-  }
+
+  },
+
+  removeDoorway: function(){
+    if(this._wall){
+      scene.remove(this._wall);
+      this._wall = null;
+    }
+  },
+
+  showDoorway: function(){
+
+    var self = this;
+
+   this.removeDoorway();
+
+    self.doors.forEach(function( item ){
+
+      var wallBSP = new ThreeBSP( item.wall );
+      var doorwayBodyBSP = new ThreeBSP( item.doorwayBody );
+
+      var newBSP = wallBSP.subtract( doorwayBodyBSP );
+
+      self._wall = newBSP.toMesh( self.material );
+      
+    })
+
+    if(self._wall){
+      scene.add( self._wall );
+      self.visible = false;
+    }
+
+  },
+ hideDoorway: function(){
+
+   var self = this;
+
+    self.visible = true;
+
+    if(self._wall){
+        self._wall.visible = false;
+    }
+ }
 
 });
 
@@ -4164,8 +4222,8 @@ function WallMover( wall ){
           //particular case exception1
           if( self.v1_neighbors.length == 2 ){
 
-            var dot1 = self.wall.direction.clone().dot( self.v1_neighbors[0].wall.direction );
-            var dot2 = self.wall.direction.clone().dot( self.v1_neighbors[1].wall.direction );
+            var dot1 = self.wall.direction.clone().dot( self.v1_neighbors[0].wall.direction.clone() );
+            var dot2 = self.wall.direction.clone().dot( self.v1_neighbors[1].wall.direction.clone() );
 
             if( Math.abs(dot1) < 0.001 && Math.abs(dot2) < 0.001 ){
 
@@ -4180,8 +4238,8 @@ function WallMover( wall ){
 
           if( self.v2_neighbors.length == 2 ){
 
-            var dot1 = self.wall.direction.clone().dot( self.v2_neighbors[0].wall.direction );
-            var dot2 = self.wall.direction.clone().dot( self.v2_neighbors[1].wall.direction );
+            var dot1 = self.wall.direction.clone().dot( self.v2_neighbors[0].wall.direction.clone() );
+            var dot2 = self.wall.direction.clone().dot( self.v2_neighbors[1].wall.direction.clone() );
 
             if( Math.abs(dot1) < 0.001 && Math.abs(dot2) < 0.001 ){
 
@@ -4266,7 +4324,7 @@ function WallMover( wall ){
           //global condition2
           if( self.v2_neighbors.length == 1 ){
 
-            var dot = self.wall.direction.clone().dot( self.v2_neighbors[0].wall.direction );
+            var dot = self.wall.direction.clone().dot( self.v2_neighbors[0].wall.direction.clone() );
 
             switch ( Math.abs(dot) > 0.999 ) {
               case true:
@@ -4297,7 +4355,7 @@ function WallMover( wall ){
           }
           if( self.v1_neighbors.length == 1 ){
 
-            var dot = self.wall.direction.clone().dot( self.v1_neighbors[0].wall.direction );
+            var dot = self.wall.direction.clone().dot( self.v1_neighbors[0].wall.direction.clone() );
 
             switch ( Math.abs(dot) > 0.999 ) {
               case true:
@@ -4620,7 +4678,10 @@ function Doorway( wall, parameters ){
   this.name = 'doorway';
   this.wall = wall;
 
-  this.offset = this.wall.axisLength / 2;
+  this.top_offset = 2; //отступ от верха стены
+  this.elevation = 0; // порог для проема
+
+  this.offset = this.wall.axisLength / 2; //отступ от v1 до центра проема
   this.locations = [ 'left_front', 'rigth_front', 'left_back', 'rigth_back' ];
 
   this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 50;
@@ -4647,9 +4708,20 @@ function Doorway( wall, parameters ){
   this.aClockwise = 0;
   this.aRotation = 0;
 
+  //тело проема
+  var geometry = new THREE.BoxGeometry( this.width, this.height, this.wall.width+5 );
+  this.doorwayBody = new THREE.Mesh( geometry, this.material );
+  this.doorwayBody.visible = false;
+//  this.doorwayBody.material.visible = true;
+
   //хелпер осей
-  var axisHelper = new THREE.AxisHelper( 50 );
-  this.add( axisHelper );
+//  var axisHelper = new THREE.AxisHelper( 50 );
+//  this.add( axisHelper );
+  
+  var axisHelper = new THREE.AxisHelper( 100 );
+  this.doorwayBody.add( axisHelper );
+
+
 
   //позиционирование
   this.setStartPosition();
@@ -4657,7 +4729,10 @@ function Doorway( wall, parameters ){
   this.door.rotateZ( Math.PI/2 );
   this.arc = this.getArc();
 
-  this.add( this.door, this.arc );
+  this.setDoorwayBodyPosition();
+  scene.add(this.doorwayBody);
+
+  this.add( this.door, this.arc);
 
   this.dragControls = null;
 
@@ -4699,7 +4774,7 @@ function Doorway( wall, parameters ){
     //вычисление смещения
     var vec = event.object.getWorldPosition().clone().sub(self.wall.v1.clone()).projectOnVector(self.wall.direction.clone());
     self.offset = vec.length();
-    var dot = vec.dot ( self.wall.direction )
+    var dot = vec.dot ( self.wall.direction.clone() )
 
     if ( self.wall.axisLength - self.width/2 < self.offset  ){
       self.offset = self.wall.axisLength - self.width/2;
@@ -4714,6 +4789,8 @@ function Doorway( wall, parameters ){
 //  alert('dragend дверного проема');
         controls.enabled = true;
         self.wall.mover.activate();
+
+        self.update();
 
 		  };
 
@@ -4754,7 +4831,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
     var result = new THREE.Vector3();
     result.copy( this.wall.worldToLocal(  this.wall.v1.clone().add( this.wall.direction.clone().multiplyScalar( this.offset ) ) ) );
-    result.add( new THREE.Vector3(0,0,-(this.wall.height + 2)) );
+    result.add( new THREE.Vector3(0,0,-(this.wall.height + this.top_offset)) );
 
     return result;
 
@@ -4765,8 +4842,8 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.position.copy( this.getClculatePosition() );
 
     //поворот по стене
-    var cross = this.localToWorld ( new THREE.Vector3(1,0,0) ).cross ( this.wall.direction );
-    var angle = this.localToWorld ( new THREE.Vector3(1,0,0) ).angleTo ( this.wall.direction );
+    var cross = this.localToWorld ( new THREE.Vector3(1,0,0) ).cross ( this.wall.direction.clone() );
+    var angle = this.localToWorld ( new THREE.Vector3(1,0,0) ).angleTo ( this.wall.direction.clone() );
 
     if( cross.y > 0 ){
       angle *= -1;
@@ -4848,6 +4925,13 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
         // Create the final object to add to the scene
     return  (new THREE.Line( geometry, material ) );
   },
+  setDoorwayBodyPosition: function(){
+
+    this.doorwayBody.position.copy( this.wall.localToWorld(this.position.clone()) );
+    this.doorwayBody.rotation.y = - this.rotation.z;
+    this.doorwayBody.position.y = this.doorwayBody.position.y  - this.wall.height - this.top_offset + this.height/2 + this.elevation;
+    
+  },
 
   hideMenu: function() {
     $('.DoorwayMenu').css('display','none');
@@ -4926,11 +5010,13 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     
     this.position.copy( this.getClculatePosition() );
 
-//    this.setStartPosition();
     this.setDoorPosition();
+
     this.remove(this.arc)
     this.arc = this.getArc();
     this.add(this.arc);
+
+    this.setDoorwayBodyPosition();
     
   },
 
