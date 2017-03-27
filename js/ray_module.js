@@ -205,19 +205,19 @@ function cameraWrapper(videocamera_one){
     var Z = camera_g.userData.camera_props.camera_off_z * camera_g.fscale;
     var rX = THREE.Math.degToRad(camera_g.userData.camera_props.camera_start_angle);
 
-/* //ЗДЕСЬ
-	camera_g.position.y += Y;
-	camera_g.position.x += X;
-	camera_g.position.z += Z;
-*/
+ //ЗДЕСЬ
+//	camera_g.position.y += Y;
+//	camera_g.position.x += X;
+//	camera_g.position.z += Z;
+
 	           	/* //    camera_g.rotateX( rX ); //вращать нельзя!!! */
 
-/* //ЗДЕСЬ
-	videocamera_one.position.y -= Y;
-	videocamera_one.position.x -= X;
-	videocamera_one.position.z -= Z;
-    videocamera_one.rotateX( -rX );
-*/	
+ //ЗДЕСЬ
+//	videocamera_one.position.y -= Y;
+//	videocamera_one.position.x -= X;
+//	videocamera_one.position.z -= Z;
+//    videocamera_one.rotateX( -rX );
+	
 
     videocamera_one.matrixWorldNeedsUpdate = true;
     camera_g.matrixWorldNeedsUpdate = true;
@@ -257,7 +257,7 @@ function addCameraRay(scene)
       videocamera.near = near;
       videocamera.far = far;
       videocamera.angle = angle;
-	  videocamera.floor_scale = floor_scale; 
+      videocamera.floor_scale = floor_scale;
 
       if (videocamera.userData.camera_props)
         videocamera.roomHeight = videocamera.userData.camera_props.roomHeight;
@@ -265,7 +265,7 @@ function addCameraRay(scene)
         videocamera.far = videocamera.userData.camera_props.far;
       if (videocamera.userData.camera_props)
         videocamera.angle = THREE.Math.degToRad(videocamera.userData.camera_props.angle);
-	  if (videocamera.userData.camera_props && videocamera.userData.camera_props.floor_scale)
+      if (videocamera.userData.camera_props && videocamera.userData.camera_props.floor_scale)
         videocamera.floor_scale = videocamera.userData.camera_props.floor_scale;
 
       //луч
@@ -282,14 +282,19 @@ function addCameraRay(scene)
        var geometry3 = new THREE.CylinderGeometry( 1, radiusB3+1, videocamera.far/3, 4 ); //геометрия луча
        var rayMesh3 = new THREE.Mesh( geometry3);
 
-       //для камеры
+       //для камеры - old
 //       rayMesh.rotation.x = rayMesh2.rotation.x = rayMesh3.rotation.x = -Math.PI/2;
 //       rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = Math.PI/4;
 
-      //для столба
-      
-        rayMesh.position.copy(rayMesh2.position.copy( rayMesh3.position.copy( new THREE.Vector3(0,200,45) ) ) );
-        rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = Math.PI/4;
+
+      //Позиционирование луча
+      var X = videocamera.userData.camera_props.camera_off_x * videocamera.fscale;
+      var Y = videocamera.userData.camera_props.camera_off_y * videocamera.fscale;
+      var Z = videocamera.userData.camera_props.camera_off_z * videocamera.fscale;
+      var rY = THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle);
+
+      rayMesh.position.copy(rayMesh2.position.copy( rayMesh3.position.copy( new THREE.Vector3(X,Y,Z) ) ) );
+      rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = rY;
 
       
 
