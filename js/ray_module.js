@@ -3813,6 +3813,19 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
 
   },
+  remove: function(){
+
+    this.mover.deactivate();
+    this.mover.parent.remove(this.mover);
+    this.mover = null;
+
+    this.children.forEach(function(item){
+      scene.remove(item);
+    })
+
+    $wallEditor.removeWall(this);
+
+  },
   
   select: function(event) {
     
@@ -3821,6 +3834,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   },
   hoveroff: function(event) {
   },
+
   select_contextmenu: function(event){
     this.showMenu(event.screenCoord);
   },
@@ -3852,19 +3866,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     
   },
 
-  remove: function(){
-
-    this.mover.deactivate();
-    this.mover.parent.remove(this.mover);
-    this.mover = null;
-
-    this.children.forEach(function(item){
-      scene.remove(item);
-    })
-    
-    $wallEditor.removeWall(this);
-
-  },
   addDoorway: function(){
 
     var door = new Doorway(this);
@@ -3876,14 +3877,12 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     $wallEditor.activateSelectControls();
 
   },
-
   removeDoorway: function(){
     if(this._wall){
       scene.remove(this._wall);
       this._wall = null;
     }
   },
-
   showDoorway: function(){
 
     var self = this;
@@ -3892,7 +3891,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     self.doors.forEach(function( item ){
 
-      var wallBSP = new ThreeBSP( item.wall );
+      var wallBSP = new ThreeBSP( self._wall || item.wall );
       var doorwayBodyBSP = new ThreeBSP( item.doorwayBody );
 
       var newBSP = wallBSP.subtract( doorwayBodyBSP );
@@ -3907,7 +3906,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     }
 
   },
- hideDoorway: function(){
+  hideDoorway: function(){
 
    var self = this;
 
@@ -4669,27 +4668,23 @@ function Doorway( wall, parameters ){
 
   var parameters = parameters || {};
   var self = this;
-  var _ray = new THREE.Ray();
-  var raycaster = new THREE.Raycaster();
-  var enabled = true;
 
-  
   this.type = 'Doorway';
   this.name = 'doorway';
   this.wall = wall;
 
   this.top_offset = 2; //отступ от верха стены
-  this.elevation = 0; // порог для проема
-
+  
   this.offset = this.wall.axisLength / 2; //отступ от v1 до центра проема
   this.locations = [ 'left_front', 'rigth_front', 'left_back', 'rigth_back' ];
 
   this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 50;
   this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 110;
   this.thickness = parameters.hasOwnProperty("thickness") ? parameters["thickness"] : this.wall.width;
+  this.elevation = 0; // порог для проема
+
   this.door_thickness = parameters.hasOwnProperty("thicdoor_thicknesskness") ? parameters["door_thickness"] : 3;
   this.location = parameters.hasOwnProperty("location") ? parameters["location"] : 1;
-
 
   this.geometry = new THREE.PlaneBufferGeometry( this.width, this.thickness );
   this.material = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.BackSide} );
@@ -4718,9 +4713,8 @@ function Doorway( wall, parameters ){
 //  var axisHelper = new THREE.AxisHelper( 50 );
 //  this.add( axisHelper );
   
-  var axisHelper = new THREE.AxisHelper( 100 );
-  this.doorwayBody.add( axisHelper );
-
+//  var axisHelper = new THREE.AxisHelper( 100 );
+//  this.doorwayBody.add( axisHelper );
 
 
   //позиционирование
