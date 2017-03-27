@@ -291,10 +291,15 @@ function addCameraRay(scene)
       var X = videocamera.userData.camera_props.camera_off_x * videocamera.fscale;
       var Y = videocamera.userData.camera_props.camera_off_y * videocamera.fscale;
       var Z = videocamera.userData.camera_props.camera_off_z * videocamera.fscale;
-      var rY = THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle);
+      var rY = THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle_y);
+      var rX = THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle_x);
+      var rZ = THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle_z);
 
-      rayMesh.position.copy(rayMesh2.position.copy( rayMesh3.position.copy( new THREE.Vector3(X,Y,Z) ) ) );
       rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = rY;
+      rayMesh.rotation.x = rayMesh2.rotation.x = rayMesh3.rotation.x = rX;
+      rayMesh.rotation.z = rayMesh2.rotation.z = rayMesh3.rotation.z = rZ;
+      rayMesh.position.copy(rayMesh2.position.copy( rayMesh3.position.copy( new THREE.Vector3(X,Y,Z) ) ) );
+      
 
       
 
@@ -347,6 +352,8 @@ function addCameraRay(scene)
 
       //ось z - хелпер
       arrowHelperAdd( videocamera, null, 'red', 35 );
+
+      arrowHelperAdd( rayMesh, null, 'blue', 50 );
 //      arrowHelperAdd( ray_axis_x, null, 'blue', 30 );
 //      arrowHelperAdd( ray_axis_x, ray_axis_x.up, 'blue', 30 );
 //      arrowHelperAdd( ray_axis_y, null, 'green', 25);
