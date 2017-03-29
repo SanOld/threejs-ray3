@@ -59,18 +59,13 @@ var loader = new THREE.TextureLoader();
 // load a resource
 loader.load(
 	// resource URL
-//	'/js/lib/three-master/examples/textures/brick_bump.jpg',
-//  '/img/pimgpsh_fullsize_distr.jpg',
   '/img/plan2.jpg',
 	// Function when resource is loaded
 	function ( floorTexture ) {
-		// do something with the texture
-//      var floorTexture = new THREE.ImageUtils.loadTexture( '../textures/brick_bump.jpg' );
-//      floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
- 
+		// do something with the texture 
       floorTexture.repeat.set( 1, 1 );
       var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
-      var floorGeometry = new THREE.PlaneBufferGeometry(1000, 600, 10, 10);
+      var floorGeometry = new THREE.PlaneBufferGeometry(2000, 1200, 10, 10);
       var floor = new THREE.Mesh(floorGeometry, floorMaterial);
       floor.name = 'floor'
       floor.position.y = 0;
@@ -105,21 +100,15 @@ function init()
 {
 
 	initMain();
-//
+
 //	////////////
 //	// CUSTOM //
 //	////////////
-//
-//  //
-//
-
-
 
 
 //
-var axisHelper = new THREE.AxisHelper( 300 );
-scene.add( axisHelper );
-//
+//var axisHelper = new THREE.AxisHelper( 300 );
+//scene.add( axisHelper );
 //
 
 
@@ -130,22 +119,24 @@ scene.add( axisHelper );
 //
 //$wallCreator.addWall([new THREE.Vector3(0,0,-100), new THREE.Vector3(0,0,-50)],{width: 50});//колонна
 
-
-
-
 //$wallCreator.addWall([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,200)]);
 //
 //$wallCreator.addWall([new THREE.Vector3(200,0,0), new THREE.Vector3(200,0,200)]);
 
 
 
-
 //loadScene();
 //loadCamera();
 
+//loadJSON('sc/door.json', 'door');
+
+//loadJSON('sc/window.json');
+ 
+//setTimeout( transformationLoaded, 1000 );
+
+
 //инициализация возможности отрисовки луча
 setTimeout(addCameraRay,1000,scene);
-
 
 //$arcWall.add( scene, wall );
 

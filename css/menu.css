@@ -1,11 +1,11 @@
-.ActiveElementMenu, .DoorwaySwitcher, .DoorwayMenu {
+.ActiveElementMenu, .FourStateSwitcher, .TwoStateSwitcher .DoorwayMenu {
 	display: none;
 	position: absolute;
 	z-index: 90;
 }
 
-.ActiveElementMenu > div, .DoorwaySwitcher > div, .DoorwayMenu > div,
-.ActiveElementMenu > a, .DoorwaySwitcher > a, .DoorwayMenu > a {
+.ActiveElementMenu > div, .FourStateSwitcher > div, .DoorwayMenu > div,.TwoStateSwitcher > div,
+.ActiveElementMenu > a, .FourStateSwitcher > a, .DoorwayMenu > a, .TwoStateSwitcher > a {
 	position: absolute;
 	display: block;
 	width: 40px;
@@ -17,13 +17,13 @@
 }
 
 .ActiveElementMenu > div[action="rotate"],
-.DoorwaySwitcher > div[action="rotate"],
+.FourStateSwitcher > div[action="rotate"],
 .DoorwayMenu > div[action="rotate"]{
 	cursor: move;
 }
 
-.ActiveElementMenu > div:hover, .DoorwaySwitcher > div:hover, .DoorwayMenu > div:hover,
-.ActiveElementMenu > a:hover, .DoorwaySwitcher > a:hover, .DoorwayMenu > a:hover {
+.ActiveElementMenu > div:hover, .FourStateSwitcher > div:hover, .DoorwayMenu > div:hover, .TwoStateSwitcher > div:hover,
+.ActiveElementMenu > a:hover, .FourStateSwitcher > a:hover, .DoorwayMenu > a:hover, .TwoStateSwitcher > a:hover {
 	background-color: #64b26d;
 }
 

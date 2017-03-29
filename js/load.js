@@ -101,3 +101,150 @@ function loadCamera(){
 		);
 
 }
+
+
+function loadJSON(file_path, name, callback){
+
+  var name = name || '';
+  var callback = callback || function(){};
+
+  var loader = new THREE.JSONLoader();
+  loader.load(
+        // resource URL
+        file_path,
+        // Function when resource is loaded
+        function ( geometry, materials ) {
+          var material = new THREE.MultiMaterial( materials );
+
+          var object = new THREE.Mesh( geometry, material );
+
+          object.userData.loaded = true;
+
+          var wrapper = new THREE.Object3D();
+          wrapper.name = name;
+          wrapper.add( object );
+          scene.add(wrapper);
+
+          //===========
+//          var axisHelper = new THREE.AxisHelper( 300 );
+//          wrapper.add( axisHelper );
+          
+          object.userData.scale = 100;
+          object.userData.translateX = 0;
+          object.userData.translateY = 0;
+          object.userData.translateZ = 0;
+          object.userData.rotateX = 0;
+          object.userData.rotateY = 0;
+          object.userData.rotateZ = 0;
+          //===========
+
+
+          transformationLoaded( object );
+
+          callback( wrapper );
+
+        }
+      );
+  
+};
+
+function loadOBJ(file_path, name, callback){
+
+  var name = name || '';
+
+  var callback = callback || function(){};
+
+  var loader = new THREE.OBJLoader();
+  loader.load(
+        // resource URL
+        file_path,
+        // Function when resource is loaded
+        function ( object ) {
+
+          object.children[0].userData.loaded = true;
+
+          var wrapper = object;
+          wrapper.name = name;
+
+          scene.add(wrapper);
+
+          //===========
+//          var axisHelper = new THREE.AxisHelper( 300 );
+//          wrapper.add( axisHelper );
+
+          wrapper.children[0] .userData.scale = 1;
+          wrapper.children[0] .userData.translateX = 0;
+          wrapper.children[0] .userData.translateY = 0;
+          wrapper.children[0] .userData.translateZ = 0;
+          wrapper.children[0] .userData.rotateX = 0;
+          wrapper.children[0] .userData.rotateY = 0;
+          wrapper.children[0] .userData.rotateZ = 0;
+          //===========
+
+
+          transformationLoaded( wrapper.children[0] );
+
+          callback( wrapper );
+
+        }
+      );
+
+};
+function loadOBJ_door2(file_path, name, callback){
+
+  var name = name || '';
+
+  var callback = callback || function(){};
+
+  var loader = new THREE.OBJLoader();
+  loader.load(
+        // resource URL
+        file_path,
+        // Function when resource is loaded
+        function ( object ) {
+
+          object.children[0].userData.loaded = true;
+
+          var wrapper = object;
+          wrapper.name = name;
+
+          scene.add(wrapper);
+
+          //===========
+//          var axisHelper = new THREE.AxisHelper( 300 );
+//          wrapper.add( axisHelper );
+
+          wrapper.children[0] .userData.scale = 1;
+          wrapper.children[0] .userData.translateX = 5;
+          wrapper.children[0] .userData.translateY = 0;
+          wrapper.children[0] .userData.translateZ = 0;
+          wrapper.children[0] .userData.rotateX = 0;
+          wrapper.children[0] .userData.rotateY = 0;
+          wrapper.children[0] .userData.rotateZ = 0;
+          //===========
+
+
+          transformationLoaded( wrapper.children[0] );
+
+          callback( wrapper );
+
+        }
+      );
+
+};
+
+function transformationLoaded( item ){
+
+  if( item.userData && item.userData.loaded ){
+
+    item.scale.set( item.userData.scale, item.userData.scale, item.userData.scale );
+    item.translateX(item.userData.translateX);
+    item.translateY(item.userData.translateY);
+    item.translateZ(item.userData.translateZ);
+    item.rotateX( THREE.Math.degToRad( item.userData.rotateX ) );
+    item.rotateY( THREE.Math.degToRad( item.userData.rotateY ) );
+    item.rotateZ( THREE.Math.degToRad( item.userData.rotateZ ) );
+
+    }
+    
+}
