@@ -4748,6 +4748,7 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
 });
 
+
 //Проем
 function Doorway( wall, parameters ){
 
@@ -4983,15 +4984,13 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
   reverseWindingOrder: function(object3D) {
 
-    // TODO: Something is missing, the objects are flipped alright but the light reflection on them is somehow broken
-
     if (object3D.type === "Mesh" && object3D.geometry.faces) {
 
-        if( ! object3D.geometry.isBufferGeometry){
-          var bg = new THREE.BufferGeometry();
-          bg.fromGeometry ( object3D.geometry );
-          object3D.geometry = bg;
-        }
+//        if( ! object3D.geometry.isBufferGeometry){
+//          var bg = new THREE.BufferGeometry();
+//          bg.fromGeometry ( object3D.geometry );
+//          object3D.geometry = bg;
+//        }
         var geometry = object3D.geometry;
         for (var i = 0, l = geometry.faces.length; i < l; i++) {
 
@@ -5024,7 +5023,6 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   }
 
 });
-
 //Дверной блок
 function Doorblock( wall, parameters ){
 
@@ -5355,7 +5353,6 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
   },
 
 });
-
 //Окно
 function WindowBlock( wall, parameters ){
 
@@ -5532,7 +5529,6 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
   }
 
 });
-
 //Двойная дверь
 function DoubleDoorBlock( wall, parameters ){
 
@@ -5801,8 +5797,6 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
   }
 
 });
-
-
 //Окно
 function WindowBlock2( wall, parameters ){
 
@@ -6053,6 +6047,7 @@ WindowBlock2.prototype = Object.assign( Object.create( Doorway.prototype ),{
 });
 
 
+
 //Перемещение mover стены
 DragControls2 = function ( _objects, _camera, _domElement, _plane_normal ) {
 
@@ -6229,7 +6224,6 @@ DragControls2 = function ( _objects, _camera, _domElement, _plane_normal ) {
 };
 DragControls2.prototype = Object.create( THREE.EventDispatcher.prototype );
 DragControls2.prototype.constructor = DragControls2;
-
 //Перемещение
 DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
 
@@ -6406,7 +6400,6 @@ DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
 };
 DragControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 DragControls.prototype.constructor = DragControls;
-
 //выбор элемента
 SelectControls = function ( _objects, _camera, _domElement ){
 
