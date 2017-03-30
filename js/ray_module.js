@@ -2068,7 +2068,6 @@ function initDimensionEditorMode(obj){
 
   obj.enabled = false;
   
-  
   obj.planeMousePoint; //точка пересечения луча с плоскостью
   obj.currentEdge = {};
   obj.currentEdge.material = {};
@@ -2076,6 +2075,8 @@ function initDimensionEditorMode(obj){
   obj.currentPoint.material = {};
   obj.selected1 = null;
   obj.selected2 = null;
+  obj.currentDimension;
+  obj.dimensionMenu = [];
   
   obj.on = function(){
 
@@ -2090,6 +2091,7 @@ function initDimensionEditorMode(obj){
     Dimensions.children.forEach(function(item){
       item.activate();
     })
+
     obj.activate();
 
   }
@@ -2148,6 +2150,23 @@ function initDimensionEditorMode(obj){
     })
   }
 
+  obj.getDimensionMenu = function(){
+    var elements =  $('.DimensionMenu').find('.ActiveElementMenuAnimated');
+
+    //считываем координаты для восстановления
+    if(elements){
+      elements.each( function( i, item ){
+        obj.dimensionMenu[i] = ( {left: item.style.left, top: item.style.top} );
+        item.style.left = 0;
+        item.style.top = 0;
+      });
+    }
+
+  }
+  obj.hideAllMenu = function(){
+    $('.DimensionMenu').css('display','none');
+  }
+
   obj.dimensionAdd = function(){
 
     var param1 = null;
@@ -2159,7 +2178,10 @@ function initDimensionEditorMode(obj){
     param2 = obj.selected2.isLine ? obj.selected2 : obj.selected2.position
 
     current_dim = new Dimension(param1, param2, obj.plane);
-    Dimensions.add(current_dim)
+    Dimensions.add(current_dim);
+    
+    obj.deactivateSelectControls();
+    obj.activateSelectControls();
 
   }
   obj.setSelected = function(selectObj){
@@ -2200,13 +2222,75 @@ function initDimensionEditorMode(obj){
     document.addEventListener( 'mousemove', onDocumentMouseMoveProjection, false );
     document.addEventListener( 'keydown', onKeyDownProjection, false );
     document.addEventListener( 'keyup', onKeyUpProjection, false );
+
+    obj.activateSelectControls();
   };
   obj.deactivate = function(){
     document.removeEventListener( 'mousedown', onDocumentMouseDownProjection );
     document.removeEventListener( 'mousemove', onDocumentMouseMoveProjection );
     document.removeEventListener( 'keydown', onKeyDownProjection );
     document.removeEventListener( 'keyup', onKeyUpProjection );
+
+    obj.deactivateSelectControls();
+  };
+  
+  obj.activateSelectControls = function(){
+    var objects = [];
+    Dimensions.children.forEach(function(item){
+      objects.push(item.note);
+    });
+
+    obj.selectControls = new SelectControls( objects, camera, renderer.domElement );
+    obj.selectControls.addEventListener( 'select', obj.select );
+    obj.selectControls.addEventListener( 'unselect', obj.unselect );
+//    obj.dragControls.addEventListener( 'end', obj.dragend );
+    obj.selectControls.addEventListener( 'hoveron', obj.hoveron );
+    obj.selectControls.addEventListener( 'hoveroff', obj.hoveroff );
+    obj.selectControls.addEventListener( 'select_contextmenu', obj.select_contextmenu );
   }
+  obj.deactivateSelectControls = function(){
+
+    if(obj.selectControls ){
+      obj.selectControls.removeEventListener( 'select', obj.select, false );
+  //    obj.dragControls.removeEventListener( 'end', obj.dragend, false );
+      obj.selectControls.removeEventListener( 'hoveron', obj.hoveron, false );
+      obj.selectControls.removeEventListener( 'hoveroff', obj.hoveroff, false );
+      obj.selectControls.removeEventListener( 'select_contextmenu', obj.select_contextmenu, false );
+
+      obj.selectControls.deactivate();
+      obj.selectControls = null;
+    }
+
+  }
+  obj.select = function(event){
+
+    obj.hideAllMenu();
+    if( 'select' in event.object.parent )
+    event.object.parent.select(event);
+    obj.selected = event.object.parent;
+
+  }
+  obj.select_contextmenu = function(event){
+    obj.hideAllMenu();
+    if('select_contextmenu' in event.object.parent){
+    event.object.parent.select_contextmenu(event);
+    obj.selected = event.object.parent;
+    }
+
+  }
+  obj.unselect = function( event ){
+    obj.hideAllMenu();
+    obj.selected = null;
+  }
+  obj.hoveron = function( event ){
+    if( 'hoveron' in event.object.parent )
+    event.object.parent.hoveron( event );
+  }
+  obj.hoveroff = function( event ){
+    if( 'hoveroff' in event.object.parent )
+    event.object.parent.hoveroff(event);
+  }
+
 
   function onDocumentMouseDownProjection( event ){
     if (!obj.enabled)
@@ -2287,6 +2371,11 @@ function initDimensionEditorMode(obj){
         obj.currentPoint.position.set(0,0,0)
       }
 
+      //определение текущего размера
+      if(intersectObjects[ 0 ].object.parent.isDimension){
+        obj.currentDimension = intersectObjects[ 0 ].object.parent;
+      }
+
     }
 //
 
@@ -2344,6 +2433,18 @@ function initDimensionEditorMode(obj){
         return false;
 //      event.preventDefault();
     }
+
+  //оодноразовая операция
+  obj.getDimensionMenu();
+
+  $('.DimensionMenu').on('click', '[action = remove]', function(){
+    obj.hideAllMenu();
+		Dimensions.remove(obj.selected);
+    obj.selected = null;
+	});
+  $('.DimensionMenu').on('click', '[action = action_n]', function(){
+		alert('action_n');
+	});
 
 }
 $dimensionEditorMode = {};
@@ -3100,11 +3201,14 @@ function initWallEditor( obj ){
       obj.selectControls.removeEventListener( 'hoveron', obj.hoveron, false );
       obj.selectControls.removeEventListener( 'hoveroff', obj.hoveroff, false );
       obj.selectControls.removeEventListener( 'select_contextmenu', obj.select_contextmenu, false );
+
+      obj.selectControls.deactivate();
       obj.selectControls = null;
     }
 
   }
   obj.select = function(event){
+
     obj.hideAllMenu();
     if( 'select' in event.object )
     event.object.select(event);
@@ -3297,7 +3401,15 @@ function Dimension( param1, param2, plane ){
 
   this.enabled = true;
   this.ready = false;
-  this.type = 'dimension';
+  this.type = 'Dimension';
+  this.name = 'dimension';
+  this.isDimension = true;
+  
+  this.lkmMenu = '';
+  this.rkmMenu = '.DimensionMenu';
+
+
+
   this.dim_type = '';
   this.planeNormal
   this.dimLine = null;
@@ -3379,6 +3491,7 @@ function Dimension( param1, param2, plane ){
     switch( event.keyCode ) {
       case 46: /*del*/
       case 27: /*esc*/
+        if( $dimensionEditorMode.carrentDimension == self )
         Dimensions.remove(self);
         break;
     }
@@ -3413,6 +3526,8 @@ function Dimension( param1, param2, plane ){
       this.dragControls.removeEventListener( 'dragend', this.dragend );
       this.dragControls.removeEventListener( 'hoveron', this.hoveron );
       this.dragControls.removeEventListener( 'hoveroff', this.hoveroff );
+
+      document.removeEventListener( 'keydown', this.onkeydown, false );
 
       this.dragControls.deactivate();
     }
@@ -3614,12 +3729,42 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
     this.drawExtline();
     this.drawDimline();
   },
-//  remove: function(){
 
-//    this.deactivate();
-//    Dimensions.remove(this);
+  hideMenu: function() {
+    $(this.rkmMenu).css('display','none');
+  },
+  showMenu: function(center){
+    var self = this;
 
-//  },
+    var elements =  $( this.rkmMenu ).find('.ActiveElementMenuAnimated');
+
+    //сбрасываем в ноль координаты для анимации
+    elements.each( function( i, item ){
+      item.style.left = 0;
+      item.style.top = 0;
+    })
+
+    //отображаем меню
+    $( self.rkmMenu ).css('display','block');
+    $( self.rkmMenu ).offset({top:center.y, left:center.x});
+
+    //отображаем пункты меню
+    setTimeout(function(){
+      elements.each( function( i, item ){
+        item.style.left = $dimensionEditorMode.dimensionMenu[i].left;
+        item.style.top = $dimensionEditorMode.dimensionMenu[i].top;
+      })
+
+    }, 50);
+
+  },
+
+  hideMenuLKM: function() {
+
+  },
+  showMenuLKM: function(center){
+
+  },
 
 });
 

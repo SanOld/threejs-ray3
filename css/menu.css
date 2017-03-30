@@ -1,11 +1,15 @@
-.ActiveElementMenu, .FourStateSwitcher, .TwoStateSwitcher .DoorwayMenu {
+.ActiveElementMenu,
+.FourStateSwitcher,
+.TwoStateSwitcher,
+.DoorwayMenu,
+.DimensionMenu {
 	display: none;
 	position: absolute;
 	z-index: 90;
 }
 
-.ActiveElementMenu > div, .FourStateSwitcher > div, .DoorwayMenu > div,.TwoStateSwitcher > div,
-.ActiveElementMenu > a, .FourStateSwitcher > a, .DoorwayMenu > a, .TwoStateSwitcher > a {
+.ActiveElementMenu > div, .FourStateSwitcher > div, .DoorwayMenu > div,.TwoStateSwitcher > div,.DimensionMenu > div,
+.ActiveElementMenu > a, .FourStateSwitcher > a, .DoorwayMenu > a, .TwoStateSwitcher > a, .DimensionMenu > a {
 	position: absolute;
 	display: block;
 	width: 40px;
@@ -22,8 +26,8 @@
 	cursor: move;
 }
 
-.ActiveElementMenu > div:hover, .FourStateSwitcher > div:hover, .DoorwayMenu > div:hover, .TwoStateSwitcher > div:hover,
-.ActiveElementMenu > a:hover, .FourStateSwitcher > a:hover, .DoorwayMenu > a:hover, .TwoStateSwitcher > a:hover {
+.ActiveElementMenu > div:hover, .FourStateSwitcher > div:hover, .DoorwayMenu > div:hover, .TwoStateSwitcher > div:hover,.DimensionMenu > div:hover,
+.ActiveElementMenu > a:hover, .FourStateSwitcher > a:hover, .DoorwayMenu > a:hover, .TwoStateSwitcher > a:hover, .DimensionMenu > a:hover {
 	background-color: #64b26d;
 }
 
