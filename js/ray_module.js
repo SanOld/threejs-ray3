@@ -3371,6 +3371,20 @@ function Dimension( param1, param2, plane ){
     self.showMenu(event.screenCoord);
   };
 
+
+  this.onkeydown = function ( event ){
+    if (!self.enabled)
+      return false;
+//    event.preventDefault();
+    switch( event.keyCode ) {
+      case 46: /*del*/
+      case 27: /*esc*/
+        Dimensions.remove(self);
+        break;
+    }
+
+  }
+
   this.activate =  function(){
     this.enabled = true;
     this.ready = false;
@@ -3386,6 +3400,8 @@ function Dimension( param1, param2, plane ){
     this.dragControls.addEventListener( 'dragend', this.dragend );
     this.dragControls.addEventListener( 'hoveron', this.hoveron );
     this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
+
+    document.addEventListener( 'keydown', this.onkeydown );
   };
   this.deactivate = function(){
     this.enabled = false;
