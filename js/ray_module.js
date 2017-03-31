@@ -1084,7 +1084,7 @@ function noteMaker( obj, message, parameters )
 		parameters["fontface"] : "Arial";
 
 	this.fontsize = parameters.hasOwnProperty("fontsize") ?
-		parameters["fontsize"] : 24;
+		parameters["fontsize"] : 48;
 
 	this.borderThickness = parameters.hasOwnProperty("borderThickness") ?
 		parameters["borderThickness"] : 4;
@@ -1347,7 +1347,7 @@ function noteCameraInfo()
   return this.view();
 
 }
-function noteAdd(obj, message, type, parameters)
+function noteAdd( obj, message, type, parameters )
 {
 
   var obj = obj || {};
@@ -1944,7 +1944,7 @@ function initProjection(obj){
 
   }
   obj.planeHelperAdd = function(){
-    var geometry = new THREE.PlaneGeometry( 10000, 10000, 32 );
+    var geometry = new THREE.PlaneGeometry( 10000, 10000, 1 );
     obj.plane = new THREE.Mesh( geometry );
     obj.plane.rotateX(-Math.PI/2);
     obj.plane.translateZ (-5);
@@ -3392,9 +3392,19 @@ initWallEditor($wallEditor);
  * @param1 - vector3 | line
  * @param1 - vector3 | line
  */
-function Dimension( param1, param2, plane ){
+function Dimension( param1, param2, plane, parameters ){
 
   THREE.Group.call( this );
+
+  if ( parameters === undefined ) parameters = {};
+
+	this.const_direction = parameters.hasOwnProperty("direction") ?
+		parameters["direction"] : null;
+  this.offset_direction = parameters.hasOwnProperty("offset_direction") ?
+		parameters["offset_direction"] : null;
+  this.editable = parameters.hasOwnProperty("editable") ?
+		parameters["editable"] : false;
+
 
   var self = this;
   self.arguments = arguments;
@@ -3407,8 +3417,6 @@ function Dimension( param1, param2, plane ){
   
   this.lkmMenu = '';
   this.rkmMenu = '.DimensionMenu';
-
-
 
   this.dim_type = '';
   this.planeNormal
@@ -3483,6 +3491,31 @@ function Dimension( param1, param2, plane ){
     self.showMenu(event.screenCoord);
   };
 
+  this.edit =             function ( event ) {
+    
+    var element = $( '.EditableField' );
+    var field = element.find('input');
+    
+    element.offset({left: event.screenCoord.x - field.width()/2 , top: event.screenCoord.y - field.height()/2 });
+    element.css('display', 'block');
+    field.val( self.dimLine.distance().toFixed(2) );
+    field.focus();
+
+    field.on('change', function(){
+      self.dispatchEvent( { type: 'edit', object: event.object, value: field.val() } );
+    });
+    
+    field.on('keydown', function(event){
+      if(event.keyCode == 13)
+      self.unselect();
+    });
+
+  };
+
+  this.unselect = function ( event ){
+   $( '.EditableField' ).offset({left: 0 , top: 0 });
+   $( '.EditableField' ).css('display', 'none');
+  }
 
   this.onkeydown = function ( event ){
     if (!self.enabled)
@@ -3515,6 +3548,12 @@ function Dimension( param1, param2, plane ){
     this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
 
     document.addEventListener( 'keydown', this.onkeydown );
+
+    if(this.editable){
+      this.selectControls = new SelectControls( [this.note], camera, renderer.domElement );
+      this.selectControls.addEventListener( 'select', this.edit );
+//      this.selectControls.addEventListener( 'unselect', this.unselect );
+    }
   };
   this.deactivate = function(){
     this.enabled = false;
@@ -3530,6 +3569,12 @@ function Dimension( param1, param2, plane ){
       document.removeEventListener( 'keydown', this.onkeydown, false );
 
       this.dragControls.deactivate();
+
+      if(this.editable){
+        this.selectControls.removeEventListener( 'select', this.edit );
+//        this.selectControls.removeEventListener( 'unselect', this.unselect );
+        this.selectControls.deactivate();
+      }
     }
 
   };
@@ -3613,6 +3658,10 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
   },
   getDirectionPP: function(p1, p2){
 
+    if(this.const_direction){
+      return this.const_direction.clone().projectOnPlane(this.planeNormal).normalize();
+    }
+
     var result = new THREE.Vector3();
 
     result.z = this.planeMousePoint.x > p1.x && this.planeMousePoint.x < p2.x ? 1 : 0;
@@ -3667,14 +3716,31 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
     var l_m =        m.clone().projectOnVector( n );
     var l1  = p1_start.clone().projectOnVector( n );
     var l2  = p2_start.clone().projectOnVector( n );
+    var dist1 = dist2 = 0;
 
-    var point_var1 = new THREE.Vector3().addVectors(p1_start, n.clone().multiplyScalar(l_m.distanceTo ( l1 )));
-    var point_var2 = new THREE.Vector3().addVectors(p1_start, n.clone().negate().multiplyScalar(l_m.distanceTo ( l1 )));
-    m.distanceTo(point_var1) < m.distanceTo(point_var2) ? p1_end = point_var1.clone(): p1_end = point_var2.clone()
+    if(this.offset_direction){
+      dist1 = dist2 = this.offset_direction;
+      var point_var1 = new THREE.Vector3().addVectors(p1_start, n.clone().multiplyScalar( dist1 ));
+      p1_end = point_var1.clone();
 
-    var point_var1 = new THREE.Vector3().addVectors(p2_start, n.clone().multiplyScalar(l_m.distanceTo ( l2 )));
-    var point_var2 = new THREE.Vector3().addVectors(p2_start, n.clone().negate().multiplyScalar(l_m.distanceTo ( l2 )));
-    m.distanceTo(point_var1) < m.distanceTo(point_var2) ? p2_end = point_var1.clone(): p2_end = point_var2.clone()
+      var point_var1 = new THREE.Vector3().addVectors(p2_start, n.clone().multiplyScalar( dist2 ));
+      p2_end = point_var1.clone()
+
+    } else {
+      var dist1 = l_m.distanceTo ( l1 );
+      var dist2 = l_m.distanceTo ( l2 );
+
+      var point_var1 = new THREE.Vector3().addVectors(p1_start, n.clone().multiplyScalar( dist1 ));
+      var point_var2 = new THREE.Vector3().addVectors(p1_start, n.clone().negate().multiplyScalar( dist1 ));
+      m.distanceTo(point_var1) < m.distanceTo(point_var2) ? p1_end = point_var1.clone(): p1_end = point_var2.clone();
+
+      var point_var1 = new THREE.Vector3().addVectors(p2_start, n.clone().multiplyScalar( dist2 ));
+      var point_var2 = new THREE.Vector3().addVectors(p2_start, n.clone().negate().multiplyScalar( dist2 ));
+      m.distanceTo(point_var1) < m.distanceTo(point_var2) ? p2_end = point_var1.clone(): p2_end = point_var2.clone();
+
+    }
+
+    
 
     if(this.ln1 && this.ln2){
 
@@ -3710,22 +3776,41 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
   },
   drawDimline: function(){
 
-    this.remove(this.line_part1, this.line_part2, this.note );
+    if(this.line_part1 && this.line_part2){
+
+      this.remove( this.line_part1, this.line_part2 );
+
+      this.line_part1 = new THREE.ArrowHelper( this.dimLine.delta().normalize(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 10 );
+      this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 10 );
+
+      this.add( this.line_part1, this.line_part2 );
+
+      this.note.position.copy(this.dimLine.getCenter().clone());
+      this.note.children[0].setMessage(this.dimLine.distance().toFixed(2));
+      this.note.children[0].update();
+
+    } else {
 
       this.line_part1 = new THREE.ArrowHelper( this.dimLine.delta().normalize(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 10 );
       this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 10 );
 
       //спрайт текста
-      noteAdd(this.note,this.dimLine.distance().toFixed(2));
+      noteAdd( this.note, this.dimLine.distance().toFixed(2), null, {y: 10} );
       this.note.position.copy(this.dimLine.getCenter().clone());
       this.note.dimension = this;
+
+      this.add(this.line_part1, this.line_part2, this.note );
+    }
+
+    
+
       
-    this.add(this.line_part1, this.line_part2, this.note );
 
     this.ready = true;
   },
 
   update: function(){
+//    this.definePoints();
     this.drawExtline();
     this.drawDimline();
   },
@@ -5089,29 +5174,51 @@ function Doorway( wall, parameters ){
   this.lkmMenu = '';
   this.rkmMenu = '.DoorwayMenu';
 
+  this.raycaster = new THREE.Raycaster();
   this.top_offset = 2; //отступ от верха стены
 
-  
+ 
   this.offset = this.wall.axisLength / 2; //отступ от v1 до центра проема
+
 
   this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 90;
   this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 210;
   this.thickness = parameters.hasOwnProperty("thickness") ? parameters["thickness"] : this.wall.width;
   this.elevation = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 0;
 
-  this.geometry = new THREE.PlaneBufferGeometry( this.width, this.thickness );
-  this.material = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.BackSide} );
+  this.dimensions = [];
+  this.p11 = new THREE.Vector3();
+  this.p12 = new THREE.Vector3();
+  this.p21 = new THREE.Vector3();
+  this.p22 = new THREE.Vector3();
+  this.p_11 = new THREE.Vector3();
+  this.p_12 = new THREE.Vector3();
+  this.p_21 = new THREE.Vector3();
+  this.p_22 = new THREE.Vector3();
+
+//  this.geometry = new THREE.PlaneBufferGeometry( this.width, this.thickness+1 );
+  this.geometry = new THREE.BoxBufferGeometry( this.width, this.thickness+1, 1 );
+  this.material = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.DoubleSide} );
 
   //тело проема
-  var geometry = new THREE.BoxGeometry( this.width, this.height, this.wall.width + 1 );
-  this.doorwayBody = new THREE.Mesh( geometry, this.material );
+  var geometry = new THREE.BoxGeometry( this.width, this.height, this.wall.width );
+  this.doorwayBody = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( {color: 'white', side: THREE.BackSide} ) );
   this.doorwayBody.visible = false;
+
+  this.rebuildGeometry();
 
   //позиционирование
   this.setStartPosition();
   this.setDoorwayBodyPosition();
 
   scene.add(this.doorwayBody);
+
+  setTimeout(function(){
+    self.calcDimensionsPoints();
+    self.createDimensions();
+    self.updateDimensions();
+  })
+  
 
   this.dragControls = null;
 
@@ -5122,7 +5229,6 @@ function Doorway( wall, parameters ){
     self.wall.mover.dragend();
     self.wall.mover.hoveroff();
     self.wall.mover.deactivate();
-
 
     controls.enabled = false;
 
@@ -5163,6 +5269,9 @@ function Doorway( wall, parameters ){
       self.update();
     }
 
+    //обновление размера
+    self.updateDimensions();
+
 	};
   this.dragend =            function ( event ) {
 //  alert('dragend дверного проема');
@@ -5176,18 +5285,21 @@ function Doorway( wall, parameters ){
   this.hoveron =            function ( event ) {
 
     self.wall.mover.hoveroff();
+     self.wall.mover.deactivate();
 
 	};
   this.hoveroff =           function ( event ) {
 
 //        self.material.visible = false;
 //    self.wall.mover.hoveron();
+    self.wall.mover.activate();
 
   };
 
   this.select =             function ( event ) {
 //    alert('select дверного проема');
     self.showMenuLKM(event.screenCoord);
+    
   };
   this.unselect =           function ( event ) {
     alert('unselect дверного проема');
@@ -5196,11 +5308,21 @@ function Doorway( wall, parameters ){
   this.select_contextmenu = function ( event ) {
     self.showMenu(event.screenCoord);
   };
+  this.editDoorwayWidth =       function ( event ) {
+    self.width = +event.value;
+    self.update();
+  };
 
 }
 Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
   constructor: Doorway,
+
+  rebuildGeometry: function() {
+
+    this.geometry = new THREE.BoxBufferGeometry( this.width, this.thickness+1, 1 );
+    this.doorwayBody.geometry = new THREE.BoxGeometry( this.width, this.height, this.wall.width );
+  },
 
   getCalculatePosition: function(){
 
@@ -5277,9 +5399,13 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
   update: function(){
     
+    this.rebuildGeometry();
+
     this.position.copy( this.getCalculatePosition() );
     
     this.setDoorwayBodyPosition();
+
+    this.updateDimensions();
     
   },
 
@@ -5349,7 +5475,82 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             this.reverseWindingOrder(object3D.children[j]);
         }
     }
-  }
+  },
+
+  createDimensions: function(){
+
+    var self = this;
+
+    var params = {direction: this.wall.direction90, offset_direction: 20, editable: true}
+
+    this.dimensions.push( new Dimension( this.p11,   this.p_11, $projection.plane, params ) );
+    this.dimensions.push( new Dimension( this.p_11,  this.p_21, $projection.plane, params ) );
+    this.dimensions.push( new Dimension( this.p_21,  this.p21, $projection.plane, params ) );
+
+    params.direction = this.wall.direction90.clone().negate();
+    this.dimensions.push( new Dimension( this.p12,   this.p_12, $projection.plane, params ) );
+    this.dimensions.push( new Dimension( this.p_22,  this.p22, $projection.plane, params ) );
+
+    this.dimensions.forEach(function(item){
+      scene.add( item );
+    })
+
+
+    this.dimensions[1].addEventListener( 'edit', this.editDoorwayWidth );
+
+  },
+  calcDimensionsPoints: function(){
+    
+    var Y = this.getWorldPosition().y;
+
+    this.p11.copy( this.wall.v11.clone().add(new THREE.Vector3( 0, Y, 0)) );
+    this.p21.copy( this.wall.v21.clone().add(new THREE.Vector3( 0, Y, 0)) );
+
+    this.raycaster.ray.origin = this.p11.clone();
+    this.raycaster.ray.direction = this.wall.direction.clone();
+    var intersects = [];
+    intersects = this.raycaster.intersectObject(this);
+    if(intersects.length > 0){
+      this.p_11.copy( intersects[0].point );
+    }
+
+    this.raycaster.ray.origin = this.p21.clone();
+    this.raycaster.ray.direction = this.wall.direction.clone().negate();
+    var intersects = [];
+    intersects = this.raycaster.intersectObject(this);
+    if(intersects.length > 0){
+      this.p_21.copy( intersects[0].point );
+    }
+
+    this.p12.copy( this.wall.v12.clone().add(new THREE.Vector3( 0, Y, 0)) );
+    this.p22.copy( this.wall.v22.clone().add(new THREE.Vector3( 0, Y, 0)) );
+
+    this.raycaster.ray.origin = this.p12.clone();
+    this.raycaster.ray.direction = this.wall.direction.clone();
+    var intersects = [];
+    intersects = this.raycaster.intersectObject(this);
+    if(intersects.length > 0){
+      this.p_12.copy( intersects[0].point );
+    }
+
+    this.raycaster.ray.origin = this.p22.clone();
+    this.raycaster.ray.direction = this.wall.direction.clone().negate();
+    var intersects = [];
+    intersects = this.raycaster.intersectObject(this);
+    if(intersects.length > 0){
+      this.p_22.copy( intersects[0].point );
+    }
+  },
+  updateDimensions: function(){
+    //перерасчет размеров
+    this.calcDimensionsPoints();
+    this.dimensions.forEach(function(item){
+      item.update();
+    })
+  },
+
+  
+
 
 });
 //Дверной блок
@@ -5678,6 +5879,8 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     this.setDoorwayBodyPosition();
 
     this.setDepObjectPosition();
+
+    this.updateDimensions();
 
   },
 
@@ -6723,7 +6926,6 @@ DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
 		console.error( 'THREE.DragControls: setObjects() has been removed.' );
 
 	};
-
 
 };
 DragControls.prototype = Object.create( THREE.EventDispatcher.prototype );

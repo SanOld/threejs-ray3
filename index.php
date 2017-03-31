@@ -65,4 +65,8 @@
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 90px; top: -40px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="action_n"></div>
 </div>
 
+<div class="EditableField" oncontextmenu="return false;" style=" display: none;">
+  <input type="text" name="dimfield" value ="" >
+</div>
+
 </html>

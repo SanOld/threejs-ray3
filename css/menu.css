@@ -2,7 +2,8 @@
 .FourStateSwitcher,
 .TwoStateSwitcher,
 .DoorwayMenu,
-.DimensionMenu {
+.DimensionMenu,
+.EditableField{
 	display: none;
 	position: absolute;
 	z-index: 90;
@@ -35,4 +36,16 @@
 	-moz-transition: top 0.15s ease-out, left 0.15s ease-out, opacity 0.2s ease-out;
 	-webkit-transition: top 0.15s ease-out, left 0.15s ease-out, opacity 0.2s ease-out;
 	transition: top 0.15s ease-out, left 0.15s ease-out, opacity 0.2s ease-out;
+}
+
+.EditableField > input {
+    position: absolute;
+    display: block;
+    width: 45px;
+    height: 16px;
+    line-height: 16px;
+    font-size: 12px;
+    text-indent: 0;
+    text-align: center;
+    z-index: 90;
 }
