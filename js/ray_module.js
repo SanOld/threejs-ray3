@@ -1898,11 +1898,13 @@ function initProjection(obj){
 
   }
   obj.off = function(){
+
     obj.enabled = !obj.enabled;
     camera = currentCamera.clone();
     controls = new THREE.OrbitControls( camera, renderer.domElement );
     currentCamera = null;
-//    scene.remove(obj.plane);
+
+    scene.remove( obj.plane );
     delete obj.plane;
 
     Dimensions.visible = false;
@@ -1922,7 +1924,7 @@ function initProjection(obj){
                                           frustumSize * ASPECT / 2,
                                           frustumSize / 2,
                                           frustumSize / - 2,
-                                          10,
+                                          1,
                                           10000
                                         );
 
@@ -2021,31 +2023,23 @@ function initProjection(obj){
         break;
       case 67: /*c*/
         if(event.altKey){
-          if($wallCreator.enabled){
-            $wallCreator.off();
-          } else {
-            $wallCreator.on();
-            $wallEditor.off();
-            $dimensionEditorMode.off();
-          }
+          $wallEditor.off();
+          $dimensionEditorMode.off();
+          $wallCreator.on();
         }
         break;
       case 68: /*d*/
         if(event.altKey){
-          $dimensionEditorMode.on();
           $wallEditor.off();
           $wallCreator.off();
+          $dimensionEditorMode.on();
         }
         break;
       case 69: /*e*/
         if(event.altKey){
-          if($wallEditor.enabled){
-            $wallEditor.off();
-          } else {
-            $wallEditor.on();
-            $wallCreator.off();
-            $dimensionEditorMode.off();
-          }
+           $wallCreator.off();
+           $dimensionEditorMode.off();
+           $wallEditor.on();
         }
         break;
     }
@@ -2521,7 +2515,6 @@ function initWallCreator(obj){
 
   }
 
-
   function pointerHelpersRemove(){
     obj.pointerHelpersArray.forEach( function( item ){
       scene.remove( item );
@@ -2591,11 +2584,25 @@ function initWallCreator(obj){
 
   }
 
+
   obj.hideAllMenu = function(){
     $('.ActiveElementMenu').css('display','none');
     $('.FourStateSwitcher').css('display','none');
     $('.TwoStateSwitcher').css('display','none');
     $('.DoorwayMenu').css('display','none');
+
+    hideAllDimensions();
+
+
+  }
+  hideAllDimensions = function(){
+    //поле размера
+    $('.EditableField').css('display','none');
+    obj.walls.forEach(function(wall){
+      wall.doors.forEach(function(door){
+        door.unselect();
+      })
+    })
   }
   obj.reIndexWall = function(){
     obj.walls.forEach(function( item, i ){
@@ -3099,9 +3106,10 @@ function initWallEditor( obj ){
     
     obj.enabled = true;
     obj.activate();
+    obj.activateSelectControls();
     obj.activateWallMover();
     obj.activateDoorway();
-    obj.activateSelectControls();
+    
 
   }
   obj.off = function(){
@@ -3165,8 +3173,8 @@ function initWallEditor( obj ){
   }
 
   obj.activateDoorway = function(){
-    obj.walls.forEach(function(item){
-      item.doors.forEach(function(item2){
+    obj.walls.forEach(function( item ){
+      item.doors.forEach(function( item2 ){
         item2.activate();
       });
     })
@@ -3181,8 +3189,15 @@ function initWallEditor( obj ){
   
   obj.activateSelectControls = function(){
     var objects = [];
-    obj.walls.forEach(function(item){
-      objects = objects.concat(item.doors, item)
+    obj.walls.forEach(function(wall){
+      objects = objects.concat(wall.doors, wall)
+
+      //добавление размеров в массив выбора
+      wall.doors.forEach(function(door){
+        door.dimensions.forEach(function(dim){
+        objects = objects.concat(dim.note)
+      })
+      })
     });
 
     obj.selectControls = new SelectControls( objects, camera, renderer.domElement );
@@ -3209,7 +3224,7 @@ function initWallEditor( obj ){
   }
   obj.select = function(event){
 
-    obj.hideAllMenu();
+//    obj.hideAllMenu();
     if( 'select' in event.object )
     event.object.select(event);
     obj.selected = event.object;
@@ -3225,6 +3240,8 @@ function initWallEditor( obj ){
   }
   obj.unselect = function( event ){
     obj.hideAllMenu();
+    if( obj.selected && ('unselect' in obj.selected) )
+    obj.selected.unselect(event);
     obj.selected = null;
   }
   obj.hoveron = function( event ){
@@ -3398,12 +3415,10 @@ function Dimension( param1, param2, plane, parameters ){
 
   if ( parameters === undefined ) parameters = {};
 
-	this.const_direction = parameters.hasOwnProperty("direction") ?
-		parameters["direction"] : null;
-  this.offset_direction = parameters.hasOwnProperty("offset_direction") ?
-		parameters["offset_direction"] : null;
-  this.editable = parameters.hasOwnProperty("editable") ?
-		parameters["editable"] : false;
+	this.const_direction = parameters.hasOwnProperty("direction") ? parameters["direction"] : null;
+  this.offset_direction = parameters.hasOwnProperty("offset_direction") ? parameters["offset_direction"] : null;
+  this.editable = parameters.hasOwnProperty("editable") ? parameters["editable"] : false;
+  this.editable = parameters.hasOwnProperty("name") ? parameters["name"] : 'dimension';
 
 
   var self = this;
@@ -3412,7 +3427,6 @@ function Dimension( param1, param2, plane, parameters ){
   this.enabled = true;
   this.ready = false;
   this.type = 'Dimension';
-  this.name = 'dimension';
   this.isDimension = true;
   
   this.lkmMenu = '';
@@ -3485,7 +3499,13 @@ function Dimension( param1, param2, plane, parameters ){
 
   };
   this.unselect =           function ( event ) {
-    self.hideMenuLKM(event.screenCoord);
+
+
+    $( '.EditableField' ).offset( {left: 0 , top: 0} );
+    $( '.EditableField' ).css('display', 'none');
+    if(event)
+    self.hideMenuLKM( event.screenCoord );
+    
   };
   this.select_contextmenu = function ( event ) {
     self.showMenu(event.screenCoord);
@@ -3506,16 +3526,19 @@ function Dimension( param1, param2, plane, parameters ){
     });
     
     field.on('keydown', function(event){
-      if(event.keyCode == 13)
-      self.unselect();
+      if(event.keyCode == 13){
+        self.unselect();
+        setTimeout(function(){
+          field.off('change');
+        })
+        
+      }
+      
     });
 
   };
 
-  this.unselect = function ( event ){
-   $( '.EditableField' ).offset({left: 0 , top: 0 });
-   $( '.EditableField' ).css('display', 'none');
-  }
+
 
   this.onkeydown = function ( event ){
     if (!self.enabled)
@@ -3524,8 +3547,17 @@ function Dimension( param1, param2, plane, parameters ){
     switch( event.keyCode ) {
       case 46: /*del*/
       case 27: /*esc*/
-        if( $dimensionEditorMode.carrentDimension == self )
-        Dimensions.remove(self);
+
+        if( $dimensionEditorMode.carrentDimension == self ){
+
+          Dimensions.remove(self);
+
+        } else {
+
+          self.unselect();
+
+        }
+
         break;
     }
 
@@ -4289,10 +4321,18 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       scene.remove(item);
     })
 
-    //удаление тел проемов
+
     this.doors.forEach(function( item ){
+
+      //удаление размеров проемов
+      item.dimensions.forEach(function( dim ){
+        scene.remove( dim );
+      })
+      //удаление тел проемов
       scene.remove(item.doorwayBody);
+
     })
+
 
     $wallEditor.removeWall( this );
 
@@ -4362,6 +4402,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     $wallEditor.deactivateSelectControls();
     $wallEditor.activateSelectControls();
+    $wallEditor.selected = obj;
 
   },
   removeDoorway: function(){
@@ -4370,6 +4411,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       this._wall = null;
     }
   },
+
   doorway3DMode: function(){
 
     var self = this;
@@ -4385,15 +4427,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       self._wall = newBSP.toMesh( self.material );
 
       //отображаем объекты
-      if(item.name == 'singleDoor' ){
-        item.depObject.visible = true;
-      }
-      if(item.name == 'doubleDoor' ){
-        item.depObject.visible = true;
-      }
-      if(item.name == 'windowblock' ){
-        item.depObject.visible = true;
-      }
+      if( 'showDepObject' in item ){ item.showDepObject() }
+      if( 'hideDimensions' in item ){ item.hideDimensions() }
       
     })
 
@@ -4414,16 +4449,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     }
 
     self.doors.forEach(function( item ){
-      if(item.name == 'singleDoor' ){
-        item.depObject.visible = false;
-      }
-      if(item.name == 'doubleDoor' ){
-        item.depObject.visible = false;
-      }
-      if(item.name == 'windowblock' ){
-        item.depObject.visible = false;
-      }
-    })
+
+      if( 'hideDepObject' in item ){ item.hideDepObject() }
+
+    });
 
  },
 
@@ -5129,15 +5158,19 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   activate:   function() {
 
     if(this.dragControls){
+
       this.dragControls.activate();
+
     } else {
+  
       this.dragControls = new DragControls2( [this], camera, renderer.domElement );
+
+      this.dragControls.addEventListener( 'dragstart', this.dragstart );
+      this.dragControls.addEventListener( 'drag', this.drag );
+      this.dragControls.addEventListener( 'dragend', this.dragend );
+      this.dragControls.addEventListener( 'hoveron', this.hoveron );
+      this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
     }
-    this.dragControls.addEventListener( 'dragstart', this.dragstart );
-    this.dragControls.addEventListener( 'drag', this.drag );
-    this.dragControls.addEventListener( 'dragend', this.dragend );
-    this.dragControls.addEventListener( 'hoveron', this.hoveron );
-    this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
 
     this.update();
 
@@ -5145,13 +5178,14 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   deactivate: function () {
 
     if(this.dragControls){
-      this.dragControls.removeEventListener( 'dragstart', this.dragstart, false );
-      this.dragControls.removeEventListener( 'drag', this.drag, false );
-      this.dragControls.removeEventListener( 'dragend', this.dragend, false );
-      this.dragControls.removeEventListener( 'hoveron', this.hoveron, false );
-      this.dragControls.removeEventListener( 'hoveroff', this.hoveroff, false );
+//      this.dragControls.removeEventListener( 'dragstart', this.dragstart, false );
+//      this.dragControls.removeEventListener( 'drag', this.drag, false );
+//      this.dragControls.removeEventListener( 'dragend', this.dragend, false );
+//      this.dragControls.removeEventListener( 'hoveron', this.hoveron, false );
+//      this.dragControls.removeEventListener( 'hoveroff', this.hoveroff, false );
 
       this.dragControls.deactivate();
+//      this.dragControls = null;
     }
 
 	}
@@ -5186,7 +5220,8 @@ function Doorway( wall, parameters ){
   this.thickness = parameters.hasOwnProperty("thickness") ? parameters["thickness"] : this.wall.width;
   this.elevation = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 0;
 
-  this.dimensions = [];
+  this.dimensions = []; //массив хранения объектов размеров проемов
+  //точки привязки для размеров
   this.p11 = new THREE.Vector3();
   this.p12 = new THREE.Vector3();
   this.p21 = new THREE.Vector3();
@@ -5195,6 +5230,13 @@ function Doorway( wall, parameters ){
   this.p_12 = new THREE.Vector3();
   this.p_21 = new THREE.Vector3();
   this.p_22 = new THREE.Vector3();
+  this.dimension_lines = [
+    new THREE.Line3(this.p11, this.p_11),
+    new THREE.Line3(this.p_21, this.p21),
+    new THREE.Line3(this.p_11, this.p_21),
+    new THREE.Line3(this.p12, this.p_12),
+    new THREE.Line3(this.p_22, this.p22)
+  ]
 
 //  this.geometry = new THREE.PlaneBufferGeometry( this.width, this.thickness+1 );
   this.geometry = new THREE.BoxBufferGeometry( this.width, this.thickness+1, 1 );
@@ -5244,7 +5286,7 @@ function Doorway( wall, parameters ){
   this.drag =               function ( event ) {
 
     //скрываем меню выбора положения
-//    self.hideMenuLKM();
+    self.hideMenuLKM();
 
     var position = event.object.position.clone().projectOnVector (
                                           self.wall.worldToLocal ( self.wall.v2.clone() )
@@ -5284,9 +5326,11 @@ function Doorway( wall, parameters ){
 
   this.hoveron =            function ( event ) {
 
-    self.wall.mover.hoveroff();
-     self.wall.mover.deactivate();
-
+    if( self.wall.mover ){
+      self.wall.mover.hoveroff();
+      self.wall.mover.deactivate();
+    }
+    
 	};
   this.hoveroff =           function ( event ) {
 
@@ -5299,17 +5343,40 @@ function Doorway( wall, parameters ){
   this.select =             function ( event ) {
 //    alert('select дверного проема');
     self.showMenuLKM(event.screenCoord);
+    self.showDimensions();
     
   };
   this.unselect =           function ( event ) {
-    alert('unselect дверного проема');
+//    alert('unselect дверного проема');
+    if(event)
     self.hideMenuLKM(event.screenCoord);
+  
+    self.hideDimensions();
   };
   this.select_contextmenu = function ( event ) {
     self.showMenu(event.screenCoord);
   };
-  this.editDoorwayWidth =       function ( event ) {
-    self.width = +event.value;
+  this.changeDoorwayDim =       function ( event ) {
+    
+    switch ( self.dimensions.indexOf( event.target ) ) {
+      case 0:
+        self.offset += event.value - self.dimension_lines[0].distance();
+        break;
+      case 1:
+        self.offset += -( event.value - self.dimension_lines[1].distance() );
+        break;
+      case 2:
+        self.width = +event.value;
+        break;
+      case 3:
+        self.offset += event.value - self.dimension_lines[3].distance();
+        break;
+      case 4:
+        self.offset += -( event.value - self.dimension_lines[4].distance() );
+        break;
+    }
+
+
     self.update();
   };
 
@@ -5415,22 +5482,24 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
       this.dragControls.activate();
     } else {
       this.dragControls = new DragControls( [this], camera, renderer.domElement );
+
+      this.dragControls.addEventListener( 'dragstart', this.dragstart );
+      this.dragControls.addEventListener( 'drag', this.drag );
+      this.dragControls.addEventListener( 'dragend', this.dragend );
+      this.dragControls.addEventListener( 'hoveron', this.hoveron );
+      this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
     }
-    this.dragControls.addEventListener( 'dragstart', this.dragstart );
-    this.dragControls.addEventListener( 'drag', this.drag );
-    this.dragControls.addEventListener( 'dragend', this.dragend );
-    this.dragControls.addEventListener( 'hoveron', this.hoveron );
-    this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
+    
 
 	},
   deactivate: function () {
 
     if(this.dragControls){
-      this.dragControls.removeEventListener( 'dragstart', this.dragstart, false );
-      this.dragControls.removeEventListener( 'drag', this.drag, false );
-      this.dragControls.removeEventListener( 'dragend', this.dragend, false );
-      this.dragControls.removeEventListener( 'hoveron', this.hoveron, false );
-      this.dragControls.removeEventListener( 'hoveroff', this.hoveroff, false );
+//      this.dragControls.removeEventListener( 'dragstart', this.dragstart, false );
+//      this.dragControls.removeEventListener( 'drag', this.drag, false );
+//      this.dragControls.removeEventListener( 'dragend', this.dragend, false );
+//      this.dragControls.removeEventListener( 'hoveron', this.hoveron, false );
+//      this.dragControls.removeEventListener( 'hoveroff', this.hoveroff, false );
 
       this.dragControls.deactivate();
     }
@@ -5484,8 +5553,8 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     var params = {direction: this.wall.direction90, offset_direction: 20, editable: true}
 
     this.dimensions.push( new Dimension( this.p11,   this.p_11, $projection.plane, params ) );
-    this.dimensions.push( new Dimension( this.p_11,  this.p_21, $projection.plane, params ) );
     this.dimensions.push( new Dimension( this.p_21,  this.p21, $projection.plane, params ) );
+    this.dimensions.push( new Dimension( this.p_11,  this.p_21, $projection.plane, params ) );
 
     params.direction = this.wall.direction90.clone().negate();
     this.dimensions.push( new Dimension( this.p12,   this.p_12, $projection.plane, params ) );
@@ -5496,7 +5565,8 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     })
 
 
-    this.dimensions[1].addEventListener( 'edit', this.editDoorwayWidth );
+    $wallEditor.deactivateSelectControls();
+    $wallEditor.activateSelectControls();
 
   },
   calcDimensionsPoints: function(){
@@ -5548,9 +5618,29 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
       item.update();
     })
   },
+  showDimensions: function(){
+    this.dimensions.forEach(function(item){
+      item.visible = true;
+    })
 
-  
+    this.dimensions[0].addEventListener( 'edit', this.changeDoorwayDim );
+    this.dimensions[1].addEventListener( 'edit', this.changeDoorwayDim );
+    this.dimensions[2].addEventListener( 'edit', this.changeDoorwayDim );
+    this.dimensions[3].addEventListener( 'edit', this.changeDoorwayDim );
+    this.dimensions[4].addEventListener( 'edit', this.changeDoorwayDim );
 
+  },
+  hideDimensions: function(){
+    this.dimensions.forEach(function(item){
+      item.visible = false;
+    })
+
+    this.dimensions[0].removeEventListener( 'edit', this.changeDoorwayDim );
+    this.dimensions[1].removeEventListener( 'edit', this.changeDoorwayDim );
+    this.dimensions[2].removeEventListener( 'edit', this.changeDoorwayDim );
+    this.dimensions[3].removeEventListener( 'edit', this.changeDoorwayDim );
+    this.dimensions[4].removeEventListener( 'edit', this.changeDoorwayDim );
+  },
 
 });
 //Дверной блок
@@ -5786,6 +5876,13 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     }
 
   },
+  showDepObject: function(){
+    this.depObject.visible = true;
+  },
+  hideDepObject: function(){
+    this.depObject.visible = true;
+  },
+  
 
   setLocation: function(location){
 
