@@ -1068,6 +1068,23 @@ function onDocumentMouseUpCam( event )
 //  showFocus();
 }
 
+
+
+/**
+ *
+ * @param {type} vector3
+ * @param {type} camera
+ * @returns {getScreenCoord.vector2}
+ */
+function getScreenCoord( vector3, camera ) {
+        var p = vector3;
+        var vector = p.project(camera);
+
+        vector.x = (vector.x + 1) / 2 * window.innerWidth;
+        vector.y = -(vector.y - 1) / 2 * window.innerHeight;
+
+        return vector;
+    }
 //============================
 
 //Примечания
@@ -1075,7 +1092,7 @@ function noteMaker( obj, message, parameters )
 {
   THREE.Object3D.call( this );
   var self = this;
-
+  
   this.obj = obj;
   this.note_type = '';
 
@@ -1085,7 +1102,7 @@ function noteMaker( obj, message, parameters )
 		parameters["fontface"] : "Arial";
 
 	this.fontsize = parameters.hasOwnProperty("fontsize") ?
-		parameters["fontsize"] : 480;
+		parameters["fontsize"] : 24;
 
 	this.borderThickness = parameters.hasOwnProperty("borderThickness") ?
 		parameters["borderThickness"] : 4;
@@ -1105,8 +1122,8 @@ function noteMaker( obj, message, parameters )
   this.sprite = {};
 
 	this.canvas = document.createElement('canvas');
-  this.canvas.width = 10000;
-  this.canvas.height = 10000;
+  this.canvas.width = 1000;
+  this.canvas.height = 1000;
   this.context = self.canvas.getContext('2d');
   this.context.font = "Bold " + self.fontsize + "px " + self.fontface;
   this.context.lineWidth = self.borderThickness;
@@ -1192,7 +1209,7 @@ function noteMaker( obj, message, parameters )
      var y = self.canvas.height/2 - self.message.length * self.fontheight /2 - self.borderThickness/2;
      var width = self.textWidth + self.borderThickness;
      var height = self.message.length * self.fontheight + self.borderThickness
-     self.roundRect(self.context, x, y, width, height, 50);
+     self.roundRect(self.context, x, y, width, height, 5);
 
   }
 
@@ -1279,7 +1296,9 @@ function noteMaker( obj, message, parameters )
     self.toCanvas2();
     self.texture = self.getTexture();
     self.sprite = self.getSprite();
-    return self.sprite ;
+    //увеличение масштаба (масштабирование сторон в методе getSprite)
+    self.sprite.scale.set(self.sprite.scale.x * 30, self.sprite.scale.y * 30 , 1);
+    return  self.sprite;
   }
 
 };
@@ -1312,7 +1331,7 @@ function noteCameraInfo()
 		    text += "Угол вертикальный: " + self.getAngleVert() + "\n";
 		    text += "Угол горизонтальный: " + self.getAngleGorizont() + "\n";
 		    //text += "Высота: " + Math.ceil(self.obj.getWorldPosition().y / self.obj.floor_scale) + "\n";
-		    text += "Высота: " + (self.obj.getWorldPosition().y / self.obj.floor_scale - self.obj.userData.camera_props.camera_off_z).toFixed(2) + "\n";
+		    text += "Высота: " + (self.obj.getWorldPosition().y / self.obj.floor_scale - self.obj.userData.camera_props.camera_off_z).toFixed(accuracy_measurements) + "\n";
 		}
 
     }
@@ -1505,7 +1524,7 @@ function camDimension(obj, parameters)
     self.gr.add(self.line);
 
     self.ray_distance = Math.ceil(self.ray_distance);
-    var note = self.ray_distance === Infinity ? "aaaaa" : self.ray_distance; //резерв 5 символов
+    var note = self.ray_distance === Infinity ? "aaaaaaa" : self.ray_distance; //резерв 5 символов
     self.note = noteAdd(self.obj.parent.parent,note.toString());
     self.setNotePosition();
 
@@ -1855,7 +1874,7 @@ function initProjection(obj){
   var SCREEN_WIDTH = window.innerWidth;
 	var SCREEN_HEIGHT = window.innerHeight;
 	var ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT;
-  var frustumSize = 15000;
+  var frustumSize = 12500;
   var currentCamera;
 
   
@@ -3242,7 +3261,7 @@ function initWallEditor( obj ){
   }
   obj.select = function(event){
 
-    obj.hideAllMenu();
+//    obj.hideAllMenu();
     if( 'select' in event.object )
     event.object.select(event);
     obj.selected = event.object;
@@ -3294,11 +3313,15 @@ function initWallEditor( obj ){
     document.addEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
     document.addEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
     document.addEventListener( 'keydown', onKeyDownWallEditor, false );
+
+//    document.addEventListener( 'wheel', onDocumentMouseWheel, false );
   };
   obj.deactivate = function(){
     document.removeEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
     document.removeEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
     document.removeEventListener( 'keydown', onKeyDownWallEditor, false );
+
+//    document.removeEventListener( 'wheel', onDocumentMouseWheel, false );
   }
   
 
@@ -3352,6 +3375,21 @@ function initWallEditor( obj ){
 
         break;
     }
+  }
+
+  function onDocumentMouseWheel ( event )
+  {
+
+//            camera.fov += event.deltaY * 0.05;
+//            camera.updateProjectionMatrix();
+
+//    var element = $( '.EditableField' );
+//    var field = element.find('input');
+//
+//    element.css('left', 0);
+//    element.css('top', 0);
+//    var coord = getScreenCoord(self.position.clone(), camera);
+//    element.offset({left: coord.x - field.width()/2 , top: coord.y - field.height()/2 });
   }
 
   //считываем координаты элементов меню
@@ -3539,14 +3577,19 @@ function Dimension( param1, param2, plane, parameters ){
     
     var element = $( '.EditableField' );
     var field = element.find('input');
-    
-    element.offset({left: event.screenCoord.x - field.width()/2 , top: event.screenCoord.y - field.height()/2 });
-    element.css('display', 'block');
-    field.val( self.dimLine.distance().toFixed( accuracy_measurements ) );
-    field.focus();
+    var obj = event.object;
 
+    element.css('left', 0);
+    element.css('top', 0);
+    var coord = getScreenCoord(obj.position.clone(), camera);
+    element.offset({left: coord.x - field.width()/2 , top: coord.y - field.height()/2 });
+    element.css('display', 'block');
+    field.val( ( current_unit.c * self.dimLine.distance() ).toFixed( accuracy_measurements ) );
+    field.focus();
+    field.select();
+    
     field.on('change', function(){
-      self.dispatchEvent( { type: 'edit', object: event.object, value: field.val() } );
+      self.dispatchEvent( { type: 'edit', object: obj, value: +field.val()/current_unit.c } );
     });
     
     field.on('keydown', function(event){
@@ -3554,6 +3597,7 @@ function Dimension( param1, param2, plane, parameters ){
         self.unselect();
         setTimeout(function(){
           field.off('change');
+//          
         })
         
       }
@@ -3605,9 +3649,11 @@ function Dimension( param1, param2, plane, parameters ){
 
     document.addEventListener( 'keydown', this.onkeydown );
 
+    
     if(this.editable){
       this.selectControls = new SelectControls( [this.note], camera, renderer.domElement );
       this.selectControls.addEventListener( 'select', this.edit );
+      
 //      this.selectControls.addEventListener( 'unselect', this.unselect );
     }
   };
@@ -3624,10 +3670,12 @@ function Dimension( param1, param2, plane, parameters ){
 
       document.removeEventListener( 'keydown', this.onkeydown, false );
 
+
       this.dragControls.deactivate();
 
       if(this.editable){
         this.selectControls.removeEventListener( 'select', this.edit );
+        
 //        this.selectControls.removeEventListener( 'unselect', this.unselect );
         this.selectControls.deactivate();
       }
@@ -3842,7 +3890,7 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
       this.add( this.line_part1, this.line_part2 );
 
       this.note.position.copy(this.dimLine.getCenter().clone());
-      this.note.children[0].setMessage(this.dimLine.distance().toFixed( accuracy_measurements ));
+      this.note.children[0].setMessage( (current_unit.c * this.dimLine.distance() ).toFixed( accuracy_measurements ));
       this.note.children[0].update();
 
     } else {
@@ -3851,7 +3899,7 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
       this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 100 );
 
       //спрайт текста
-      noteAdd( this.note, this.dimLine.distance().toFixed( accuracy_measurements ), null, {y: 100} );
+      noteAdd( this.note, ( current_unit.c * this.dimLine.distance() ).toFixed( accuracy_measurements ), null, {y: 100} );
       this.note.position.copy(this.dimLine.getCenter().clone());
       this.note.dimension = this;
 
@@ -5290,7 +5338,7 @@ function Doorway( wall, parameters ){
   this.material = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.DoubleSide} );
 
   //тело проема
-  var geometry = new THREE.BoxGeometry( this.width, this.height, this.wall.width );
+  var geometry = new THREE.BoxGeometry();
   this.doorwayBody = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( {color: 'white', side: THREE.BackSide} ) );
   this.doorwayBody.visible = false;
 
@@ -5425,7 +5473,6 @@ function Doorway( wall, parameters ){
         break;
     }
 
-
     self.update();
   };
 
@@ -5437,7 +5484,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   rebuildGeometry: function() {
 
     this.geometry = new THREE.BoxBufferGeometry( this.width, this.thickness+1, 1 );
-    this.doorwayBody.geometry = new THREE.BoxGeometry( this.width, this.height, this.wall.width );
+    this.doorwayBody.geometry = new THREE.BoxGeometry( this.width, this.height, this.wall.width + 1 );
   },
 
   getCalculatePosition: function(){
@@ -5828,7 +5875,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
         this.CGI.door.position.y = this.width/2 + this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.ax = this.CGI.door.position.x;
+        this.CGI.ax = this.CGI.door.position.x + this.door_thickness/2;
         this.CGI.ay = this.thickness/2;
         this.CGI.xRadius = this.CGI.yRadius = this.width - 2;
         this.CGI.aStartAngle = Math.PI/2;
@@ -5840,7 +5887,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
         this.CGI.door.position.y = this.width/2 + this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.ax = this.CGI.door.position.x;
+        this.CGI.ax = this.CGI.door.position.x - this.door_thickness/2;
         this.CGI.ay = this.thickness/2;
         this.CGI.xRadius = this.CGI.yRadius = this.width - 2;
         this.CGI.aStartAngle = 0;
@@ -5852,7 +5899,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
         this.CGI.door.position.y = -this.width/2 - this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.ax = this.CGI.door.position.x;
+        this.CGI.ax = this.CGI.door.position.x + this.door_thickness/2;
         this.CGI.ay = -this.thickness/2;
         this.CGI.xRadius = this.CGI.yRadius = this.width - 2;
         this.CGI.aStartAngle = Math.PI;
@@ -5864,7 +5911,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
         this.CGI.door.position.y = - this.width/2 - this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.ax = this.CGI.door.position.x;
+        this.CGI.ax = this.CGI.door.position.x - this.door_thickness/2;
         this.CGI.ay = -this.thickness/2;
         this.CGI.xRadius = this.CGI.yRadius = this.width - 2;
         this.CGI.aStartAngle = Math.PI + Math.PI/2 ;
@@ -5930,8 +5977,8 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     var koef_height = height * this.depObject.children[0].scale.y / (this.height - 1);
     var koef_width = width * this.depObject.children[0].scale.x / (this.width - 1);
 
-    var X = this.depObject.children[0].scale.x / koef_width;
-    var Y = this.depObject.children[0].scale.y / koef_height;
+    var X = this.depObject.children[0].scale.x / koef_width ;
+    var Y = this.depObject.children[0].scale.y / koef_height ;
 
     this.depObject.children[0].scale.set( X, Y, X < Y ? X : Y );
 
@@ -6371,14 +6418,14 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
         this.CGI.door2.position.y = this.width/4 + this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.prop_arc.ax = this.CGI.door.position.x;
+        this.CGI.prop_arc.ax = this.CGI.door.position.x + this.door_thickness/2;;
         this.CGI.prop_arc.ay = this.thickness/2;
         this.CGI.prop_arc.xRadius = this.CGI.prop_arc.yRadius = this.width/2 - 2;
         this.CGI.prop_arc.aStartAngle = Math.PI/2;
         this.CGI.prop_arc.aEndAngle = Math.PI ;
 
         //параметры дуги
-        this.CGI.prop_arc2.ax = this.CGI.door2.position.x;
+        this.CGI.prop_arc2.ax = this.CGI.door2.position.x - this.door_thickness/2;;
         this.CGI.prop_arc2.ay = this.thickness/2;
         this.CGI.prop_arc2.xRadius = this.CGI.prop_arc2.yRadius = this.width/2 - 2;
         this.CGI.prop_arc2.aStartAngle = 0;
@@ -6397,14 +6444,14 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
         this.CGI.door2.position.y = - this.width/4 - this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.prop_arc.ax = this.CGI.door.position.x;
+        this.CGI.prop_arc.ax = this.CGI.door.position.x + this.door_thickness/2;;
         this.CGI.prop_arc.ay = -this.thickness/2;
         this.CGI.prop_arc.xRadius = this.CGI.prop_arc.yRadius = this.width/2 - 2;
         this.CGI.prop_arc.aStartAngle = Math.PI;
         this.CGI.prop_arc.aEndAngle = Math.PI + Math.PI/2 ;
 
         //параметры дуги
-        this.CGI.prop_arc2.ax = this.CGI.door2.position.x;
+        this.CGI.prop_arc2.ax = this.CGI.door2.position.x - this.door_thickness/2;;
         this.CGI.prop_arc2.ay = -this.thickness/2;
         this.CGI.prop_arc2.xRadius = this.CGI.prop_arc2.yRadius = this.width/2 - 2;
         this.CGI.prop_arc2.aStartAngle = Math.PI + Math.PI/2 ;

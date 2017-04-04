@@ -17,7 +17,7 @@ var measure_unit = {
   'ft': {full_name: 'фут', short_name: 'ft', c: 0.003281 },
   'in': {full_name: 'дюйм', short_name: 'in', c: 0.03937 },
 }
-var c_unit = measure_unit.mm;
+var current_unit = measure_unit.mm;
 var accuracy_measurements = 2;
 
 
@@ -30,10 +30,10 @@ function initMain()
 	scene = new THREE.Scene();
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 100000;
+	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 1000000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera) ;
-	camera.position.set(4000,4000,4000);
+	camera.position.set(10000,10000,10000);
 	camera.lookAt(scene.position);
 	// RENDERER
 	if ( Detector.webgl )
@@ -58,9 +58,18 @@ function initMain()
 //	stats.domElement.style.zIndex = 100;
 //	container.appendChild( stats.domElement );
 	// LIGHT
-var light = new THREE.PointLight(0xffffff);
-	light.position.set(0, 3500, 0);
-	scene.add(light);
+    var light1 = new THREE.PointLight(0xffffff);
+    light1.position.set(-10000, 5000, -10000);
+    var light2 = new THREE.PointLight(0xffffff);
+    light2.position.set(-10000, 5000, 10000);
+    var light3 = new THREE.PointLight(0xffffff);
+    light3.position.set(10000, 5000, 10000);
+    var light4 = new THREE.PointLight(0xffffff);
+    light4.position.set(10000, 5000, -10000);
+    var light5 = new THREE.PointLight(0xffffff);
+    light5.position.set(0, 5000, 0);
+
+    scene.add(light1, light2, light3, light4, light5);
 
 	// FLOOR
 

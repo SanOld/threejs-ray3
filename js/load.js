@@ -215,7 +215,7 @@ function loadOBJ_door2(file_path, name, callback){
 //          wrapper.add( axisHelper );
 
           wrapper.children[0] .userData.scale = 1;
-          wrapper.children[0] .userData.translateX = 5;
+          wrapper.children[0] .userData.translateX = 50;
           wrapper.children[0] .userData.translateY = 0;
           wrapper.children[0] .userData.translateZ = 0;
           wrapper.children[0] .userData.rotateX = 0;
