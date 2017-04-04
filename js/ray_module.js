@@ -4444,10 +4444,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.remove(doorway);
     delete doorway;
 
-    if(this._wall){
-      scene.remove(this._wall);
-      this._wall = null;
-    }
+    
 
     this.update();
 
@@ -4457,8 +4454,15 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     var self = this;
 
-   this.removeDoorway();
+    //очищаем
+    if(this._wall){
+      
+      scene.remove(this._wall);
+      this._wall = null;
 
+    }
+
+    //расчитываем
     self.doors.forEach(function( item ){
 
       //вырезаем проемы
@@ -5792,8 +5796,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
   addCGI: function(){
       //УГО двери
-    var geometry_door = new THREE.PlaneBufferGeometry( this.width, this.door_thickness );
-    this.CGI.door = new THREE.Mesh( geometry_door, $projection.projectionWallMaterial );
+    this.CGI.door = new THREE.Mesh( this.getCGIDoorGeometry(), $projection.projectionWallMaterial );
     this.CGI.door.material.copy( $projection.projectionWallMaterial.clone() );
     this.CGI.door.lookAt(new THREE.Vector3(0, 0, -1));
 
@@ -5869,6 +5872,9 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
         break;
     }
 
+  },
+  getCGIDoorGeometry: function(){
+    return new THREE.PlaneBufferGeometry( this.width, this.door_thickness );
   },
   getArc: function(){
 
@@ -6093,8 +6099,10 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     Doorway.prototype.update.call(this);
 
     this.remove(this.CGI.arc)
+    this.CGI.door.geometry = this.getCGIDoorGeometry();
     this.setCGILocation();//здесь необходим при изм размеров
     this.CGI.arc = this.getArc();
+
     this.add(this.CGI.arc);
 
     this.setDepObjectSize();
@@ -6137,6 +6145,22 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
 
   addCGI: function(){
 
+    this.CGI.window_line = new THREE.LineSegments( this.getCGIGeometry(), $projection.projectionWallMaterial.clone());
+
+//позиционирование дополнительных объектов двери и дуги
+    this.setCGILocation();
+
+    this.add( this.CGI.window_line);
+    
+  },
+  setCGILocation: function(){
+
+    this.CGI.window_line.rotateZ( Math.PI );
+    this.CGI.window_line.position.z = -2;
+    
+    
+  },
+  getCGIGeometry: function(){
     //УГО окна
     var geometry = new THREE.Geometry();
     geometry.vertices.push(new THREE.Vector3( -this.width/2,  this.wall.width/4+1, 0));
@@ -6144,12 +6168,7 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
     geometry.vertices.push(new THREE.Vector3( -this.width/2, -this.wall.width/4+1, 0));
     geometry.vertices.push(new THREE.Vector3(  this.width/2, -this.wall.width/4+1, 0));
 
-    this.CGI.window_line = new THREE.LineSegments(geometry, $projection.projectionWallMaterial.clone());
-
-    this.add( this.CGI.window_line);
-  },
-  setCGILocation: function(){
-    this.CGI.window_line.rotateZ( Math.PI );
+    return geometry;
   },
 
   loadObject: function(){
@@ -6285,12 +6304,8 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
 
     Doorway.prototype.update.call(this);
 
-//    this.position.copy( this.getCalculatePosition() );
-//
-//    this.setDoorwayBodyPosition();
-//
-//    this.setDepObjectPosition();
-
+    this.CGI.window_line.geometry = this.getCGIGeometry();
+    
     this.setDepObjectSize();
     this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
     this.setDepObjectPosition();
@@ -6319,8 +6334,7 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
 
   addCGI: function(){
       //УГО двери
-    var geometry_door = new THREE.PlaneBufferGeometry( this.width/2, this.door_thickness );
-    this.CGI.door = new THREE.Mesh( geometry_door, $projection.projectionWallMaterial );
+    this.CGI.door = new THREE.Mesh( this.getCGIDoorGeometry(), $projection.projectionWallMaterial );
     this.CGI.door.material.copy( $projection.projectionWallMaterial.clone() );
     this.CGI.door.lookAt(new THREE.Vector3(0, 0, -1));
 
@@ -6403,6 +6417,9 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
     }
 
   },
+  getCGIDoorGeometry: function(){
+    return new THREE.PlaneBufferGeometry( this.width/2, this.door_thickness );
+  },
   getArc: function( prop ){
 
     var curve = new THREE.EllipseCurve(
@@ -6420,6 +6437,7 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
         // Create the final object to add to the scene
     return  (new THREE.Line( geometry, material ) );
   },
+
 
   loadObject: function(){
 
@@ -6556,7 +6574,10 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
 
     Doorway.prototype.update.call(this);
 
-    this.remove( this.CGI.arc, this.CGI.arc2 )
+    this.remove( this.CGI.arc );
+    this.remove( this.CGI.arc2 );
+    this.CGI.door.geometry = this.getCGIDoorGeometry();
+    this.CGI.door2.geometry = this.CGI.door.geometry.clone();
     this.setCGILocation();//здесь необходим при изм размеров
     this.CGI.arc = this.getArc( this.CGI.prop_arc );
     this.CGI.arc2 = this.getArc( this.CGI.prop_arc2 );
