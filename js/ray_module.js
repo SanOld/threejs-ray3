@@ -3,7 +3,7 @@
 /* global this */
 
 //=== to addCameraRay
-var Dimensions = new THREE.Object3D(0,200,0); //объект хранилище размеров
+var Dimensions = new THREE.Object3D(0,3000,0); //объект хранилище размеров
 var videocameraArr = [];
 var videocameraName = 'videocamera';
 var active_camera = null;
@@ -42,6 +42,7 @@ var transparentMaterial = new THREE.MeshBasicMaterial( { transparent: true, opac
 var isMoveRay = false; // перестраивание луча в функции рендеринга при движении луча
 var isMoveCamera = false; // перестраивание луча и "комнаты" в функции рендеринга при движении камеры
 //=== to addCameraRay
+
 
 
 
@@ -111,7 +112,7 @@ function getRay2d(videocamera)
     var t = arr.length;
     while(t--){
 
-      var geometry = new THREE.SphereGeometry( 3, 32, 32 );
+      var geometry = new THREE.SphereGeometry( 50, 32, 32 );
       var material = new THREE.MeshBasicMaterial( {color: 'green'} );
       var sphere = new THREE.Mesh( geometry, material );
       sphere.position.x = arr[t].x;
@@ -232,10 +233,10 @@ function cameraWrapper(videocamera_one){
 
 function addCameraRay(scene)
 {
-  var roomHeight = 150; //высота комнаты ????????
+  var roomHeight = 2700; //высота комнаты ????????
   var floor_scale = 40;
-  var near = 2; //начало видимой области
-  var far = 800;//окончание видимой области
+  var near = 1; //начало видимой области
+  var far = 10000;//окончание видимой области
   var angle = THREE.Math.degToRad(30);//угол обзора камеры
 //  var ray_axis_x; // доп ось камеры
 //  var ray_axis_y; // доп ось камеры
@@ -305,7 +306,7 @@ function addCameraRay(scene)
       }
       //хелпер фокуса
         {
-      var geometry = new THREE.SphereGeometry( 3, 32, 32 );
+      var geometry = new THREE.SphereGeometry( 100, 32, 32 );
       var material = new THREE.MeshBasicMaterial( {color: 0xff00ff} );
       var focus = new THREE.Mesh( geometry, material );
       focus.name = 'focus';
@@ -337,7 +338,7 @@ function addCameraRay(scene)
       videocamera.add(rayMesh3);
 
       //ось z - хелпер
-      arrowHelperAdd( videocamera, null, 'red', 35 );
+      arrowHelperAdd( videocamera, null, 'red', 350 );
 //      arrowHelperAdd( ray_axis_x, null, 'blue', 30 );
 //      arrowHelperAdd( ray_axis_x, ray_axis_x.up, 'blue', 30 );
 //      arrowHelperAdd( ray_axis_y, null, 'green', 25);
@@ -359,7 +360,7 @@ function addCameraRay(scene)
 //  document.addEventListener( 'mousemove', onDocumentMouseMoveCam, false );
 //  document.addEventListener( 'wheel', onDocumentMouseWheelCam, false );
 
-var ray = new THREE.Raycaster(new THREE.Vector3(0,0,0), new THREE.Vector3(0,1,0), 0 , 1000);
+var ray = new THREE.Raycaster(new THREE.Vector3(0,0,0), new THREE.Vector3(0,1,0), 0 , 100000);
 var geometry = new THREE.Geometry();
 geometry.vertices.push(
 	new THREE.Vector3( 1, 5, 0 ),
@@ -995,7 +996,7 @@ function onDocumentMouseDownCam( event )
 		//=объект фокуса для перемещения
 		var focus =  active_camera.getObjectByName('focus');
 		//новый объект фокуса для перемещения
-		var geometry = new THREE.SphereGeometry(5, 32, 32 );
+		var geometry = new THREE.SphereGeometry(100, 32, 32 );
 		var material = new THREE.MeshBasicMaterial( {color: 'green', opacity: 0.8, transparent: true} );
 		var newFocus = new THREE.Mesh( geometry, material );
 		newFocus.position.copy(focus.getWorldPosition());
@@ -1084,7 +1085,7 @@ function noteMaker( obj, message, parameters )
 		parameters["fontface"] : "Arial";
 
 	this.fontsize = parameters.hasOwnProperty("fontsize") ?
-		parameters["fontsize"] : 48;
+		parameters["fontsize"] : 480;
 
 	this.borderThickness = parameters.hasOwnProperty("borderThickness") ?
 		parameters["borderThickness"] : 4;
@@ -1104,8 +1105,8 @@ function noteMaker( obj, message, parameters )
   this.sprite = {};
 
 	this.canvas = document.createElement('canvas');
-  this.canvas.width = 1000;
-  this.canvas.height = 1000;
+  this.canvas.width = 10000;
+  this.canvas.height = 10000;
   this.context = self.canvas.getContext('2d');
   this.context.font = "Bold " + self.fontsize + "px " + self.fontface;
   this.context.lineWidth = self.borderThickness;
@@ -1191,7 +1192,7 @@ function noteMaker( obj, message, parameters )
      var y = self.canvas.height/2 - self.message.length * self.fontheight /2 - self.borderThickness/2;
      var width = self.textWidth + self.borderThickness;
      var height = self.message.length * self.fontheight + self.borderThickness
-     self.roundRect(self.context, x, y, width, height, 6);
+     self.roundRect(self.context, x, y, width, height, 50);
 
   }
 
@@ -1303,7 +1304,7 @@ function noteCameraInfo()
 		    text += window.opener.i18next.t('cam_angle_vert_3d') + ' ' + self.getAngleVert() + '\n';
 		    text += window.opener.i18next.t('cam_angle_hor_3d') + ' ' + self.getAngleGorizont() + '\n';
 		    //text += window.opener.i18next.t('cam_level_3d') + Math.ceil(self.obj.getWorldPosition().y / self.obj.floor_scale) + '\n';
-			text += window.opener.i18next.t('cam_level_3d') + (self.obj.getWorldPosition().y / self.obj.floor_scale - self.obj.userData.camera_props.camera_off_z).toFixed(2) + '\n';
+			text += window.opener.i18next.t('cam_level_3d') + (self.obj.getWorldPosition().y / self.obj.floor_scale - self.obj.userData.camera_props.camera_off_z).toFixed(accuracy_measurements) + '\n';
 		}
 		else {
 			text += "Объект: камера \n" ;
@@ -1328,7 +1329,7 @@ function noteCameraInfo()
     var inDeg = Math.ceil(THREE.Math.radToDeg(inRad));
 	*/
     var vector = self.obj.getWorldDirection();
-    var inDeg = parseFloat(THREE.Math.radToDeg(Math.acos(-vector.y)).toFixed(0));
+    var inDeg = parseFloat(THREE.Math.radToDeg(Math.acos(-vector.y)).toFixed(accuracy_measurements));
     return inDeg;
   }
 
@@ -1340,7 +1341,7 @@ function noteCameraInfo()
     var inDeg = Math.ceil(THREE.Math.radToDeg(inRad));
 	*/
     var vector = self.obj.getWorldDirection();
-    var inDeg = parseFloat(THREE.Math.radToDeg(Math.atan2(vector.x,vector.z)).toFixed(0));
+    var inDeg = parseFloat(THREE.Math.radToDeg(Math.atan2(vector.x,vector.z)).toFixed(accuracy_measurements));
     return inDeg;
   }
 
@@ -1482,7 +1483,7 @@ function camDimension(obj, parameters)
       }
 	  if( self.ray_distance != Infinity)
 	  {
-		self.note.setMessage( (parseFloat(self.ray_distance) / self.obj.floor_scale).toFixed(2) );
+		self.note.setMessage( (parseFloat(self.ray_distance) / self.obj.floor_scale).toFixed(accuracy_measurements) );
 	  }
 	  else {
 		self.note.setMessage(self.ray_distance.toString());
@@ -1854,7 +1855,7 @@ function initProjection(obj){
   var SCREEN_WIDTH = window.innerWidth;
 	var SCREEN_HEIGHT = window.innerHeight;
 	var ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT;
-  var frustumSize = 1000;
+  var frustumSize = 15000;
   var currentCamera;
 
   
@@ -1927,18 +1928,18 @@ function initProjection(obj){
                                           frustumSize / 2,
                                           frustumSize / - 2,
                                           1,
-                                          10000
+                                          50000
                                         );
 
     switch (obj.type) {
       case 'top':
-        camera.position.set(0, 300, 0);
+        camera.position.set(0, 30000, 0);
         break;
       case 'left':
-        camera.position.set(-300, 0, 0);
+        camera.position.set(-30000, 0, 0);
         break;
       case 'right':
-        camera.position.set(300, 0, 0);
+        camera.position.set(30000, 0, 0);
         break;
     }
 
@@ -1948,7 +1949,7 @@ function initProjection(obj){
 
   }
   obj.planeHelperAdd = function(){
-    var geometry = new THREE.PlaneGeometry( 10000, 10000, 1 );
+    var geometry = new THREE.PlaneGeometry( 100000, 100000, 1 );
     obj.plane = new THREE.Mesh( geometry );
     obj.plane.rotateX(-Math.PI/2);
     obj.plane.translateZ (-5);
@@ -2461,23 +2462,23 @@ function initWallCreator(obj){
   obj.lineHelperGeometry = new THREE.Geometry();//хранилище точек линии хелпера
   obj.magnitVerticies = [];//массив точек для примагничивания
   obj.magnitVerticiesSphere = [];//массив сфер в точка для примагничивания
-  obj.magnitValue = 10;
+  obj.magnitValue = 100;
   obj.pointerHelper = null; //объект указателя
   obj.pointerHelpersArray = []; //массив временных красных сфер (удалить)
   obj.dashedLineArr = [];//массив пунктирных
   obj.lineHelperMaterial = new THREE.LineDashedMaterial( {
       color: 0x0000ff,
-      dashSize: 10,
-      gapSize: 3,
+      dashSize: 100,
+      gapSize: 30,
     } );
   obj.lineDashedMaterial = new THREE.LineDashedMaterial( {
       color: 'black',
-      dashSize: 10,
-      gapSize: 3,
+      dashSize: 100,
+      gapSize: 30,
     } );
 
   //временный параметр
-  obj.wall_width = 10; //толщина стены по умолчанию
+  obj.wall_width = 100; //толщина стены по умолчанию
 
   obj.on = function(){
     obj.enabled = !obj.enabled;
@@ -2511,7 +2512,7 @@ function initWallCreator(obj){
 
   function pointerHelperAdd(){
     
-    var geometry = new THREE.SphereBufferGeometry( 5, 32, 32 );
+    var geometry = new THREE.SphereBufferGeometry( 50, 32, 32 );
     var material = new THREE.MeshBasicMaterial( {color: '#00FF00'} );
     obj.pointerHelper = new THREE.Mesh( geometry, material );
     scene.add( obj.pointerHelper );
@@ -2573,7 +2574,7 @@ function initWallCreator(obj){
     //красная сфера для наглядности
     var material = new THREE.MeshBasicMaterial( {color: 'red'} );
     obj.magnitVerticies.forEach(function(item, idx) {
-      var geometry = new THREE.SphereBufferGeometry( 3, 32, 32 );
+      var geometry = new THREE.SphereBufferGeometry( 30, 32, 32 );
       var mesh = new THREE.Mesh( geometry, material );
       mesh.position.x = item.x;
       mesh.position.z = item.z;
@@ -3019,8 +3020,8 @@ function initWallCreator(obj){
            magnitObject.wall.direction.clone().cross(new THREE.Vector3(1,0,0)).length()){
 
           ray.distanceSqToSegment (
-              new THREE.Vector3(-10000,0,magnitObject.itemZ.z),
-              new THREE.Vector3( 10000,0,magnitObject.itemZ.z),
+              new THREE.Vector3(-100000,0,magnitObject.itemZ.z),
+              new THREE.Vector3( 100000,0,magnitObject.itemZ.z),
               optionalPointOnRay,
               optionalPointOnSegment );
 
@@ -3037,8 +3038,8 @@ function initWallCreator(obj){
            magnitObject.wall.direction.clone().cross(new THREE.Vector3(0,0,1)).length()){
 
           ray.distanceSqToSegment ( 
-              new THREE.Vector3(magnitObject.itemX.x,0,-10000),
-              new THREE.Vector3(magnitObject.itemX.x,0, 10000),
+              new THREE.Vector3(magnitObject.itemX.x,0,-100000),
+              new THREE.Vector3(magnitObject.itemX.x,0, 100000),
               optionalPointOnRay,
               optionalPointOnSegment );
 
@@ -3071,19 +3072,19 @@ function initWallCreator(obj){
 
         break;
       case 49: /*1*/
-        obj.wall_width = 10;
+        obj.wall_width = 100;
         break;
       case 50: /*2*/
-        obj.wall_width = 20;
+        obj.wall_width = 200;
         break;
       case 51: /*3*/
-        obj.wall_width = 30;
+        obj.wall_width = 300;
         break;
       case 52: /*4*/
-        obj.wall_width = 40;
+        obj.wall_width = 400;
         break;
       case 53: /*5*/
-        obj.wall_width = 50;
+        obj.wall_width = 500;
         break;
     }
   }
@@ -3241,7 +3242,7 @@ function initWallEditor( obj ){
   }
   obj.select = function(event){
 
-//    obj.hideAllMenu();
+    obj.hideAllMenu();
     if( 'select' in event.object )
     event.object.select(event);
     obj.selected = event.object;
@@ -3467,7 +3468,7 @@ function Dimension( param1, param2, plane, parameters ){
   this.raycaster = new THREE.Raycaster();
 
   //примечание (текст размера)
-  var geometry = new THREE.SphereGeometry( 5, 32, 32 );
+  var geometry = new THREE.SphereGeometry( 100, 32, 32 );
   var material = transparentMaterial;
   this.note = new THREE.Mesh( geometry, material );
   this.note.name = 'dimensionBoundingSphere';
@@ -3541,7 +3542,7 @@ function Dimension( param1, param2, plane, parameters ){
     
     element.offset({left: event.screenCoord.x - field.width()/2 , top: event.screenCoord.y - field.height()/2 });
     element.css('display', 'block');
-    field.val( self.dimLine.distance().toFixed(2) );
+    field.val( self.dimLine.distance().toFixed( accuracy_measurements ) );
     field.focus();
 
     field.on('change', function(){
@@ -3835,22 +3836,22 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
 
       this.remove( this.line_part1, this.line_part2 );
 
-      this.line_part1 = new THREE.ArrowHelper( this.dimLine.delta().normalize(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 10 );
-      this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 10 );
+      this.line_part1 = new THREE.ArrowHelper( this.dimLine.delta().normalize(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 100 );
+      this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 100 );
 
       this.add( this.line_part1, this.line_part2 );
 
       this.note.position.copy(this.dimLine.getCenter().clone());
-      this.note.children[0].setMessage(this.dimLine.distance().toFixed(2));
+      this.note.children[0].setMessage(this.dimLine.distance().toFixed( accuracy_measurements ));
       this.note.children[0].update();
 
     } else {
 
-      this.line_part1 = new THREE.ArrowHelper( this.dimLine.delta().normalize(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 10 );
-      this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 10 );
+      this.line_part1 = new THREE.ArrowHelper( this.dimLine.delta().normalize(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 100 );
+      this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 100 );
 
       //спрайт текста
-      noteAdd( this.note, this.dimLine.distance().toFixed(2), null, {y: 10} );
+      noteAdd( this.note, this.dimLine.distance().toFixed( accuracy_measurements ), null, {y: 100} );
       this.note.position.copy(this.dimLine.getCenter().clone());
       this.note.dimension = this;
 
@@ -3922,8 +3923,8 @@ function Wall(vertices, parameters){
   this.doors = [];
   var self = this;
 
-  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 10;
-  this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 270;
+  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 100;
+  this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 2700;
   this.v1 = vertices[0].clone();
   this.v2 = vertices[1].clone();
 //    this.offset = {x: this.v1.x, y: this.v1.z};
@@ -4420,9 +4421,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     } else if( type == 'singleDoor' ){
       var obj = new Doorblock(this);
     } else if( type == 'doubleDoor' ){
-      var obj = new DoubleDoorBlock(this, { width: 180, height: 210 });
+      var obj = new DoubleDoorBlock(this, { width: 1800, height: 2100 });
     } else if( type == 'windowblock' ){
-      var obj = new WindowBlock(this, { elevation: 80, width: 145, height: 145 } );
+      var obj = new WindowBlock(this, { elevation: 800, width: 1450, height: 1450 } );
     } else if( type == 'niche' ){
 //      var obj = new Doorblock(this);
     } else if( type == 'arch' ){
@@ -4672,8 +4673,8 @@ function WallMover( wall ){
           v1_dir = self.v1_neighbors[0].point.clone().sub( self.v1_neighbors[0].opposite_point ).normalize();
           v2_dir = self.v2_neighbors[0].point.clone().sub( self.v2_neighbors[0].opposite_point ).normalize();
 
-          v1_end_segment = self.v1_neighbors[0].opposite_point.clone().add( v1_dir.clone().multiplyScalar ( 10000 ) );
-          v2_end_segment = self.v2_neighbors[0].opposite_point.clone().add( v2_dir.clone().multiplyScalar ( 10000 ) );
+          v1_end_segment = self.v1_neighbors[0].opposite_point.clone().add( v1_dir.clone().multiplyScalar ( 100000 ) );
+          v2_end_segment = self.v2_neighbors[0].opposite_point.clone().add( v2_dir.clone().multiplyScalar ( 100000 ) );
 
           _ray.origin = self.v1_neighbors[0].opposite_point;
           _ray.direction = v1_dir;
@@ -4908,7 +4909,7 @@ function WallMover( wall ){
             break;
           case false:
 
-            _ray.origin = event.object.wall.v1.clone().add( event.object.wall.direction.clone().negate().multiplyScalar( 1000 ));;
+            _ray.origin = event.object.wall.v1.clone().add( event.object.wall.direction.clone().negate().multiplyScalar( 100000 ));;
             _ray.direction = event.object.wall.direction.clone();
 
             var result_point = new THREE.Vector3();
@@ -4940,7 +4941,7 @@ function WallMover( wall ){
             break;
           case false:
 
-            _ray.origin = event.object.wall.v2.clone().add( event.object.wall.direction.clone().multiplyScalar( 1000 ));
+            _ray.origin = event.object.wall.v2.clone().add( event.object.wall.direction.clone().multiplyScalar( 100000 ));
             _ray.direction = event.object.wall.direction.clone().negate();
 
             var result_point = new THREE.Vector3();
@@ -5261,8 +5262,8 @@ function Doorway( wall, parameters ){
   this.offset = this.wall.axisLength / 2; //отступ от v1 до центра проема
 
 
-  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 90;
-  this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 210;
+  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 900;
+  this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
   this.thickness = parameters.hasOwnProperty("thickness") ? parameters["thickness"] : this.wall.width;
   this.elevation = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 0;
 
@@ -5624,7 +5625,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
     var self = this;
 
-    var params = {direction: this.wall.direction90, offset_direction: 20, editable: true}
+    var params = {direction: this.wall.direction90, offset_direction: 200, editable: true}
 
     this.dimensions.push( new Dimension( this.p11,   this.p_11, $projection.plane, params ) );
     this.dimensions.push( new Dimension( this.p_21,  this.p21, $projection.plane, params ) );
@@ -5775,7 +5776,7 @@ function Doorblock( wall, parameters ){
   this.lkmMenu = '.FourStateSwitcher';
   this.rkmMenu = '.DoorwayMenu';
 
-  this.door_thickness = parameters.hasOwnProperty("thicdoor_thicknesskness") ? parameters["door_thickness"] : 4;
+  this.door_thickness = parameters.hasOwnProperty("thicdoor_thicknesskness") ? parameters["door_thickness"] : 40;
   //свойство положения
   this.location = parameters.hasOwnProperty("location") ? parameters["location"] : 1;
 

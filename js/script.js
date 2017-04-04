@@ -10,6 +10,17 @@ var clock = new THREE.Clock();
 var mouse = new THREE.Vector2();
 var offset = new THREE.Vector3()
 
+var measure_unit = {
+  'm': {full_name: 'метр', short_name: 'м', c: 0.001 },
+  'cm': {full_name: 'сантиметр', short_name: 'см', c: 0.1 },
+  'mm': {full_name: 'миллиметр', short_name: 'мм', c: 1 },
+  'ft': {full_name: 'фут', short_name: 'ft', c: 0.003281 },
+  'in': {full_name: 'дюйм', short_name: 'in', c: 0.03937 },
+}
+var c_unit = measure_unit.mm;
+var accuracy_measurements = 2;
+
+
 init();
 animate();
 
@@ -19,10 +30,10 @@ function initMain()
 	scene = new THREE.Scene();
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
+	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 100000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera) ;
-	camera.position.set(400,400,400);
+	camera.position.set(4000,4000,4000);
 	camera.lookAt(scene.position);
 	// RENDERER
 	if ( Detector.webgl )
@@ -48,7 +59,7 @@ function initMain()
 //	container.appendChild( stats.domElement );
 	// LIGHT
 var light = new THREE.PointLight(0xffffff);
-	light.position.set(0,250,0);
+	light.position.set(0, 3500, 0);
 	scene.add(light);
 
 	// FLOOR
@@ -65,7 +76,7 @@ loader.load(
 		// do something with the texture 
       floorTexture.repeat.set( 1, 1 );
       var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
-      var floorGeometry = new THREE.PlaneBufferGeometry(2000, 1200, 10, 10);
+      var floorGeometry = new THREE.PlaneBufferGeometry(20000, 12000, 10, 10);
       var floor = new THREE.Mesh(floorGeometry, floorMaterial);
       floor.name = 'floor'
       floor.position.y = 0;
@@ -83,7 +94,7 @@ loader.load(
 );
 
 	// SKYBOX/FOG
-	var skyBoxGeometry = new THREE.BoxGeometry( 10000, 10000, 10000 );
+	var skyBoxGeometry = new THREE.BoxGeometry( 100000, 100000, 100000 );
 	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
 	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
 	scene.add(skyBox);
