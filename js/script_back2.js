@@ -59,7 +59,7 @@ var loader = new THREE.TextureLoader();
 // load a resource
 loader.load(
 	// resource URL
-	'js/lib/three-master/examples/textures/brick_bump.jpg',
+	'/js/lib/three-master/examples/textures/brick_bump.jpg',
 	// Function when resource is loaded
 	function ( floorTexture ) {
 		// do something with the texture
@@ -141,16 +141,9 @@ function init()
   w3.position.z = -125;
 
 
-  w2.position.z += 480;
-  w1.position.z += 480;
-  w2.position.x += 590;
-  w1.position.x += 590;
+  w2.position.z += -500;
+  w1.position.z += -500;
 
-  var w3 = w1.clone();
-  w3.position.x += 0;
-  w3.position.y = 75;
-  w3.position.z += 355;
-  
   var w4 = w2.clone();
   w4.geometry = new THREE.BoxGeometry( 200, 150, 10 );
 
@@ -159,12 +152,6 @@ function init()
 
   w4.rotation.y = Math.PI/4;
 
-  var w4 = w2.clone();
-  w4.position.x += 355;
-  w4.position.y = 75;
-  w4.position.z += 0;
-  
-  
   w1.name = w2.name = w3.name = w4.name ='wall';
 
   var w11 = w1.clone();
@@ -174,7 +161,7 @@ function init()
   var wire_material =  new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } )
   w11.material = w12.material = w13.material = w14.material = wire_material;
 
-  //scene.add(w11, w12, w13, w14);
+  scene.add(w11, w12, w13, w14);
   scene.add( w1, w2, w3, w4 );
   scene.add(ceiling);
 
@@ -194,7 +181,7 @@ loadCamera();
 setTimeout(addCameraRay,1000,scene);
 
 
-//$arcWall.add( scene, wall );
+$arcWall.add( scene, wall );
 
 }
 
