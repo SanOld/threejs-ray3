@@ -3411,8 +3411,14 @@ function initWallEditor( obj ){
     obj.selected.update();
 	});
 
-  $('.DoorwayMenu').on('click', '[action = action_1]', function(){
-		alert('action_1');
+  $('.DoorwayMenu').on('click', '[action = remove]', function(){
+
+    obj.deactivateSelectControls();
+
+		obj.selected.remove();
+
+    obj.activateSelectControls();
+
 	})
 
 
@@ -4328,30 +4334,40 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
 
   },
-  remove: function(){
+  remove: function(object){
 
-    this.mover.deactivate();
-    this.mover.parent.remove( this.mover );
-    this.mover = null;
+    if(object){
 
-    this.children.forEach(function( item ){
-      scene.remove(item);
-    })
+      THREE.Mesh.prototype.remove.call(this, object);
 
+    } else {
 
-    this.doors.forEach(function( item ){
+      this.mover.deactivate();
+      this.mover.parent.remove( this.mover );
+      this.mover = null;
 
-      //удаление размеров проемов
-      item.dimensions.forEach(function( dim ){
-        scene.remove( dim );
+      this.children.forEach(function( item ){
+        scene.remove(item);
       })
-      //удаление тел проемов
-      scene.remove(item.doorwayBody);
-
-    })
 
 
-    $wallEditor.removeWall( this );
+      this.doors.forEach(function( item ){
+
+        //удаление размеров проемов
+        item.dimensions.forEach(function( dim ){
+          scene.remove( dim );
+        })
+        //удаление тел проемов
+        scene.remove(item.doorwayBody);
+
+      })
+
+      $wallEditor.removeWall( this );
+
+    }
+    
+
+
 
   },
   
@@ -4422,11 +4438,19 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     $wallEditor.selected = obj;
 
   },
-  removeDoorway: function(){
+  removeDoorway: function( doorway ){
+
+    this.doors.splice( this.doors.indexOf(doorway), 1 );
+    this.remove(doorway);
+    delete doorway;
+
     if(this._wall){
       scene.remove(this._wall);
       this._wall = null;
     }
+
+    this.update();
+
   },
 
   doorway3DMode: function(){
@@ -5495,6 +5519,23 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.updateDimensions();
     
   },
+  remove: function(object){
+
+    if(object){
+
+      THREE.Mesh.prototype.remove.call(this, object);
+
+    } else {
+
+      this.hideMenu();
+      this.hideMenuLKM();
+      this.hideDimensions();
+      this.removeDimensions();
+      this.deactivate();
+      this.wall.removeDoorway(this);
+
+    }
+  },
 
   activate:   function() {
 
@@ -5708,6 +5749,11 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.dimensions[2].removeEventListener( 'edit', this.changeDoorwayDim );
     this.dimensions[3].removeEventListener( 'edit', this.changeDoorwayDim );
     this.dimensions[4].removeEventListener( 'edit', this.changeDoorwayDim );
+  },
+  removeDimensions: function(){
+    this.dimensions.forEach(function( item, index ){
+      scene.remove( item );
+    })
   },
 
 });
@@ -5950,6 +5996,9 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
   hideDepObject: function(){
     this.depObject.visible = false;
   },
+  removeDepObject: function(){
+    scene.remove( this.depObject );
+  },
   
 
   setLocation: function(location){
@@ -6052,6 +6101,18 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
     this.setDepObjectPosition();
 
+  },
+  remove: function(object){
+    if(object){
+
+      Doorway.prototype.remove.call(this, object);
+
+    } else {
+
+      this.removeDepObject();
+      Doorway.prototype.remove.call(this);
+
+    }
   },
 
 });
