@@ -1443,7 +1443,7 @@ function camDimension(obj, parameters)
     self.direction.applyEuler(self.angle);
 
 
-    var raycaster = new THREE.Raycaster(self.position, self.direction.normalize(), 0, 10000 );
+    var raycaster = new THREE.Raycaster(self.position, self.direction.normalize(), 0, 100000 );
 
 
     var intersects = raycaster.intersectObjects( scene.children );
@@ -2474,6 +2474,8 @@ function initWallCreator(obj){
   var currentWall = null; //стена над которой находится поинтер
   var intersectWalls = []; //стены под т-образное соединение
   var ray = new THREE.Ray();
+  var pointHelper_material = new THREE.MeshBasicMaterial( {color: '#00FF00'} );
+  var wallPointHelper_material = new THREE.MeshBasicMaterial( {color: 'red'} );
 
   obj.enabled = false;
 //  obj.plane = null;
@@ -2481,7 +2483,7 @@ function initWallCreator(obj){
   obj.lineHelperGeometry = new THREE.Geometry();//хранилище точек линии хелпера
   obj.magnitVerticies = [];//массив точек для примагничивания
   obj.magnitVerticiesSphere = [];//массив сфер в точка для примагничивания
-  obj.magnitValue = 100;
+  obj.magnitValue = 200;
   obj.pointerHelper = null; //объект указателя
   obj.pointerHelpersArray = []; //массив временных красных сфер (удалить)
   obj.dashedLineArr = [];//массив пунктирных
@@ -2495,6 +2497,12 @@ function initWallCreator(obj){
       dashSize: 100,
       gapSize: 30,
     } );
+
+  obj.dimensions = [];//размеры
+  obj.dimHelper = {}; //размер хелпер
+  obj.dimHelper.direction = new THREE.Vector3();// направление построения размера
+  obj.dimHelper.p1 = new THREE.Vector3();// точка размера
+  obj.dimHelper.p2 = new THREE.Vector3();// точка размера
 
   //временный параметр
   obj.wall_width = 100; //толщина стены по умолчанию
@@ -2532,12 +2540,10 @@ function initWallCreator(obj){
   function pointerHelperAdd(){
     
     var geometry = new THREE.SphereBufferGeometry( 50, 32, 32 );
-    var material = new THREE.MeshBasicMaterial( {color: '#00FF00'} );
-    obj.pointerHelper = new THREE.Mesh( geometry, material );
+    obj.pointerHelper = new THREE.Mesh( geometry, pointHelper_material );
     scene.add( obj.pointerHelper );
 
   }
-
   function pointerHelpersRemove(){
     obj.pointerHelpersArray.forEach( function( item ){
       scene.remove( item );
@@ -2578,7 +2584,6 @@ function initWallCreator(obj){
       }
     })
 
-
     //уникальные значения
       obj.magnitVerticies = obj.magnitVerticies.filter(function (elem, pos, arr) {
         var i = pos;
@@ -2589,12 +2594,10 @@ function initWallCreator(obj){
         return true;
       });
 
-
     //красная сфера для наглядности
-    var material = new THREE.MeshBasicMaterial( {color: 'red'} );
     obj.magnitVerticies.forEach(function(item, idx) {
       var geometry = new THREE.SphereBufferGeometry( 30, 32, 32 );
-      var mesh = new THREE.Mesh( geometry, material );
+      var mesh = new THREE.Mesh( geometry, wallPointHelper_material );
       mesh.position.x = item.x;
       mesh.position.z = item.z;
       obj.magnitVerticiesSphere.push(mesh);
@@ -2825,19 +2828,30 @@ function initWallCreator(obj){
       if( obj.lineHelper ){
         obj.lineHelper.material.visible = true;
         obj.lineHelper.geometry = obj.lineHelperGeometry.clone();
+
+//        if(obj.dimensions.length > 0){
+//          obj.updateDimensions();
+//        } else {
+//          obj.calcDimensionsPoints();
+//          obj.createDimensions();
+//        }
+        
       } else {
         obj.lineHelper = new THREE.Line(obj.lineHelperGeometry.clone(), obj.lineHelperMaterial);
+
+//        obj.calcDimensionsPoints();
+//        obj.createDimensions();
       }
 
       //если клик
       if(isClick){
 
         //модификация зависимой стены
-        if( ! isIntersectCollinear(obj.lineHelperGeometry.vertices)){
+        if( ! isIntersectCollinear( obj.lineHelperGeometry.vertices ) ){
 
           changeIntersectWalls();
-          obj.addWall(obj.lineHelperGeometry.vertices);
-
+          var w = obj.addWall(obj.lineHelperGeometry.vertices);
+          window.console.log(w);
 
           //очистка
           obj.lineHelperGeometry.vertices = [];
@@ -2856,9 +2870,6 @@ function initWallCreator(obj){
 
         }
         
-        
-
-        
       } else {
 
         obj.lineHelperGeometry.vertices.length = 1;
@@ -2871,16 +2882,22 @@ function initWallCreator(obj){
     }
   }
   obj.lineHelperRemove = function(){
+
     if(obj.lineHelper)
     obj.lineHelper.material.visible = false;
+
   }
 
   obj.reset = function(){
+
     obj.lineHelperGeometry.vertices = [];
     intersectWalls = [];
     currentWall = null;
     obj.lineHelperRemove();
     obj.dashedLineRemoveAll();
+
+    obj.removeDimensions();
+    
   }
 
   obj.dashedLineAdd = function( start, end ){
@@ -2992,6 +3009,7 @@ function initWallCreator(obj){
 
     var intersectObjects = mouse_raycaster.intersectObject(obj.plane);
     if(intersectObjects.length > 0){
+
       obj.lineHelperPointAdd( true );
 
       obj.lineHelperRemove();
@@ -3005,8 +3023,6 @@ function initWallCreator(obj){
       obj.pointerHelper.position.x = intersectObjects[0].point.x;
       obj.pointerHelper.position.z = intersectObjects[0].point.z;
 
-      
-
       //позиционирование хелпера указателя к точкам
       if(magnitObject.distanceX < obj.magnitValue){
         obj.pointerHelper.position.x = magnitObject.itemX.x;
@@ -3019,8 +3035,6 @@ function initWallCreator(obj){
         obj.dashedLineAdd(obj.pointerHelper.position.clone(), magnitObject.itemZ);
         currentWall = null;
       }
-
-   
 
       //позиционирование хелпера указателя к осевой
       if(magnitObject.distanceToWallAxis < obj.magnitValue){
@@ -3044,7 +3058,7 @@ function initWallCreator(obj){
               optionalPointOnRay,
               optionalPointOnSegment );
 
-          if( optionalPointOnRay && Math.abs(optionalPointOnRay.x) != 10000 ){
+          if( optionalPointOnRay && Math.abs(optionalPointOnRay.x) != 100000 ){
             obj.pointerHelper.position.x =  optionalPointOnRay.x;
             obj.pointerHelper.position.z = optionalPointOnRay.z;
 //            currentWall = magnitObject.wall;//стена над которой находится поинтер
@@ -3062,7 +3076,7 @@ function initWallCreator(obj){
               optionalPointOnRay,
               optionalPointOnSegment );
 
-          if( optionalPointOnRay && Math.abs(optionalPointOnRay.z) != 10000){
+          if( optionalPointOnRay && Math.abs(optionalPointOnRay.z) != 100000){
             obj.pointerHelper.position.x = optionalPointOnRay.x;
             obj.pointerHelper.position.z = optionalPointOnRay.z;
 //            currentWall = magnitObject.wall;//стена над которой находится поинтер
@@ -3074,8 +3088,10 @@ function initWallCreator(obj){
 
       }
 
+    }
 
-
+    if(obj.pointerHelper.position.x == Infinity || obj.pointerHelper.position.z == Infinity){
+      debugger
     }
 
 
@@ -3106,6 +3122,80 @@ function initWallCreator(obj){
         obj.wall_width = 500;
         break;
     }
+  }
+
+
+//  setTimeout(function(){
+//    self.calcDimensionsPoints();
+//    self.createDimensions();
+//    self.updateDimensions();
+//  })
+
+  obj.calcDimensionsPoints = function(){
+
+    if(obj.lineHelper.geometry.vertices[1].x >= obj.lineHelper.geometry.vertices[0].x){
+
+      var dir = obj.lineHelper.geometry.vertices[1].clone().sub( obj.lineHelper.geometry.vertices[0].clone() );
+
+    } else {
+
+      var dir = obj.lineHelper.geometry.vertices[0].clone().sub( obj.lineHelper.geometry.vertices[1].clone() );
+
+    }
+
+    obj.dimHelper.direction.x = dir.z;
+    obj.dimHelper.direction.z = dir.x;
+    obj.dimHelper.direction.y = dir.y;
+    obj.dimHelper.direction.normalize();
+
+    obj.dimHelper.p1.copy( obj.lineHelper.geometry.vertices[0] );
+    obj.dimHelper.p2.copy( obj.lineHelper.geometry.vertices[1] );
+
+  }
+  obj.createDimensions = function(){
+
+    var params = {direction: obj.dimHelper.direction, offset_direction: 200, editable: true}
+
+    obj.dimensions.push( new Dimension( obj.dimHelper.p1,   obj.dimHelper.p2, $projection.plane, params ) );
+
+    obj.dimensions.forEach(function(item){
+      scene.add( item );
+    })
+
+
+//    $wallEditor.deactivateSelectControls();
+//    $wallEditor.activateSelectControls();
+
+  }
+  obj.updateDimensions = function(){
+    //перерасчет размеров
+    obj.calcDimensionsPoints();
+
+    obj.dimensions.forEach(function(item){
+      item.const_direction.copy( obj.dimHelper.direction );
+      item.update();
+    })
+  }
+  obj.showDimensions = function(){
+    obj.dimensions.forEach(function(item){
+      item.visible = true;
+    })
+
+//    obj.dimensions[0].addEventListener( 'edit', obj.changeDoorwayDim );
+
+  }
+  obj.hideDimensions = function(){
+    obj.dimensions.forEach(function(item){
+      item.visible = false;
+    })
+
+//    obj.dimensions[0].removeEventListener( 'edit', obj.changeDoorwayDim );
+
+  }
+  obj.removeDimensions = function(){
+    obj.dimensions.forEach(function( item, index ){
+      scene.remove( item );
+    })
   }
 
 }
@@ -3822,7 +3912,7 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
     var l2  = p2_start.clone().projectOnVector( n );
     var dist1 = dist2 = 0;
 
-    if(this.offset_direction){
+    if( this.offset_direction ){
       dist1 = dist2 = this.offset_direction;
       var point_var1 = new THREE.Vector3().addVectors(p1_start, n.clone().multiplyScalar( dist1 ));
       p1_end = point_var1.clone();
@@ -5143,8 +5233,8 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
               point: item[arg2],
               opposite_point: item[opposite_point],
               line_segment: {
-                start: item[arg1].clone().add( item.direction.clone().negate().multiplyScalar(10000) ),
-                end: item[arg1].clone().add( item.direction.clone().multiplyScalar(10000) )
+                start: item[arg1].clone().add( item.direction.clone().negate().multiplyScalar(100000) ),
+                end: item[arg1].clone().add( item.direction.clone().multiplyScalar(100000) )
               },
   //            angle: angle
             })
