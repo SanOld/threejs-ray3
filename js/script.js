@@ -88,7 +88,7 @@ loader.load(
       var floorGeometry = new THREE.PlaneBufferGeometry(20000, 12000, 10, 10);
       var floor = new THREE.Mesh(floorGeometry, floorMaterial);
       floor.name = 'floor'
-      floor.position.y = 0;
+      floor.position.y = -1;
       floor.rotation.x = -Math.PI / 2;
       scene.add(floor);
 	},

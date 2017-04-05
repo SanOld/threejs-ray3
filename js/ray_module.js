@@ -2510,7 +2510,7 @@ function initWallCreator(obj){
   obj.on = function(){
     obj.enabled = !obj.enabled;
     if(obj.walls.length == 0){
-    obj.walls = obj.getWalls();
+      obj.walls = obj.getWalls();
     }
     pointerHelperAdd();
     magnitVerticiesCreate();
@@ -2544,6 +2544,7 @@ function initWallCreator(obj){
     scene.add( obj.pointerHelper );
 
   }
+
   function pointerHelpersRemove(){
     obj.pointerHelpersArray.forEach( function( item ){
       scene.remove( item );
@@ -2778,6 +2779,29 @@ function initWallCreator(obj){
 
   }
 
+  //Добавленеи линии размера
+  obj.addDimension = function(){
+
+      if( obj.lineHelper )
+      if(obj.dimensions.length > 0){
+
+        if(obj.lineHelper.material.visible){ 
+          obj.showDimensions()
+          obj.updateDimensions();
+        };
+
+
+      } else {
+
+        obj.calcDimensionsPoints();
+        obj.createDimensions();
+
+      }
+
+      
+
+  }
+
   //добавление точки для построения линии по кликам
   obj.lineHelperPointAdd = function( isMove ) {
     var isMove = isMove || false;//false при клике мыши; true - при движении курсора
@@ -2826,21 +2850,14 @@ function initWallCreator(obj){
 
       //Добавленеи линии хелпера
       if( obj.lineHelper ){
+        
         obj.lineHelper.material.visible = true;
         obj.lineHelper.geometry = obj.lineHelperGeometry.clone();
-
-//        if(obj.dimensions.length > 0){
-//          obj.updateDimensions();
-//        } else {
-//          obj.calcDimensionsPoints();
-//          obj.createDimensions();
-//        }
         
       } else {
-        obj.lineHelper = new THREE.Line(obj.lineHelperGeometry.clone(), obj.lineHelperMaterial);
 
-//        obj.calcDimensionsPoints();
-//        obj.createDimensions();
+        obj.lineHelper = new THREE.Line(obj.lineHelperGeometry.clone(), obj.lineHelperMaterial);
+        
       }
 
       //если клик
@@ -2850,8 +2867,7 @@ function initWallCreator(obj){
         if( ! isIntersectCollinear( obj.lineHelperGeometry.vertices ) ){
 
           changeIntersectWalls();
-          var w = obj.addWall(obj.lineHelperGeometry.vertices);
-          window.console.log(w);
+          obj.addWall(obj.lineHelperGeometry.vertices);
 
           //очистка
           obj.lineHelperGeometry.vertices = [];
@@ -2896,7 +2912,7 @@ function initWallCreator(obj){
     obj.lineHelperRemove();
     obj.dashedLineRemoveAll();
 
-    obj.removeDimensions();
+    obj.hideDimensions();
     
   }
 
@@ -3014,6 +3030,7 @@ function initWallCreator(obj){
 
       obj.lineHelperRemove();
       obj.lineHelperAdd(true);
+      obj.addDimension();
 
       //удаляем пунктирные
       obj.dashedLineRemoveAll();
@@ -3090,11 +3107,6 @@ function initWallCreator(obj){
 
     }
 
-    if(obj.pointerHelper.position.x == Infinity || obj.pointerHelper.position.z == Infinity){
-      debugger
-    }
-
-
   }
   function onKeyDownWallCreator ( event ){
     if (!obj.enabled)
@@ -3125,15 +3137,9 @@ function initWallCreator(obj){
   }
 
 
-//  setTimeout(function(){
-//    self.calcDimensionsPoints();
-//    self.createDimensions();
-//    self.updateDimensions();
-//  })
-
   obj.calcDimensionsPoints = function(){
 
-    if(obj.lineHelper.geometry.vertices[1].x >= obj.lineHelper.geometry.vertices[0].x){
+    if( obj.lineHelper.geometry.vertices[1].x >= obj.lineHelper.geometry.vertices[0].x ){
 
       var dir = obj.lineHelper.geometry.vertices[1].clone().sub( obj.lineHelper.geometry.vertices[0].clone() );
 
@@ -3141,10 +3147,10 @@ function initWallCreator(obj){
 
       var dir = obj.lineHelper.geometry.vertices[0].clone().sub( obj.lineHelper.geometry.vertices[1].clone() );
 
-    }
+    };
 
     obj.dimHelper.direction.x = dir.z;
-    obj.dimHelper.direction.z = dir.x;
+    obj.dimHelper.direction.z = -dir.x;
     obj.dimHelper.direction.y = dir.y;
     obj.dimHelper.direction.normalize();
 
