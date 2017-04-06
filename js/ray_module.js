@@ -2508,6 +2508,7 @@ function initWallCreator(obj){
   obj.wall_width = 100; //толщина стены по умолчанию
 
   obj.on = function(){
+
     obj.enabled = !obj.enabled;
     if(obj.walls.length == 0){
       obj.walls = obj.getWalls();
@@ -2521,6 +2522,7 @@ function initWallCreator(obj){
 
   }
   obj.off = function(){
+
     obj.enabled = !obj.enabled;
     obj.reset();
     scene.remove(obj.plane);
@@ -2530,6 +2532,12 @@ function initWallCreator(obj){
 
     //удаление временных красных сфер
     pointerHelpersRemove();
+
+    scene.remove(obj.lineHelper);
+    obj.lineHelper = null;
+    obj.lineHelperGeometry = new THREE.Geometry();//хранилище точек линии хелпера
+    //деактивация отслеживания событий размеров
+    obj.deactivateDimensions();
 
     document.removeEventListener( 'mousedown', onDocumentMouseDownWallCreator, false );
     document.removeEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
@@ -2610,7 +2618,6 @@ function initWallCreator(obj){
 
 
   }
-
 
   obj.hideAllMenu = function(){
     
@@ -2786,19 +2793,18 @@ function initWallCreator(obj){
       if(obj.dimensions.length > 0){
 
         if(obj.lineHelper.material.visible){ 
-          obj.showDimensions()
+          
           obj.updateDimensions();
-        };
+          obj.showDimensions();
 
+        };
 
       } else {
 
         obj.calcDimensionsPoints();
         obj.createDimensions();
-
+        obj.activateDimensions();
       }
-
-      
 
   }
 
@@ -2983,7 +2989,6 @@ function initWallCreator(obj){
   }
 
   /*===================*/
-  
   function onDocumentMouseDownWallCreator( event ){
     if (!obj.enabled)
       return false;
@@ -3136,7 +3141,6 @@ function initWallCreator(obj){
     }
   }
 
-
   obj.calcDimensionsPoints = function(){
 
     if( obj.lineHelper.geometry.vertices[1].x >= obj.lineHelper.geometry.vertices[0].x ){
@@ -3160,7 +3164,7 @@ function initWallCreator(obj){
   }
   obj.createDimensions = function(){
 
-    var params = {direction: obj.dimHelper.direction, offset_direction: 200, editable: true}
+    var params = {direction: obj.dimHelper.direction, offset_direction: 200, editable: true, noteState: 'hide'}
 
     obj.dimensions.push( new Dimension( obj.dimHelper.p1,   obj.dimHelper.p2, $projection.plane, params ) );
 
@@ -3168,9 +3172,6 @@ function initWallCreator(obj){
       scene.add( item );
     })
 
-
-//    $wallEditor.deactivateSelectControls();
-//    $wallEditor.activateSelectControls();
 
   }
   obj.updateDimensions = function(){
@@ -3185,23 +3186,69 @@ function initWallCreator(obj){
   obj.showDimensions = function(){
     obj.dimensions.forEach(function(item){
       item.visible = true;
+      item.activateModeOn();
     })
-
-//    obj.dimensions[0].addEventListener( 'edit', obj.changeDoorwayDim );
-
   }
   obj.hideDimensions = function(){
+
     obj.dimensions.forEach(function(item){
       item.visible = false;
+      item.unselect();
     })
-
-//    obj.dimensions[0].removeEventListener( 'edit', obj.changeDoorwayDim );
-
+    
   }
   obj.removeDimensions = function(){
     obj.dimensions.forEach(function( item, index ){
       scene.remove( item );
     })
+  }
+  obj.activateDimensions = function(){
+
+    obj.dimensions.forEach(function(item){
+      item.addEventListener( 'edit', onChangeDim );
+      item.addEventListener( 'keydown', onKeydownDim );
+      item.addEventListener( 'esc', onEscDim );
+    })
+
+  }
+  obj.deactivateDimensions = function(){
+
+    obj.dimensions.forEach(function(item){
+      item.removeEventListener( 'edit', onChangeDim );
+      item.removeEventListener( 'keydown', onKeydownDim );
+      item.removeEventListener( 'esc', onEscDim );
+
+    })
+
+    obj.dimensions = [];//размеры
+    obj.dimHelper = {}; //размер хелпер
+    obj.dimHelper.direction = new THREE.Vector3();// направление построения размера
+    obj.dimHelper.p1 = new THREE.Vector3();// точка размера
+    obj.dimHelper.p2 = new THREE.Vector3();// точка размера
+
+  }
+
+  function onKeydownDim( event ){
+
+    document.removeEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
+   
+  }
+  function onEscDim( event ){
+
+    obj.reset();
+    obj.off();
+    
+  }
+  function onChangeDim( event ){
+
+    var direction = obj.lineHelper.geometry.vertices[1].clone().sub( obj.lineHelper.geometry.vertices[0] ).normalize();
+    obj.pointerHelper.position.copy( obj.lineHelper.geometry.vertices[0].clone().add( direction.multiplyScalar( event.value ) ) );
+    obj.lineHelperPointAdd();
+    obj.lineHelperAdd();
+    obj.hideDimensions();
+
+    document.addEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
+    
   }
 
 }
@@ -3576,7 +3623,8 @@ function Dimension( param1, param2, plane, parameters ){
 	this.const_direction = parameters.hasOwnProperty("direction") ? parameters["direction"] : null;
   this.offset_direction = parameters.hasOwnProperty("offset_direction") ? parameters["offset_direction"] : null;
   this.editable = parameters.hasOwnProperty("editable") ? parameters["editable"] : false;
-  this.editable = parameters.hasOwnProperty("name") ? parameters["name"] : 'dimension';
+  this.name = parameters.hasOwnProperty("name") ? parameters["name"] : 'dimension';
+  this.noteState = parameters.hasOwnProperty("noteState") ? parameters["noteState"] : 'show';
 
 
   var self = this;
@@ -3601,11 +3649,14 @@ function Dimension( param1, param2, plane, parameters ){
   this.planeMousePoint = new THREE.Vector3();
   this.raycaster = new THREE.Raycaster();
 
+  this.editableField = null; //объект редактируемого поля
+
   //примечание (текст размера)
   var geometry = new THREE.SphereGeometry( 100, 32, 32 );
   var material = transparentMaterial;
   this.note = new THREE.Mesh( geometry, material );
   this.note.name = 'dimensionBoundingSphere';
+  this.noteState == 'show' ? this.note.visible = true : this.note.visible = false;
 
  
   this.defineDimType();
@@ -3672,35 +3723,53 @@ function Dimension( param1, param2, plane, parameters ){
   this.edit =             function ( event ) {
     
     var element = $( '.EditableField' );
-    var field = element.find('input');
+    self.editableField = element.find('input');
+    
+
     var obj = event.object;
 
     element.css('left', 0);
     element.css('top', 0);
     var coord = getScreenCoord(obj.position.clone(), camera);
-    element.offset({left: coord.x - field.width()/2 , top: coord.y - field.height()/2 });
+    element.offset({left: coord.x - self.editableField.width()/2 , top: coord.y - self.editableField.height()/2 });
     element.css('display', 'block');
-    field.val( ( current_unit.c * self.dimLine.distance() ).toFixed( accuracy_measurements ) );
-    field.focus();
-    field.select();
-    
-    field.on('change', function(){
-      self.dispatchEvent( { type: 'edit', object: obj, value: +field.val()/current_unit.c } );
+    self.editableField.val( ( current_unit.c * self.dimLine.distance() ).toFixed( accuracy_measurements ) );
+    self.editableField.focus();
+    self.editableField.select();
+
+
+    self.editableField.off('change');
+    self.editableField.off('keydown');
+
+    self.editableField.on('change', function(){
+
+      self.dispatchEvent( { type: 'edit', object: obj, value: + self.editableField.val()/current_unit.c } );
+
     });
+
     
-    field.on('keydown', function(event){
-      if(event.keyCode == 13){
+    self.editableField.on('keydown', function( event ){
+
+      self.dispatchEvent( { type: 'keydown', object: obj } );
+    
+
+      if( event.keyCode == 13 ){
+
         self.unselect();
-        setTimeout(function(){
-          field.off('change');
-//          
-        })
-        
+
+      } else if( event.keyCode == 27 ){
+
+        self.dispatchEvent( { type: 'esc', object: obj } );
       }
-      
+
     });
 
   };
+  this.activateModeOn = function(){
+
+    this.edit( {object: this.note} );
+
+  }
 
 
 
@@ -5527,6 +5596,7 @@ function Doorway( wall, parameters ){
 
 //        self.material.visible = false;
 //    self.wall.mover.hoveron();
+    if(self.wall.mover)
     self.wall.mover.activate();
 
   };
