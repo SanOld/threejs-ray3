@@ -3263,6 +3263,7 @@ function initWallEditor( obj ){
   obj.currentWall = null;
   obj.selected = null;
 
+  obj.measurementTolerance = 0.5;
   obj.maxNeighboorsDistance = 0.5;
   obj.wallMenuCoord = [];
   obj.doorblockSwitcherCoord = [];
@@ -4249,7 +4250,7 @@ function Wall(vertices, parameters){
     var offset = 0;
     var left_point;
     var right_point;
-    var dimension;
+    var dimension = null;
 
     //расчитываем смещение
     switch ( self.dimensions.indexOf( event.target ) ) {
@@ -4262,6 +4263,9 @@ function Wall(vertices, parameters){
         offset = event.value - self.dimension_lines[1].distance();
         break;
     }
+
+
+    window.console.log(new THREE.Line3(self.v11, self.v21).distance());
 
     //точка сдвига
     if( self.v1.x < self.v2.x ){
@@ -4291,11 +4295,19 @@ function Wall(vertices, parameters){
     }
 
     self.update();
-    setTimeout(function(){
-      //pf один проход не полное перестроение ???
-      $wallCreator.updateWalls();
-      $wallCreator.updateWalls();
-    },100)
+
+    $wallCreator.updateWalls();
+
+    //проверяем достигнут ли заданный размер, в пределах точности
+    var dif1 = Math.abs( new THREE.Line3(self.v11, self.v21).distance() - event.value );
+    var dif2 = Math.abs( new THREE.Line3(self.v12, self.v22).distance() - event.value );
+    if(dif1 > $wallEditor.measurementTolerance && dif2 > $wallEditor.measurementTolerance){
+      //рекурсивный вызов
+      self.changeDim(event);
+    }
+
+    $wallCreator.updateWalls();
+    
     
   };
 
