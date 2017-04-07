@@ -4332,8 +4332,6 @@ function Wall(vertices, parameters){
     }
 
 
-    window.console.log(new THREE.Line3(self.v11, self.v21).distance());
-
     //точка сдвига
     if( self.v1.x < self.v2.x ){
       left_point = "v1";
