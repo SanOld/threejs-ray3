@@ -2773,7 +2773,7 @@ function initWallCreator(obj){
           var vertices2 = [ item.point, item.wall.v2 ];
           var params = { width: item.wall.width, height: item.wall.height };
 
-          obj.removeWall(item.wall);
+          item.wall.remove();
           item.wall = null;
           currentWall = null;
 
@@ -3361,11 +3361,16 @@ function initWallEditor( obj ){
     obj.walls.forEach(function(wall){
       objects = objects.concat(wall.doors, wall)
 
-      //добавление размеров в массив выбора
+      //добавление размеров стен в массив выбора
+      wall.dimensions.forEach(function(dim){
+          objects = objects.concat(dim.note)
+      })
+
+      //добавление размеров проемов в массив выбора
       wall.doors.forEach(function(door){
         door.dimensions.forEach(function(dim){
-        objects = objects.concat(dim.note)
-      })
+          objects = objects.concat(dim.note)
+        })
       })
     });
 
@@ -3620,11 +3625,14 @@ function Dimension( param1, param2, plane, parameters ){
 
   if ( parameters === undefined ) parameters = {};
 
-	this.const_direction = parameters.hasOwnProperty("direction") ? parameters["direction"] : null;
+	this.const_direction = new THREE.Vector3();
+  parameters.hasOwnProperty("direction") ? this.const_direction.copy( parameters["direction"] ) : this.const_direction = null;
   this.offset_direction = parameters.hasOwnProperty("offset_direction") ? parameters["offset_direction"] : null;
   this.editable = parameters.hasOwnProperty("editable") ? parameters["editable"] : false;
+  this.dragable = parameters.hasOwnProperty("dragable") ? parameters["dragable"] : true;
   this.name = parameters.hasOwnProperty("name") ? parameters["name"] : 'dimension';
   this.noteState = parameters.hasOwnProperty("noteState") ? parameters["noteState"] : 'show';
+  this.arrow = parameters.hasOwnProperty("arrow") ? parameters["arrow"] : false;
 
 
   var self = this;
@@ -3649,7 +3657,14 @@ function Dimension( param1, param2, plane, parameters ){
   this.planeMousePoint = new THREE.Vector3();
   this.raycaster = new THREE.Raycaster();
 
-  this.editableField = null; //объект редактируемого поля
+  //используется для стрелок размеров стены
+  this.leftArrowActivated = false;
+  this.rightArrowActivated = false;
+  //htlfrnbhetvjt поле и стрелки
+  this.editableFieldWrapper =  $( '.EditableField' );
+  this.editableField = self.editableFieldWrapper.find('input');
+  this.leftArrow = self.editableFieldWrapper.find('.dim-arrow.left');
+  this.rightArrow = self.editableFieldWrapper.find('.dim-arrow.right');
 
   //примечание (текст размера)
   var geometry = new THREE.SphereGeometry( 100, 32, 32 );
@@ -3722,9 +3737,7 @@ function Dimension( param1, param2, plane, parameters ){
 
   this.edit =             function ( event ) {
     
-    var element = $( '.EditableField' );
-    self.editableField = element.find('input');
-    
+    var element = self.editableFieldWrapper;
 
     var obj = event.object;
 
@@ -3733,25 +3746,37 @@ function Dimension( param1, param2, plane, parameters ){
     var coord = getScreenCoord(obj.position.clone(), camera);
     element.offset({left: coord.x - self.editableField.width()/2 , top: coord.y - self.editableField.height()/2 });
     element.css('display', 'block');
+
     self.editableField.val( ( current_unit.c * self.dimLine.distance() ).toFixed( accuracy_measurements ) );
     self.editableField.focus();
     self.editableField.select();
 
+    if( self.arrow ){
+      self.leftArrow.css('display', 'block');
+      self.rightArrow.css('display', 'block');
+
+      self.leftArrow.removeClass( "active" );
+      self.rightArrow.removeClass( "active" );
+
+      self.leftArrowActivated = false;
+      self.rightArrowActivated = false;
+    } else {
+      self.leftArrow.css('display', 'none');
+      self.rightArrow.css('display', 'none');
+    }
 
     self.editableField.off('change');
-    self.editableField.off('keydown');
-
     self.editableField.on('change', function(){
 
-      self.dispatchEvent( { type: 'edit', object: obj, value: + self.editableField.val()/current_unit.c } );
+        self.dispatchEvent( { type: 'edit', object: obj, value: + self.editableField.val()/current_unit.c } );
 
-    });
+      });
 
-    
+    self.editableField.off('keydown');
     self.editableField.on('keydown', function( event ){
 
       self.dispatchEvent( { type: 'keydown', object: obj } );
-    
+
 
       if( event.keyCode == 13 ){
 
@@ -3764,14 +3789,39 @@ function Dimension( param1, param2, plane, parameters ){
 
     });
 
+    self.leftArrow.off('click');
+    self.leftArrow.on('click', function(){
+
+      $( this ).toggleClass( "active" );
+      self.leftArrowActivated = !self.leftArrowActivated;
+
+      if( self.leftArrowActivated && self.rightArrowActivated ){
+        self.rightArrow.toggleClass( "active" );
+        self.rightArrowActivated = !self.rightArrowActivated;
+      }
+
+
+    });
+    self.rightArrow.off('click');
+    self.rightArrow.on('click', function(){
+
+      $( this ).toggleClass( "active" );
+      self.rightArrowActivated = !self.rightArrowActivated;
+
+      if( self.leftArrowActivated && self.rightArrowActivated ){
+        self.leftArrow.toggleClass( "active" );
+        self.leftArrowActivated = !self.leftArrowActivated;
+      }
+
+
+    });
+    
   };
   this.activateModeOn = function(){
 
     this.edit( {object: this.note} );
 
   }
-
-
 
   this.onkeydown = function ( event ){
     if (!self.enabled)
@@ -3800,17 +3850,19 @@ function Dimension( param1, param2, plane, parameters ){
     this.enabled = true;
     this.ready = false;
 
-    if(this.dragControls){
-      this.dragControls.activate();
-    } else {
-      this.dragControls = new DragControls( [this.note], camera, renderer.domElement );
+    if( this.dragable ){
+      if(this.dragControls){
+        this.dragControls.activate();
+      } else {
+        this.dragControls = new DragControls( [this.note], camera, renderer.domElement );
+      }
+
+      this.dragControls.addEventListener( 'dragstart', this.dragstart );
+      this.dragControls.addEventListener( 'drag', this.drag );
+      this.dragControls.addEventListener( 'dragend', this.dragend );
+      this.dragControls.addEventListener( 'hoveron', this.hoveron );
+      this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
     }
-    
-    this.dragControls.addEventListener( 'dragstart', this.dragstart );
-    this.dragControls.addEventListener( 'drag', this.drag );
-    this.dragControls.addEventListener( 'dragend', this.dragend );
-    this.dragControls.addEventListener( 'hoveron', this.hoveron );
-    this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
 
     document.addEventListener( 'keydown', this.onkeydown );
 
@@ -3850,6 +3902,9 @@ function Dimension( param1, param2, plane, parameters ){
 
   this.activate();
   this.update();
+
+
+
 
 }
 Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
@@ -4152,6 +4207,17 @@ function Wall(vertices, parameters){
   this.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
   this.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
 
+  this.dimensions = []; //массив хранения объектов размеров стены
+  this.p11 = new THREE.Vector3();
+  this.p21 = new THREE.Vector3();
+  this.p12 = new THREE.Vector3();
+  this.p22 = new THREE.Vector3();
+  this.dimension_lines = [
+    new THREE.Line3(this.p11, this.p21),
+    new THREE.Line3(this.p12, this.p22)
+  ]
+  
+
   this.geometry = this.buildGeometry();
 
 //    this.material = $projection.projectionWallMaterial
@@ -4167,9 +4233,71 @@ function Wall(vertices, parameters){
   this.mover = new WallMover(this);
   scene.add( this.mover );
 
+
+  setTimeout(function(){
+    self.calcDimensionsPoints();
+    self.createDimensions();
+    self.updateDimensions();
+    self.showDimensions();
+  })
+
   //хелпер осей
 //  var axisHelper = new THREE.AxisHelper( 50 );
 //  this.add( axisHelper );
+  this.changeDim =       function ( event ) {
+
+    var offset = 0;
+    var left_point;
+    var right_point;
+    var dimension;
+
+    //расчитываем смещение
+    switch ( self.dimensions.indexOf( event.target ) ) {
+      case 0:
+        dimension = self.dimensions[0];
+        offset = event.value - self.dimension_lines[0].distance();
+        break;
+      case 1:
+        dimension = self.dimensions[1];
+        offset = event.value - self.dimension_lines[1].distance();
+        break;
+    }
+
+    //точка сдвига
+    if( self.v1.x < self.v2.x ){
+      left_point = "v1";
+      right_point = "v2";
+    } else if( self.v2.x < self.v1.x ){
+      left_point = "v2";
+      right_point = "v1";
+    } else if( self.v1.x == self.v2.x && self.v1.z < self.v2.z){
+      left_point = "v1";
+      right_point = "v2";
+    } else if( self.v1.x == self.v2.x && self.v2.z < self.v1.z){
+      left_point = "v2";
+      right_point = "v1";
+    }
+
+
+    if( dimension.leftArrowActivated ){
+      self.movePoint(left_point, offset);
+    }
+    if( dimension.rightArrowActivated ){
+      self.movePoint(right_point, offset);
+    }
+    if( !dimension.leftArrowActivated && !dimension.rightArrowActivated ){
+      self.movePoint(left_point, offset/2);
+      self.movePoint(right_point, offset);
+    }
+
+    self.update();
+    setTimeout(function(){
+      //pf один проход не полное перестроение ???
+      $wallCreator.updateWalls();
+      $wallCreator.updateWalls();
+    },100)
+    
+  };
 
 }
 Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
@@ -4545,7 +4673,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         item.update();
       });
 
-
+      this.updateDimensions();
 
   },
   remove: function(object){
@@ -4576,12 +4704,15 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       })
 
+      //удаление размеров стены
+      this.dimensions.forEach(function( dim ){
+        dim.deactivate();
+        scene.remove( dim );
+      })
+
       $wallEditor.removeWall( this );
 
     }
-    
-
-
 
   },
   
@@ -4714,6 +4845,102 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     });
 
  },
+
+  createDimensions: function(){
+
+    var self = this;
+
+    var params = {direction: this.direction90, offset_direction: 200, editable: true, arrow: true, dragable: false}
+    this.dimensions.push( new Dimension( this.p11,   this.p21, $projection.plane, params ) );
+
+    params.direction = this.direction90.clone().negate();
+    this.dimensions.push( new Dimension( this.p12,   this.p22, $projection.plane, params ) );
+
+
+    this.dimensions.forEach(function(item){
+      item.activate();
+      scene.add( item );
+    })
+
+
+//    $wallEditor.deactivateSelectControls();
+//    $wallEditor.activateSelectControls();
+
+  },
+  calcDimensionsPoints: function(){
+
+    var Y = this.height;
+
+    this.p11.copy( this.v11.clone().add(new THREE.Vector3( 0, Y, 0)) );
+    this.p21.copy( this.v21.clone().add(new THREE.Vector3( 0, Y, 0)) );
+    this.p12.copy( this.v12.clone().add(new THREE.Vector3( 0, Y, 0)) );
+    this.p22.copy( this.v22.clone().add(new THREE.Vector3( 0, Y, 0)) );
+
+  },
+  updateDimensions: function(){
+    //перерасчет размеров
+    this.calcDimensionsPoints();
+
+    if(this.dimensions.length > 0){
+      this.dimensions[0].const_direction = this.direction90;
+      this.dimensions[1].const_direction = this.direction90.clone().negate();
+    }
+    
+    this.dimensions.forEach(function(item){
+      item.update();
+    })
+
+  },
+  showDimensions: function(){
+    this.dimensions.forEach(function(item){
+      item.visible = true;
+    })
+
+    if( ! this.dimensions[0].hasEventListener ( 'edit', this.changeDim ))
+    this.dimensions[0].addEventListener( 'edit', this.changeDim );
+
+    if( ! this.dimensions[1].hasEventListener ( 'edit', this.changeDim ))
+    this.dimensions[1].addEventListener( 'edit', this.changeDim );
+    
+
+  },
+  hideDimensions: function(){
+    this.dimensions.forEach(function(item){
+      item.visible = false;
+    })
+
+    this.dimensions[0].removeEventListener( 'edit', this.changeDim );
+    this.dimensions[1].removeEventListener( 'edit', this.changeDim );
+
+  },
+  removeDimensions: function(){
+    this.dimensions.forEach(function( item, index ){
+      scene.remove( item );
+    })
+  },
+
+  movePoint: function(point, offset){
+
+    var self = this;
+
+    if(point == 'v1'){
+
+      this.v1.copy( this.v2.clone().add(this.direction.clone().negate().multiplyScalar(this.axisLength + offset)) );
+
+      this.mover.v1_neighbors.forEach(function(item){
+        item.point.copy( self.v1.clone() ) ;
+      })
+    }
+    if(point == 'v2'){
+
+      this.v2.copy( this.v1.clone().add(this.direction.clone().multiplyScalar(this.axisLength + offset)) );
+
+      this.mover.v2_neighbors.forEach(function(item){
+        item.point.copy( self.v2.clone() ) ;
+      })
+    }
+
+  },
 
 });
 

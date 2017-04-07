@@ -65,8 +65,10 @@
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 90px; top: -40px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="action_n"></div>
 </div>
 
-<div class="EditableField" oncontextmenu="return false;" style=" display: none;">
-  <input type="text" name="dimfield" value ="" >
+<div class="EditableField btn-group" oncontextmenu="return false;" style=" display: none;">
+  <button type="button" class="btn btn-default dim-arrow left" style=" display: none;"><span class="fa fa-hand-o-left" aria-hidden="true"></span></button>
+  <input type="text" class="btn btn-default" name="dimfield" value ="" >
+  <button type="button" class="btn btn-default dim-arrow right" style=" display: none;"><span class="fa fa-hand-o-right" aria-hidden="true"></span></button>
 </div>
 
 </html>

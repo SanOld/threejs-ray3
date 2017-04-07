@@ -41,11 +41,15 @@
 .EditableField > input {
     position: absolute;
     display: block;
-    width: 55px;
+    width: 65px;
     height: 16px;
     line-height: 16px;
     font-size: 12px;
     text-indent: 0;
     text-align: center;
     z-index: 90;
+}
+
+.dim-arrow.active {
+  background-color: #64b26d;
 }
