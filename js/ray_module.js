@@ -2789,11 +2789,11 @@ function initWallCreator(obj){
   //Добавленеи линии размера
   obj.addDimension = function(){
 
-      if( obj.lineHelper )
-      if(obj.dimensions.length > 0){
+      if( obj.lineHelper && new THREE.Line3( obj.lineHelper.geometry.vertices[0],  obj.lineHelper.geometry.vertices[1]).distance()  > obj.magnitValue )      
+      if( obj.dimensions.length > 0 ) {
 
-        if(obj.lineHelper.material.visible){ 
-          
+        if(obj.lineHelper.material.visible){
+
           obj.updateDimensions();
           obj.showDimensions();
 
@@ -2802,8 +2802,10 @@ function initWallCreator(obj){
       } else {
 
         obj.calcDimensionsPoints();
+        
         obj.createDimensions();
         obj.activateDimensions();
+
       }
 
   }
@@ -2878,6 +2880,7 @@ function initWallCreator(obj){
           //очистка
           obj.lineHelperGeometry.vertices = [];
           intersectWalls = [];
+          obj.hideDimensions();
 
           //установка следующей точки
           currentWall = obj.walls.length > 0 ? obj.walls[obj.walls.length - 1] : null;
