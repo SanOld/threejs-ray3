@@ -3120,6 +3120,9 @@ function initWallCreator(obj){
     if (!obj.enabled)
       return false;
 //    event.preventDefault();
+    if(event.ctrlKey || event.altKey) {
+      event.preventDefault();
+    }
 
     switch( event.keyCode ) {
       case 46: /*del*/
@@ -3784,9 +3787,11 @@ function Dimension( param1, param2, plane, parameters ){
 
     self.editableField.off('keydown');
     self.editableField.on('keydown', function( event ){
-      event.preventDefault();
 
-      if(event.ctrlKey || event.altKey) return;
+      if(event.ctrlKey || event.altKey) {
+        event.preventDefault();
+        return;
+      }
 
       self.dispatchEvent( { type: 'keydown', object: obj } );
 
