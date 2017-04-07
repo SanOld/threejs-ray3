@@ -3127,18 +3127,23 @@ function initWallCreator(obj){
 
         break;
       case 49: /*1*/
+        if(event.ctrlKey)
         obj.wall_width = 100;
         break;
       case 50: /*2*/
+        if(event.ctrlKey)
         obj.wall_width = 200;
         break;
       case 51: /*3*/
+        if(event.ctrlKey)
         obj.wall_width = 300;
         break;
       case 52: /*4*/
+        if(event.ctrlKey)
         obj.wall_width = 400;
         break;
       case 53: /*5*/
+        if(event.ctrlKey)
         obj.wall_width = 500;
         break;
     }
@@ -3233,6 +3238,7 @@ function initWallCreator(obj){
 
   function onKeydownDim( event ){
 
+    if( !event.ctrlKey && !event.altKey  )
     document.removeEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
    
   }
@@ -3778,9 +3784,11 @@ function Dimension( param1, param2, plane, parameters ){
 
     self.editableField.off('keydown');
     self.editableField.on('keydown', function( event ){
+      event.preventDefault();
+
+      if(event.ctrlKey || event.altKey) return;
 
       self.dispatchEvent( { type: 'keydown', object: obj } );
-
 
       if( event.keyCode == 13 ){
 
@@ -3830,7 +3838,7 @@ function Dimension( param1, param2, plane, parameters ){
   this.onkeydown = function ( event ){
     if (!self.enabled)
       return false;
-//    event.preventDefault();
+    
     switch( event.keyCode ) {
       case 46: /*del*/
       case 27: /*esc*/
