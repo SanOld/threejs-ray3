@@ -7,7 +7,39 @@
 <body id="bd">
   
   
+<nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
+  <div class="container">
+      <div class="row">
+        <div class="col-lg-6">
 
+            <div class="btn-group dropup wall_dim_type">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li class="center" data-type = "center"><a href="#">Стена: размер по осевой</a></li>
+                <li class="inner" data-type = "inner"><a href="#">Стена: размер внутри</a></li>
+                <li class="outer" data-type = "outer"><a href="#">Стена: размер снаружи</a></li>
+              </ul>
+            </div><!-- /btn-group -->
+
+        </div><!-- /.col-lg-6 -->
+        <div class="col-lg-6">
+          <div class="input-group">
+            <input type="text" class="form-control">
+            <div class="input-group-btn">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Действие <span class="caret"></span></button>
+              <ul class="dropdown-menu pull-right">
+                <li><a href="#">Действие</a></li>
+                <li><a href="#">Другое действие</a></li>
+                <li><a href="#">Что-то иное</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Отдельная ссылка</a></li>
+              </ul>
+            </div><!-- /btn-group -->
+          </div><!-- /input-group -->
+        </div><!-- /.col-lg-6 -->
+      </div><!-- /.row -->
+  </div>
+</nav>
 </body>
 
 <div class="ActiveElementMenu" style="top: 187px; left: 500px; display: none;">

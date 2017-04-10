@@ -1918,6 +1918,8 @@ function initProjection(obj){
       color: '#d5c7ac'//бежевый
     });
 
+  obj.wallDimensionType = 'center';
+
   obj.on = function(type){
     obj.enabled = !obj.enabled;
     currentCamera = camera.clone();
@@ -2091,6 +2093,12 @@ function initProjection(obj){
 //      event.preventDefault();
     }
 
+
+  $('.wall_dim_type').on('click','li',function(){
+		obj.wallDimensionType = $(this).attr('data-type');
+    $wallEditor.showWallDimensions();
+    $('.wall_dim_type').find('button').html($(this).find('a').text() + ' <span class="caret"></span>')
+	})
 }
 $projection = {};
 initProjection($projection);
@@ -3501,6 +3509,13 @@ function initWallEditor( obj ){
   obj.removeWall = function( wall ){
     $wallCreator.removeWall(wall);
   }
+  obj.showWallDimensions = function(){
+
+    obj.walls.forEach(function( item ){
+      item.showDimensions();
+    })
+
+  }
 
   obj.isPointsNeighboors = function( p1, p2, koef ){
 
@@ -3693,6 +3708,7 @@ function Dimension( param1, param2, plane, parameters ){
   this.name = parameters.hasOwnProperty("name") ? parameters["name"] : 'dimension';
   this.noteState = parameters.hasOwnProperty("noteState") ? parameters["noteState"] : 'show';
   this.arrow = parameters.hasOwnProperty("arrow") ? parameters["arrow"] : false;
+  this.dim_type = parameters.hasOwnProperty("dim_type") ? parameters["dim_type"] : '';
 
 
   var self = this;
@@ -3701,17 +3717,17 @@ function Dimension( param1, param2, plane, parameters ){
   this.enabled = true;
   this.ready = false;
   this.type = 'Dimension';
+  this._type = '';
   this.isDimension = true;
   
   this.lkmMenu = '';
   this.rkmMenu = '.DimensionMenu';
 
-  this.dim_type = '';
   this.planeNormal
-  this.dimLine = null;
 
   this.point1 = null;
   this.point2 = null;
+  this.dimLine = null;
   this.direction = null;
   this.plane = plane || null;
   this.planeMousePoint = new THREE.Vector3();
@@ -3796,6 +3812,7 @@ function Dimension( param1, param2, plane, parameters ){
   };
 
   this.edit =             function ( event ) {
+
     
     var element = self.editableFieldWrapper;
 
@@ -3931,18 +3948,24 @@ function Dimension( param1, param2, plane, parameters ){
     document.addEventListener( 'keydown', this.onkeydown );
 
     
-    if(this.editable){
-      this.selectControls = new SelectControls( [this.note], camera, renderer.domElement );
+    if( this.editable ){
+
+      if( this.selectControls ){
+        this.selectControls.activate();
+      } else {
+        this.selectControls = new SelectControls( [this.note], camera, renderer.domElement );
+      }
+      
       this.selectControls.addEventListener( 'select', this.edit );
       
-//      this.selectControls.addEventListener( 'unselect', this.unselect );
-    }
+    } 
   };
   this.deactivate = function(){
     this.enabled = false;
     this.ready = true;
 
     if(this.dragControls){
+
       this.dragControls.removeEventListener( 'dragstart', this.dragstart );
       this.dragControls.removeEventListener( 'drag', this.drag );
       this.dragControls.removeEventListener( 'dragend', this.dragend );
@@ -3951,15 +3974,15 @@ function Dimension( param1, param2, plane, parameters ){
 
       document.removeEventListener( 'keydown', this.onkeydown, false );
 
-
       this.dragControls.deactivate();
 
-      if(this.editable){
-        this.selectControls.removeEventListener( 'select', this.edit );
-        
-//        this.selectControls.removeEventListener( 'unselect', this.unselect );
-        this.selectControls.deactivate();
-      }
+    }
+
+    if(this.editable){
+
+      this.selectControls.removeEventListener( 'select', this.edit );
+      this.selectControls.deactivate();
+
     }
 
   };
@@ -3979,9 +4002,9 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
     if(this.arguments.length > 0)
     for( var key = 0;key < 2; key++ ){
       if(this.arguments[key] && this.arguments[key].isVector3)
-        this.dim_type +='P';
+        this._type +='P';
       if(this.arguments[key] && this.arguments[key].isLine)
-        this.dim_type +='L';
+        this._type +='L';
     }
   },
   setPlaneNormal: function(){
@@ -3991,7 +4014,7 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
     }
   },
   definePoints: function(){
-    switch (this.dim_type) {
+    switch (this._type) {
       case 'LP':
         this.point1 = this.getLineCenter(  this.arguments[0].geometry.vertices[0].clone().applyMatrix4(this.arguments[0].matrixWorld),
                                       this.arguments[0].geometry.vertices[1].clone().applyMatrix4(this.arguments[0].matrixWorld)
@@ -4095,7 +4118,7 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
     var p2_start = this.point2;
     var p1_end, p2_end;
 
-    if (this.dim_type == 'PP' || this.dim_type == 'L'){
+    if (this._type == 'PP' || this._type == 'L'){
       this.direction = this.getDirectionPP(this.point1, this.point2);
     }
 
@@ -4157,7 +4180,7 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
 
       this.add(this.ln1, this.ln2);
 
-      this.dimLine = new THREE.Line3(p1_end, p2_end)
+      this.dimLine = new THREE.Line3(p1_end, p2_end);
 
     }
 
@@ -4272,13 +4295,16 @@ function Wall(vertices, parameters){
   this.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
 
   this.dimensions = []; //массив хранения объектов размеров стены
+  this.p1 = new THREE.Vector3();
+  this.p2 = new THREE.Vector3();
   this.p11 = new THREE.Vector3();
   this.p21 = new THREE.Vector3();
   this.p12 = new THREE.Vector3();
   this.p22 = new THREE.Vector3();
   this.dimension_lines = [
     new THREE.Line3(this.p11, this.p21),
-    new THREE.Line3(this.p12, this.p22)
+    new THREE.Line3(this.p12, this.p22),
+    new THREE.Line3(this.p1, this.p2),
   ]
   
 
@@ -4307,7 +4333,7 @@ function Wall(vertices, parameters){
     self.createDimensions();
     self.updateDimensions();
     self.showDimensions();
-  })
+  });
 
   //хелпер осей
 //  var axisHelper = new THREE.AxisHelper( 50 );
@@ -4318,18 +4344,12 @@ function Wall(vertices, parameters){
     var left_point;
     var right_point;
     var dimension = null;
+    var index = self.dimensions.indexOf( event.target )
 
     //расчитываем смещение
-    switch ( self.dimensions.indexOf( event.target ) ) {
-      case 0:
-        dimension = self.dimensions[0];
-        offset = event.value - self.dimension_lines[0].distance();
-        break;
-      case 1:
-        dimension = self.dimensions[1];
-        offset = event.value - self.dimension_lines[1].distance();
-        break;
-    }
+    dimension = self.dimensions[index];
+    offset = event.value - self.dimension_lines[index].distance();
+//    offset = offset / Math.abs(offset);
 
 
     //точка сдвига
@@ -4339,40 +4359,42 @@ function Wall(vertices, parameters){
     } else if( self.v2.x < self.v1.x ){
       left_point = "v2";
       right_point = "v1";
-    } else if( self.v1.x == self.v2.x && self.v1.z < self.v2.z){
+    } else if( self.v1.x == self.v2.x && self.v1.z < self.v2.z ){
       left_point = "v1";
       right_point = "v2";
-    } else if( self.v1.x == self.v2.x && self.v2.z < self.v1.z){
+    } else if( self.v1.x == self.v2.x && self.v2.z < self.v1.z ){
       left_point = "v2";
       right_point = "v1";
     }
 
+    window.console.log(self.dimension_lines[index].distance());
 
     if( dimension.leftArrowActivated ){
-      self.movePoint(left_point, offset);
+      self.movePoint( left_point, offset, dimension.dim_type == 'center' );
     }
     if( dimension.rightArrowActivated ){
-      self.movePoint(right_point, offset);
+      self.movePoint( right_point, offset, dimension.dim_type == 'center' );
     }
     if( !dimension.leftArrowActivated && !dimension.rightArrowActivated ){
-      self.movePoint(left_point, offset/2);
-      self.movePoint(right_point, offset);
+      self.movePoint( left_point, offset/2, dimension.dim_type == 'center' );
+      self.movePoint( right_point, offset/2, dimension.dim_type == 'center' );
     }
 
+    window.console.log(self.dimension_lines[index].distance());
+    
     self.update();
 
     $wallCreator.updateWalls();
 
-    //проверяем достигнут ли заданный размер, в пределах точности
-    var dif1 = Math.abs( new THREE.Line3(self.v11, self.v21).distance() - event.value );
-    var dif2 = Math.abs( new THREE.Line3(self.v12, self.v22).distance() - event.value );
-    if(dif1 > $wallEditor.measurementTolerance && dif2 > $wallEditor.measurementTolerance){
-      //рекурсивный вызов
-      self.changeDim(event);
-    }
+    window.console.log(self.dimension_lines[index].distance());
+    
+//    if( Math.abs( self.dimension_lines[index].distance() - event.value ) > $wallEditor.measurementTolerance ){
+//
+//      self.changeDim(event);
+//      
+//    }
 
     $wallCreator.updateWalls();
-    
     
   };
 
@@ -4947,11 +4969,30 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     var self = this;
 
-    var params = {direction: this.direction90, offset_direction: 200, editable: true, arrow: true, dragable: false}
+    var params = {
+      direction: this.direction90,
+      offset_direction: 200,
+      editable: true,
+      arrow: true,
+      dragable: false,
+      dim_type: this.p11.distanceTo(this.p21) < this.p12.distanceTo(this.p22) ? 'inner' : 'outer'
+    }
     this.dimensions.push( new Dimension( this.p11,   this.p21, $projection.plane, params ) );
 
     params.direction = this.direction90.clone().negate();
+    params.dim_type  = this.p11.distanceTo(this.p21) > this.p12.distanceTo(this.p22) ? 'inner' : 'outer';
     this.dimensions.push( new Dimension( this.p12,   this.p22, $projection.plane, params ) );
+
+    //по осевой
+    var params = {
+      direction: this.direction90,
+      offset_direction: 200,
+      editable: true,
+      arrow: true,
+      dragable: false,
+      dim_type: 'center'
+    }
+    this.dimensions.push( new Dimension( this.p1,   this.p2, $projection.plane, params ) );
 
 
     this.dimensions.forEach(function(item){
@@ -4959,19 +5000,24 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       scene.add( item );
     })
 
-
-//    $wallEditor.deactivateSelectControls();
-//    $wallEditor.activateSelectControls();
-
   },
   calcDimensionsPoints: function(){
 
     var Y = this.height;
 
+    this.p1.copy( this.v1.clone().add(new THREE.Vector3( 0, Y, 0)) );
+    this.p2.copy( this.v2.clone().add(new THREE.Vector3( 0, Y, 0)) );
     this.p11.copy( this.v11.clone().add(new THREE.Vector3( 0, Y, 0)) );
     this.p21.copy( this.v21.clone().add(new THREE.Vector3( 0, Y, 0)) );
     this.p12.copy( this.v12.clone().add(new THREE.Vector3( 0, Y, 0)) );
     this.p22.copy( this.v22.clone().add(new THREE.Vector3( 0, Y, 0)) );
+
+
+    this.dimension_lines = [
+    new THREE.Line3(this.p11, this.p21),
+    new THREE.Line3(this.p12, this.p22),
+    new THREE.Line3(this.p1, this.p2),
+  ]
 
   },
   updateDimensions: function(){
@@ -4979,8 +5025,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.calcDimensionsPoints();
 
     if(this.dimensions.length > 0){
+
+      this.dimensions[0].dim_type = this.p11.distanceTo(this.p21) < this.p12.distanceTo(this.p22) ? 'inner' : 'outer';
+      this.dimensions[1].dim_type  = this.p11.distanceTo(this.p21) > this.p12.distanceTo(this.p22) ? 'inner' : 'outer';
+
       this.dimensions[0].const_direction = this.direction90;
       this.dimensions[1].const_direction = this.direction90.clone().negate();
+      this.dimensions[2].const_direction = this.direction90;
     }
     
     this.dimensions.forEach(function(item){
@@ -4989,25 +5040,48 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
   },
   showDimensions: function(){
-    this.dimensions.forEach(function(item){
-      item.visible = true;
+
+    var self = this;
+    
+    this.dimensions.forEach(function(item, i, arr){
+
+      if ( $projection.wallDimensionType ==  item.dim_type) {
+
+        item.visible = true;
+        item.addEventListener( 'edit', self.changeDim );
+        item.activate();
+
+      } else {
+
+        item.visible = false;
+        item.removeEventListener( 'edit', this.changeDim );
+        item.deactivate();
+
+      }
+
     })
 
-    if( ! this.dimensions[0].hasEventListener ( 'edit', this.changeDim ))
-    this.dimensions[0].addEventListener( 'edit', this.changeDim );
 
-    if( ! this.dimensions[1].hasEventListener ( 'edit', this.changeDim ))
-    this.dimensions[1].addEventListener( 'edit', this.changeDim );
+//    this.dimensions.forEach(function(item, i, arr){
+//
+//      if( ! arr[i].hasEventListener ( 'edit', self.changeDim ))
+//      arr[i].addEventListener( 'edit', self.changeDim );
+//
+//    })
     
 
   },
   hideDimensions: function(){
-    this.dimensions.forEach(function(item){
+    this.dimensions.forEach(function(item, i){
       item.visible = false;
-    })
 
-    this.dimensions[0].removeEventListener( 'edit', this.changeDim );
-    this.dimensions[1].removeEventListener( 'edit', this.changeDim );
+      item.removeEventListener( 'edit', this.changeDim );
+
+      item.deactivate();
+    })
+//
+//    this.dimensions[0].removeEventListener( 'edit', this.changeDim );
+//    this.dimensions[1].removeEventListener( 'edit', this.changeDim );
 
   },
   removeDimensions: function(){
@@ -5026,25 +5100,49 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   },
 
 
-  movePoint: function( point, offset ){
+  movePoint: function( point, offset, center_line ){
 
     var self = this;
 
     if(point == 'v1'){
 
-      this.v1.copy( this.v2.clone().add(this.direction.clone().negate().multiplyScalar(this.axisLength + offset)) );
+//
+      if(this.mover.v1_neighbors.length == 1){
 
-      this.mover.v1_neighbors.forEach(function(item){
-        item.point.copy( self.v1.clone() ) ;
-      })
+        this.mover.v1_neighbors[0].wall.mover.position.copy(self.mover.position.clone().add(self.direction.clone().negate().multiplyScalar( offset )))
+        this.mover.v1_neighbors[0].wall.mover.dragstart({object: this.mover.v1_neighbors[0].wall.mover});
+        this.mover.v1_neighbors[0].wall.mover.drag({object: this.mover.v1_neighbors[0].wall.mover});
+        this.mover.v1_neighbors[0].wall.mover.dragend({object: this.mover.v1_neighbors[0].wall.mover});
+
+      } else if ( this.mover.v1_neighbors.length == 0 || ( this.mover.v1_neighbors.length > 1 && center_line ) ){
+
+        this.v1.copy( this.v2.clone().add(this.direction.clone().negate().multiplyScalar(this.v1.distanceTo( this.v2 ) + offset)) );
+
+        this.mover.v1_neighbors.forEach(function(item){
+          item.point.copy( self.v1.clone() ) ;
+        })
+      }
+
+      
     }
     if(point == 'v2'){
 
-      this.v2.copy( this.v1.clone().add(this.direction.clone().multiplyScalar(this.axisLength + offset)) );
+      if(this.mover.v2_neighbors.length == 1){
 
-      this.mover.v2_neighbors.forEach(function(item){
-        item.point.copy( self.v2.clone() ) ;
-      })
+        this.mover.v2_neighbors[0].wall.mover.position.copy(self.mover.position.clone().add(self.direction.clone().multiplyScalar( offset )))
+        this.mover.v2_neighbors[0].wall.mover.dragstart({object: this.mover.v2_neighbors[0].wall.mover});
+        this.mover.v2_neighbors[0].wall.mover.drag({object: this.mover.v2_neighbors[0].wall.mover});
+        this.mover.v2_neighbors[0].wall.mover.dragend({object: this.mover.v2_neighbors[0].wall.mover});
+
+      } else if ( this.mover.v2_neighbors.length == 0 || ( this.mover.v2_neighbors.length > 1 && center_line ) ){
+
+        this.v2.copy( this.v1.clone().add(this.direction.clone().multiplyScalar(this.v1.distanceTo( this.v2 ) + offset)) );
+
+        this.mover.v2_neighbors.forEach(function(item){
+          item.point.copy( self.v2.clone() ) ;
+        })
+      }
+
     }
 
   },
