@@ -2095,9 +2095,12 @@ function initProjection(obj){
 
 
   $('.wall_dim_type').on('click','li',function(){
+
 		obj.wallDimensionType = $(this).attr('data-type');
     $wallEditor.showWallDimensions();
-    $('.wall_dim_type').find('button').html($(this).find('a').text() + ' <span class="caret"></span>')
+
+    $('.wall_dim_type').find('button').html($(this).find('a').text() + ' <span class="caret"></span>');
+
 	})
 }
 $projection = {};
@@ -2666,6 +2669,9 @@ function initWallCreator(obj){
     setTimeout(function(){
       obj.magnitVerticiesCreate(); //пересоздание магнитных точек
     },100)
+
+    $wallEditor.deactivateSelectControls();
+    $wallEditor.activateSelectControls();
 
     return wall;
 
@@ -3314,7 +3320,6 @@ function initWallEditor( obj ){
   obj.currentWall = null;
   obj.selected = null;
 
-  obj.measurementTolerance = 0.5;
   obj.maxNeighboorsDistance = 0.5;
   obj.wallMenuCoord = [];
   obj.doorblockSwitcherCoord = [];
@@ -3452,8 +3457,6 @@ function initWallEditor( obj ){
 
     }
     
-
-
     obj.selectControls.addEventListener( 'select', obj.select );
     obj.selectControls.addEventListener( 'unselect', obj.unselect );
 //    obj.dragControls.addEventListener( 'end', obj.dragend );
@@ -3736,11 +3739,15 @@ function Dimension( param1, param2, plane, parameters ){
   //используется для стрелок размеров стены
   this.leftArrowActivated = false;
   this.rightArrowActivated = false;
+  this.downArrowActivated = false;
+  this.upArrowActivated = false;
   //htlfrnbhetvjt поле и стрелки
   this.editableFieldWrapper =  $( '.EditableField' );
   this.editableField = self.editableFieldWrapper.find('input');
   this.leftArrow = self.editableFieldWrapper.find('.dim-arrow.left');
   this.rightArrow = self.editableFieldWrapper.find('.dim-arrow.right');
+  this.downArrow = self.editableFieldWrapper.find('.dim-arrow.down');
+  this.upArrow = self.editableFieldWrapper.find('.dim-arrow.up');
 
   //примечание (текст размера)
   var geometry = new THREE.SphereGeometry( 100, 32, 32 );
@@ -3813,7 +3820,6 @@ function Dimension( param1, param2, plane, parameters ){
 
   this.edit =             function ( event ) {
 
-    
     var element = self.editableFieldWrapper;
 
     var obj = event.object;
@@ -3829,6 +3835,19 @@ function Dimension( param1, param2, plane, parameters ){
     self.editableField.select();
 
     if( self.arrow ){
+
+      if(self.point1.x == self.point2.x){
+
+        self.leftArrow.find('.fa-hand-o-left').removeClass('fa-hand-o-left').addClass('fa-hand-o-up');
+        self.rightArrow.find('.fa-hand-o-right').removeClass('fa-hand-o-right').addClass('fa-hand-o-down');
+
+      } else {
+
+        self.leftArrow.find('.fa-hand-o-down').removeClass('fa-hand-o-down').addClass('fa-hand-o-right');
+        self.rightArrow.find('.fa-hand-o-up').removeClass('fa-hand-o-up').addClass('fa-hand-o-left');
+
+      }
+      
       self.leftArrow.css('display', 'block');
       self.rightArrow.css('display', 'block');
 
@@ -3837,6 +3856,7 @@ function Dimension( param1, param2, plane, parameters ){
 
       self.leftArrowActivated = false;
       self.rightArrowActivated = false;
+
     } else {
       self.leftArrow.css('display', 'none');
       self.rightArrow.css('display', 'none');
@@ -3880,7 +3900,6 @@ function Dimension( param1, param2, plane, parameters ){
         self.rightArrow.toggleClass( "active" );
         self.rightArrowActivated = !self.rightArrowActivated;
       }
-
 
     });
     self.rightArrow.off('click');
@@ -4367,8 +4386,6 @@ function Wall(vertices, parameters){
       right_point = "v1";
     }
 
-    window.console.log(self.dimension_lines[index].distance());
-
     if( dimension.leftArrowActivated ){
       self.movePoint( left_point, offset, dimension.dim_type == 'center' );
     }
@@ -4380,19 +4397,9 @@ function Wall(vertices, parameters){
       self.movePoint( right_point, offset/2, dimension.dim_type == 'center' );
     }
 
-    window.console.log(self.dimension_lines[index].distance());
-    
     self.update();
 
     $wallCreator.updateWalls();
-
-    window.console.log(self.dimension_lines[index].distance());
-    
-//    if( Math.abs( self.dimension_lines[index].distance() - event.value ) > $wallEditor.measurementTolerance ){
-//
-//      self.changeDim(event);
-//      
-//    }
 
     $wallCreator.updateWalls();
     
@@ -5026,7 +5033,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     if(this.dimensions.length > 0){
 
-      this.dimensions[0].dim_type = this.p11.distanceTo(this.p21) < this.p12.distanceTo(this.p22) ? 'inner' : 'outer';
+      this.dimensions[0].dim_type = this.p11.distanceTo(this.p21) <= this.p12.distanceTo(this.p22) ? 'inner' : 'outer';
       this.dimensions[1].dim_type  = this.p11.distanceTo(this.p21) > this.p12.distanceTo(this.p22) ? 'inner' : 'outer';
 
       this.dimensions[0].const_direction = this.direction90;
@@ -5104,7 +5111,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     var self = this;
 
-    if(point == 'v1'){
+    if( point == 'v1' ){
 
 //
       if(this.mover.v1_neighbors.length == 1){
@@ -5118,9 +5125,34 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
         this.v1.copy( this.v2.clone().add(this.direction.clone().negate().multiplyScalar(this.v1.distanceTo( this.v2 ) + offset)) );
 
-        this.mover.v1_neighbors.forEach(function(item){
+        this.mover.v1_neighbors.forEach( function( item ){
           item.point.copy( self.v1.clone() ) ;
         })
+
+      } else if( this.mover.v1_neighbors.length > 1 ){
+
+        this.mover.v1_neighbors.forEach(function( item, i, arr ){
+
+          var nbs = [];
+
+          if (  item.wall.direction.clone().dot ( self.direction.clone() ) < 0.001 ){
+
+            nbs.push(item);//сохраняем перпендикулярных соседей
+
+          }
+
+          //перемещаем соседей
+          nbs.forEach(function( item2, i, arr ){
+
+            arr[i].wall.mover.position.copy(self.mover.position.clone().add(self.direction.clone().negate().multiplyScalar( offset )))
+            arr[i].wall.mover.dragstart({object: arr[i].wall.mover});
+            arr[i].wall.mover.drag({object: arr[i].wall.mover});
+            arr[i].wall.mover.dragend({object: arr[i].wall.mover});
+
+          })
+
+        })
+
       }
 
       
@@ -5141,6 +5173,30 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.mover.v2_neighbors.forEach(function(item){
           item.point.copy( self.v2.clone() ) ;
         })
+      } else if( this.mover.v2_neighbors.length > 1 ){
+
+        this.mover.v2_neighbors.forEach(function( item, i, arr ){
+
+          var nbs = [];
+
+          if (  item.wall.direction.clone().dot ( self.direction.clone() ) < 0.001 ){
+
+            nbs.push(item);//сохраняем перпендикулярных соседей
+
+          }
+
+          //перемещаем соседей
+          nbs.forEach(function( item2, i, arr ){
+
+            arr[i].wall.mover.position.copy(self.mover.position.clone().add(self.direction.clone().multiplyScalar( offset )))
+            arr[i].wall.mover.dragstart({object: arr[i].wall.mover});
+            arr[i].wall.mover.drag({object: arr[i].wall.mover});
+            arr[i].wall.mover.dragend({object: arr[i].wall.mover});
+
+          })
+
+        })
+
       }
 
     }

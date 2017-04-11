@@ -79,13 +79,13 @@ var loader = new THREE.TextureLoader();
 // load a resource
 loader.load(
 	// resource URL
-  '/img/Planirovka.jpg',
+  '/img/plan3.jpg',
 	// Function when resource is loaded
 	function ( floorTexture ) {
 		// do something with the texture 
       floorTexture.repeat.set( 1, 1 );
       var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
-      var floorGeometry = new THREE.PlaneBufferGeometry(20000, 12000, 10, 10);
+      var floorGeometry = new THREE.PlaneBufferGeometry(20000*2.09, 12000*2.44, 10, 10);
       var floor = new THREE.Mesh(floorGeometry, floorMaterial);
       floor.name = 'floor'
       floor.position.y = -1;
