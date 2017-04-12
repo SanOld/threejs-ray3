@@ -2102,6 +2102,45 @@ function initProjection(obj){
     $('.wall_dim_type').find('button').html($(this).find('a').text() + ' <span class="caret"></span>');
 
 	})
+  $('.footer').on('click','[action = loadFloor]',function(){
+    
+    $(this).parent().find('.floorLoader').trigger('click');
+//    $(this).parent().find('.floorLoader').off('change');
+    $(this).parent().find('.floorLoader').on('change', function(){
+
+        
+        renderImage(this.files[0], function(src){
+
+          var image = $('.localImage')
+          image[0].src = src;
+
+          var texture = new THREE.Texture(image[0]);
+          texture.needsUpdate = true;
+
+          scene.getObjectByName('floor').material.map = texture;
+
+        })
+
+      });
+
+      function renderImage(file, callback) {
+
+       // генерация нового объекта FileReader
+        var reader = new FileReader();
+
+       // подстановка изображения в атрибут src
+        reader.onload = function(event) {
+          callback(event.target.result);
+        }
+
+       // при считке файла, вызывается метод, описанный выше
+        reader.readAsDataURL(file);
+      };
+
+	})
+
+
+
 }
 $projection = {};
 initProjection($projection);
@@ -3648,6 +3687,10 @@ function initWallEditor( obj ){
   $('.ActiveElementMenu').on('click', '[action = addNiche]', function(){
 		obj.selected.addDoorway('niche');
 	});
+  $('.ActiveElementMenu').on('click', '[action = scaleFloor]', function(event){
+    window.console.log(event);
+		obj.selected.setFloorScale(event);
+	});
 
 
   $('.FourStateSwitcher').on('click', '[action = location_1]', function(){
@@ -3843,9 +3886,9 @@ function Dimension( param1, param2, plane, parameters ){
 
       } else {
 
-        self.leftArrow.find('.fa-hand-o-down').removeClass('fa-hand-o-down').addClass('fa-hand-o-right');
-        self.rightArrow.find('.fa-hand-o-up').removeClass('fa-hand-o-up').addClass('fa-hand-o-left');
-
+        self.leftArrow.find('.fa-hand-o-up').removeClass('fa-hand-o-up').addClass('fa-hand-o-left');
+        self.rightArrow.find('.fa-hand-o-down').removeClass('fa-hand-o-down').addClass('fa-hand-o-right');
+       
       }
       
       self.leftArrow.css('display', 'block');
@@ -4240,9 +4283,26 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
   },
 
   update: function(){
-//    this.definePoints();
-    this.drawExtline();
-    this.drawDimline();
+
+    try {
+
+      this.drawExtline();
+      this.drawDimline();
+
+    } catch (err) {
+
+      this.remove(this.ln1, this.ln2);
+      this.remove(this.line_part1, this.line_part2, this.note );
+
+    }
+
+    if( this.dimLine.distance() == 0){
+      this.remove(this.ln1, this.ln2);
+      this.remove(this.line_part1, this.line_part2, this.note );
+    }
+
+
+    
   },
 
   hideMenu: function() {
@@ -4296,6 +4356,9 @@ function Wall(vertices, parameters){
   this.walls = []//заполнение при обновлении
   this.doors = [];
   var self = this;
+
+  this.editableFieldWrapper =  $( '.EditableField' );
+  this.editableField = self.editableFieldWrapper.find('input');
 
   this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 100;
   this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 2700;
@@ -4426,6 +4489,21 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       bevelEnabled: false
     };
     try{
+
+//      var shapePoints = wallShape.extractPoints();
+//      var vertices = shapePoints.shape;
+//      THREE.ShapeUtils.isClockWise(vertices)
+//      window.console.log(vertices);
+//      var arr = THREE.ShapeUtils.triangulate( vertices, false );
+//      window.console.log(vertices);
+//      window.console.log(arr);
+//
+//      if( arr.lenth > 0 ){
+//        var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
+//      } else {
+//        return null;
+//      }
+
       var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
     } catch (e){
       return null;
@@ -5133,23 +5211,15 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
         this.mover.v1_neighbors.forEach(function( item, i, arr ){
 
-          var nbs = [];
-
-          if (  item.wall.direction.clone().dot ( self.direction.clone() ) < 0.001 ){
-
-            nbs.push(item);//сохраняем перпендикулярных соседей
-
-          }
-
-          //перемещаем соседей
-          nbs.forEach(function( item2, i, arr ){
+          if ( arr[i].wall.mover && item.wall.direction.clone().dot ( self.direction.clone() ) < 0.001 ){
 
             arr[i].wall.mover.position.copy(self.mover.position.clone().add(self.direction.clone().negate().multiplyScalar( offset )))
             arr[i].wall.mover.dragstart({object: arr[i].wall.mover});
             arr[i].wall.mover.drag({object: arr[i].wall.mover});
             arr[i].wall.mover.dragend({object: arr[i].wall.mover});
 
-          })
+          }
+
 
         })
 
@@ -5177,23 +5247,14 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
         this.mover.v2_neighbors.forEach(function( item, i, arr ){
 
-          var nbs = [];
-
-          if (  item.wall.direction.clone().dot ( self.direction.clone() ) < 0.001 ){
-
-            nbs.push(item);//сохраняем перпендикулярных соседей
-
-          }
-
-          //перемещаем соседей
-          nbs.forEach(function( item2, i, arr ){
+          if ( arr[i].wall.mover && item.wall.direction.clone().dot ( self.direction.clone() ) < 0.001 ){
 
             arr[i].wall.mover.position.copy(self.mover.position.clone().add(self.direction.clone().multiplyScalar( offset )))
             arr[i].wall.mover.dragstart({object: arr[i].wall.mover});
             arr[i].wall.mover.drag({object: arr[i].wall.mover});
             arr[i].wall.mover.dragend({object: arr[i].wall.mover});
 
-          })
+          }
 
         })
 
@@ -5220,6 +5281,85 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         item.point.copy( self.v2.clone() ) ;
       })
     }
+  },
+
+  setFloorScale: function(event){
+
+    var self = this
+
+    var element = this.editableFieldWrapper;
+    element.css('left', 0);
+    element.css('top', 0);
+    var coord = { x: event.screenX, y: event.screenY };
+    element.offset({left: coord.x - this.editableField.width() / 2 , top: coord.y - this.editableField.height() / 2 });
+    element.css('display', 'block');
+
+    this.editableField.val( ( current_unit.c * this.axisLength ).toFixed( accuracy_measurements ) );
+    this.editableField.focus();
+    this.editableField.select();
+
+    this.editableField.off('change');
+    this.editableField.on('change', function(){
+
+      var val = +self.editableField.val() / current_unit.c ;
+
+      var floorScaleX = 1;
+      var floorScaleY = 1;
+      var floorScaleZ = 1;
+
+      if (self.v1.x == self.v2.x ){
+
+        floorScaleY = val / self.axisLength;
+
+      } else if ( self.v1.z == self.v2.z ){
+
+        floorScaleX = val / self.axisLength;
+
+      } else if ( self.v1.x != self.v2.x  && self.v1.z != self.v2.z ){
+
+        floorScaleX = floorScaleY = val / self.axisLength;
+
+      }
+
+      window.console.log(scene.getObjectByName('floor').scale);
+      scene.getObjectByName('floor').scale.set ( 
+                                                scene.getObjectByName('floor').scale.x * floorScaleX,
+                                                scene.getObjectByName('floor').scale.y * floorScaleY,
+                                                scene.getObjectByName('floor').scale.z * floorScaleZ
+                                                );
+      window.console.log(scene.getObjectByName('floor').scale);
+
+
+
+      self.dimensions.forEach(function( item ){
+
+        if(item.dim_type == 'center'){
+          self.changeDim({target: item, value: val});
+          return;
+        }
+
+      })
+
+    });
+
+    this.editableField.off('keydown');
+    this.editableField.on('keydown', function( event ){
+
+      if(event.ctrlKey || event.altKey) {
+        event.preventDefault();
+        return;
+      }
+
+      if( event.keyCode == 13 ){
+
+        element.css('display', 'none');
+
+      } else if( event.keyCode == 27 ){
+
+        element.css('display', 'none');
+      }
+
+    });
   }
 
 });
@@ -5732,9 +5872,25 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
       bevelEnabled: false
     };
     try{
+
+//      var shapePoints = wallShape.extractPoints();
+//      var vertices = shapePoints.shape;
+//      THREE.ShapeUtils.isClockWise(vertices)
+//      var arr = THREE.ShapeUtils.triangulate( vertices, false );
+//
+//
+//      if( arr.lenth > 0 ){
+//        var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
+//      } else {
+//        return null;
+//      }
+
       var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
+      
     } catch (e){
+
       return null;
+
     }
     return geometry;
   },

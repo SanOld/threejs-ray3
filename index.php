@@ -7,8 +7,8 @@
 <body id="bd">
   
   
-<nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
-  <div class="container">
+<nav class="navbar navbar-default navbar-fixed-bottom footer" role="navigation">
+  <div class="container-fluid">
       <div class="row">
         <div class="col-lg-6">
 
@@ -20,9 +20,13 @@
                 <li class="outer" data-type = "outer"><a href="#">Стена: размер снаружи</a></li>
               </ul>
             </div><!-- /btn-group -->
-
         </div><!-- /.col-lg-6 -->
-        <div class="col-lg-6">
+        <div class="col-lg-3">
+            <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
+            <input type ="file" class = "floorLoader" style="display: none">
+            <img class = "localImage" style="display: none">
+        </div><!-- /.col-lg-3 -->
+        <div class="col-lg-3">
           <div class="input-group">
             <input type="text" class="form-control">
             <div class="input-group-btn">
@@ -36,7 +40,7 @@
               </ul>
             </div><!-- /btn-group -->
           </div><!-- /input-group -->
-        </div><!-- /.col-lg-6 -->
+        </div><!-- /.col-lg-3 -->
       </div><!-- /.row -->
   </div>
 </nav>
@@ -45,7 +49,7 @@
 <div class="ActiveElementMenu" style="top: 187px; left: 500px; display: none;">
   <a target="_blank" class="ActiveElementMenuAnimated" style="left: 0px; top: 0px; background-position: left -520px; opacity: 0; width: 0px; height: 0px;" action="info">
   </a>
-  <div target="_blank" ee="11" class="ActiveElementMenuAnimated" style="left: -103.07px; top: -42.2584px; background-position: left 0px; opacity: 1; width: 40px; height: 40px;" action="materials">
+  <div target="_blank" ee="11" class="ActiveElementMenuAnimated" style="left: -103.07px; top: -42.2584px; background-position: left 0px; opacity: 1; width: 40px; height: 40px;" action="scaleFloor">
   </div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: -80.8112px; top: -80.8112px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="addWindow">
   </div>
