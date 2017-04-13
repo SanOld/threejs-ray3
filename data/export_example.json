@@ -1,0 +1,55 @@
+{
+  "floors": [
+    {
+      "rooms": [
+        {
+          "id": null,
+          "furniture": [],
+          "closedRoom": true,
+          "roomID": "",
+          "room_type": "undefined",
+          "room_name": "",
+          "room_number": "",
+          "room_zone": "",
+          "room_area": "",
+          "area_coords": {
+            "x": 0,
+            "y": 0
+          },
+          "walls": [],
+          "elements": []
+        }
+      ],
+      "routes": [],
+      "furniture": [],
+      "floorData": {
+        "name": "Страница 1",
+        "project": "",
+        "index": 1,
+        "id": "",
+        "floor": 0,
+        "ground": 0,
+        "ceiling": 0,
+        "routes": 0,
+        "netOutlet": 0,
+        "elOutlet": 0,
+        "outletPer": 0,
+        "elSwitch": 0,
+        "other": 0,
+        "measureUnits": 1,
+        "slab_height": 0,
+        "outlet_reserve": 0,
+        "rack_reserve": 0,
+        "cable_reserve": 0,
+        "wallWidth": 0,
+        "channelOccupancy": 0,
+        "marking": 0,
+        "active": true
+      },
+      "chimneys": [],
+      "paperWidth": 0,
+      "paperHeight": 0,
+      "scaling": 1
+    }
+  ]
+}

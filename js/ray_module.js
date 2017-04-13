@@ -1894,7 +1894,6 @@ function initProjection(obj){
   var currentCamera;
 
   
-
   obj.enabled = false;
   obj.type = false;
   obj.plane = null;
@@ -2138,6 +2137,17 @@ function initProjection(obj){
       };
 
 	})
+  $('.footer').on('click','[action = exportJSON]',function(){
+
+    $wallEditor.on();
+    $wallEditor.off();
+
+    window.console.log($wallEditor.walls);
+    $wallEditor.getJSON(function(result){
+      window.console.log( result );
+    }) ;
+    
+  })
 
 
 
@@ -2660,8 +2670,14 @@ function initWallCreator(obj){
     })
   }
   obj.removeWall = function(wall){
+
+      if(wall.parent){
+        wall.parent.remove(wall);
+      } else {
+        delete wall;
+        return;
+      }
       
-      wall.parent.remove(wall);
 
       obj.walls.splice( wall.index, 1 );
       obj.reIndexWall();
@@ -3281,7 +3297,7 @@ function initWallCreator(obj){
   obj.showDimensions = function(){
     obj.dimensions.forEach(function(item){
       item.visible = true;
-      item.activateModeOn();
+      item.editableModeOn();
     })
   }
   obj.hideDimensions = function(){
@@ -3373,8 +3389,10 @@ function initWallEditor( obj ){
     obj.activateWallMover();
     obj.activateDoorway();
     obj.activateControlPoint();
+    obj.activateWallDimensions();
+    
 
-    obj.deactivateSelectControls();
+//    obj.deactivateSelectControls();
     obj.activateSelectControls();
     
   }
@@ -3383,6 +3401,7 @@ function initWallEditor( obj ){
     obj.deactivateWallMover();
     obj.deactivateDoorway();
     obj.deactivateControlPoint();
+    
     obj.deactivateSelectControls();
 //    obj.deactivate();
 
@@ -3436,6 +3455,12 @@ function initWallEditor( obj ){
   obj.deactivateWallMover = function(){
     obj.walls.forEach(function(item){
       item.mover.deactivate();
+    })
+  }
+
+  obj.activateWallDimensions = function(){
+    obj.walls.forEach(function(item){
+      item.activateDimensions();
     })
   }
 
@@ -3495,6 +3520,8 @@ function initWallEditor( obj ){
       obj.selectControls = new SelectControls( objects, camera, renderer.domElement );
 
     }
+
+
     
     obj.selectControls.addEventListener( 'select', obj.select );
     obj.selectControls.addEventListener( 'unselect', obj.unselect );
@@ -3506,6 +3533,7 @@ function initWallEditor( obj ){
   obj.deactivateSelectControls = function(){
 
     if(obj.selectControls ){
+
       obj.selectControls.removeEventListener( 'select', obj.select, false );
   //    obj.dragControls.removeEventListener( 'end', obj.dragend, false );
       obj.selectControls.removeEventListener( 'hoveron', obj.hoveron, false );
@@ -3570,6 +3598,105 @@ function initWallEditor( obj ){
     }
 
     return false;
+
+  }
+
+  obj.getJSON = function(callback){
+    var export_data;
+    $.getJSON("../data/export_example.json", function(data) {
+                window.console.log(data);
+
+//                export_data = JSON.parse(data);
+                export_data = data;
+                obj.walls.forEach(function(item){
+
+
+                  //координаты
+                  if ( item.v11.distanceTo( item.v21 ) < item.v12.distanceTo( item.v22 ) ){
+
+                    var inner = {start: {x: item.v11.x, y: item.v11.z }, end: {x: item.v21.x, y: item.v21.z } };
+                    var outer = {start: {x: item.v12.x, y: item.v12.z }, end: {x: item.v22.x, y: item.v22.z } };
+
+                  } else {
+
+                    var inner = {start: {x: item.v12.x, y: item.v12.z }, end: {x: item.v22.x, y: item.v22.z } };
+                    var outer = {start: {x: item.v11.x, y: item.v11.z }, end: {x: item.v21.x, y: item.v21.z } };
+
+                  }
+
+                  var center = {start: {x: item.v1.x, y: item.v1.z }, end: {x: item.v2.x, y: item.v2.z } };
+
+                  //проемы
+                  var openings = [];
+                  item.doors.forEach(function(doorway){
+
+                    var doorway_inner = {start: {x: doorway.p_11.x, y: doorway.p_11.z }, end: {x: doorway.p_21.x, y: doorway.p_21.z } };
+                    var doorway_outer = {start: {x: doorway.p_12.x, y: doorway.p_12.z }, end: {x: doorway.p_22.x, y: doorway.p_22.z } };
+                    var cellAngle = 0;
+                    if(doorway.location){
+                      switch (doorway.location) {
+                        case 1:
+                          cellAngle = 0;
+                          break;
+                        case 2:
+                          cellAngle = 90;
+                          break;
+                        case 3:
+                          cellAngle = 180;
+                          break;
+                        case 4:
+                          cellAngle = 270;
+                          break;
+
+                      }
+                    }
+
+                    openings.push(
+                                  {
+                                    id: doorway.id,
+                                    inner: doorway_inner,
+                                    outer: doorway_outer,
+                                    cellPosition: {
+                                      x: 0,
+                                      y: 0
+                                    },
+                                    cellAngle: cellAngle,
+                                    flipped: false,
+                                    type: "entry_door",
+                                    systype: "entry_door",
+                                    height: doorway.height,
+                                    heightAboveFloor: doorway.elevation
+                                  }
+                                );
+                  })
+
+                  export_data.floors[0].rooms[0].walls.push(
+                                          {
+                                          id: item.id,
+                                          inner: inner,
+                                          outer: outer,
+                                          center: center,
+                                          arcPath: null,
+                                          mount_type: "",
+                                          wall_length_mm: item.axisLength,
+                                          width_px: item.width,
+                                          width_units: item.width * current_unit.c,
+                                          type: "bearing_wall",
+                                          height: {
+                                            start: item.v1.y,
+                                            end: item.height
+                                          },
+                                          openings: openings,
+                                          external_wall: false,
+                                          room_wall_num: 0,
+                                          outer_wall_num: 0
+                                        }
+                          )
+
+                })
+
+                callback( JSON.stringify(export_data) );
+            });
 
   }
 
@@ -3960,7 +4087,7 @@ function Dimension( param1, param2, plane, parameters ){
     });
     
   };
-  this.activateModeOn = function(){
+  this.editableModeOn = function(){
 
     this.edit( {object: this.note} );
 
@@ -4018,15 +4145,16 @@ function Dimension( param1, param2, plane, parameters ){
         this.selectControls = new SelectControls( [this.note], camera, renderer.domElement );
       }
       
-      this.selectControls.addEventListener( 'select', this.edit );
+      this.selectControls.addEventListener( 'select', self.edit );
       
-    } 
+    }
+    
   };
   this.deactivate = function(){
     this.enabled = false;
     this.ready = true;
 
-    if(this.dragControls){
+    if( this.dragControls ){
 
       this.dragControls.removeEventListener( 'dragstart', this.dragstart );
       this.dragControls.removeEventListener( 'drag', this.drag );
@@ -4040,9 +4168,10 @@ function Dimension( param1, param2, plane, parameters ){
 
     }
 
-    if(this.editable){
+    if( this.editable ){
 
       this.selectControls.removeEventListener( 'select', this.edit );
+
       this.selectControls.deactivate();
 
     }
@@ -4051,9 +4180,6 @@ function Dimension( param1, param2, plane, parameters ){
 
   this.activate();
   this.update();
-
-
-
 
 }
 Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
@@ -4253,8 +4379,8 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
 
       this.remove( this.line_part1, this.line_part2 );
 
-      this.line_part1 = new THREE.ArrowHelper( this.dimLine.delta().normalize(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 100 );
-      this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 100 );
+      this.line_part1 = new THREE.ArrowHelper( this.dimLine.delta().normalize(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, this.dimLine.distance()/2 > 100 ? 100 : 0.001 );
+      this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, this.dimLine.distance()/2 > 100 ? 100 : 0.001 );
 
       this.add( this.line_part1, this.line_part2 );
 
@@ -4264,8 +4390,8 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
 
     } else {
 
-      this.line_part1 = new THREE.ArrowHelper( this.dimLine.delta().normalize(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 100 );
-      this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, 100 );
+      this.line_part1 = new THREE.ArrowHelper( this.dimLine.delta().normalize(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, this.dimLine.distance()/2 > 100 ? 100 : 0.001 );
+      this.line_part2 = new THREE.ArrowHelper( this.dimLine.delta().normalize().negate(), this.dimLine.getCenter(), this.dimLine.distance()/2, dimensionMaterial.color, this.dimLine.distance()/2 > 100 ? 100 : 0.001 );
 
       //спрайт текста
       noteAdd( this.note, ( current_unit.c * this.dimLine.distance() ).toFixed( accuracy_measurements ), null, {y: 100} );
@@ -4409,13 +4535,10 @@ function Wall(vertices, parameters){
   this.controlPoint2 = new WallControlPoint( this, 'v2' );
   scene.add( this.controlPoint1, this.controlPoint2 );
 
+  //хелпер примечание id
+//  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
 
-  setTimeout(function(){
-    self.calcDimensionsPoints();
-    self.createDimensions();
-    self.updateDimensions();
-    self.showDimensions();
-  });
+
 
   //хелпер осей
 //  var axisHelper = new THREE.AxisHelper( 50 );
@@ -4455,18 +4578,26 @@ function Wall(vertices, parameters){
     if( dimension.rightArrowActivated ){
       self.movePoint( right_point, offset, dimension.dim_type == 'center' );
     }
-    if( !dimension.leftArrowActivated && !dimension.rightArrowActivated ){
-      self.movePoint( left_point, offset/2, dimension.dim_type == 'center' );
+    if( !dimension.leftArrowActivated && !dimension.rightArrowActivated && dimension.dim_type == 'center' ){
+      
       self.movePoint( right_point, offset/2, dimension.dim_type == 'center' );
+      self.movePoint( left_point, offset/2, dimension.dim_type == 'center' );
+      
     }
 
-    self.update();
+//    self.update();
 
     $wallCreator.updateWalls();
-
     $wallCreator.updateWalls();
     
   };
+
+    setTimeout(function(){
+    self.calcDimensionsPoints();
+    self.createDimensions();
+    self.updateDimensions();
+//    self.showDimensions();
+  });
 
 }
 Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
@@ -5123,6 +5254,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       item.update();
     })
 
+    this.showDimensions();
+
   },
   showDimensions: function(){
 
@@ -5133,13 +5266,15 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       if ( $projection.wallDimensionType ==  item.dim_type) {
 
         item.visible = true;
+        if ( ! item.hasEventListener ( 'edit', self.changeDim ) )
         item.addEventListener( 'edit', self.changeDim );
         item.activate();
 
       } else {
 
         item.visible = false;
-        item.removeEventListener( 'edit', this.changeDim );
+        if ( item.hasEventListener ( 'edit', self.changeDim ) )
+        item.removeEventListener( 'edit', self.changeDim );
         item.deactivate();
 
       }
@@ -5174,6 +5309,11 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       scene.remove( item );
     })
   },
+  activateDimensions: function(){
+    this.dimensions.forEach(function( item, index ){
+      item.activate();
+    })
+  },
 
   hideControlPoints: function(){
     this.controlPoint1.hide();
@@ -5183,7 +5323,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.controlPoint1.show();
     this.controlPoint2.show();
   },
-
 
   movePoint: function( point, offset, center_line ){
 
@@ -5209,17 +5348,29 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       } else if( this.mover.v1_neighbors.length > 1 ){
 
+        var walls = [];
+        var position = new THREE.Vector3(self.mover.position.x, self.mover.position.y, self.mover.position.z)
+        var direction = new THREE.Vector3(self.direction.x, self.direction.y, self.direction.z)
+
         this.mover.v1_neighbors.forEach(function( item, i, arr ){
 
-          if ( arr[i].wall.mover && item.wall.direction.clone().dot ( self.direction.clone() ) < 0.001 ){
+          if ( Math.abs( arr[i].wall.mover && item.wall.direction.clone().dot ( self.direction.clone() ) ) < 0.001 ){
 
-            arr[i].wall.mover.position.copy(self.mover.position.clone().add(self.direction.clone().negate().multiplyScalar( offset )))
-            arr[i].wall.mover.dragstart({object: arr[i].wall.mover});
-            arr[i].wall.mover.drag({object: arr[i].wall.mover});
-            arr[i].wall.mover.dragend({object: arr[i].wall.mover});
+            walls.push( arr[i].wall.id );
 
           }
 
+        })
+
+        walls.forEach(function(item2, i){
+
+          var item = scene.getObjectById(item2);
+          if( ! item ){return;}
+
+            item.mover.position.copy(position.clone().add(direction.clone().negate().multiplyScalar( offset )))
+            item.mover.dragstart({object: item.mover});
+            item.mover.drag({object: item.mover, intersect_disable: true});
+            item.mover.dragend({object: item.mover});
 
         })
 
@@ -5243,18 +5394,38 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.mover.v2_neighbors.forEach(function(item){
           item.point.copy( self.v2.clone() ) ;
         })
+
       } else if( this.mover.v2_neighbors.length > 1 ){
+
+        var walls = [];
+        var position = new THREE.Vector3(self.mover.position.x, self.mover.position.y, self.mover.position.z)
+        var direction = new THREE.Vector3(self.direction.x, self.direction.y, self.direction.z)
+
 
         this.mover.v2_neighbors.forEach(function( item, i, arr ){
 
-          if ( arr[i].wall.mover && item.wall.direction.clone().dot ( self.direction.clone() ) < 0.001 ){
+          if ( Math.abs( arr[i].wall.mover && item.wall.direction.clone().dot ( self.direction.clone() ) ) < 0.001 ){
 
-            arr[i].wall.mover.position.copy(self.mover.position.clone().add(self.direction.clone().multiplyScalar( offset )))
-            arr[i].wall.mover.dragstart({object: arr[i].wall.mover});
-            arr[i].wall.mover.drag({object: arr[i].wall.mover});
-            arr[i].wall.mover.dragend({object: arr[i].wall.mover});
+            walls.push( arr[i].wall.id );
+
+//            arr[i].wall.mover.position.copy(position.clone().add(direction.clone().multiplyScalar( offset )))
+//            arr[i].wall.mover.dragstart({object: arr[i].wall.mover});
+//            arr[i].wall.mover.drag({object: arr[i].wall.mover, intersect_disable: true});
+//            arr[i].wall.mover.dragend({object: arr[i].wall.mover});
 
           }
+
+        })
+
+        walls.forEach(function(item2, i){
+
+          var item = scene.getObjectById(item2);
+          if( ! item ){return;}
+
+            item.mover.position.copy(position.clone().add(direction.clone().multiplyScalar( offset )))
+            item.mover.dragstart({object: item.mover});
+            item.mover.drag({object: item.mover , intersect_disable: true});
+            item.mover.dragend({object: item.mover});
 
         })
 
@@ -5265,6 +5436,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   },
   setPointPosition: function( point, position){
     var self = this;
+
+    if( ! this.mover ){ return; }
 
     if( point == 'v1' ){
 
@@ -5406,7 +5579,7 @@ function WallMover( wall ){
    /**
    * проверка длин соседей (удаление нулевой стены)
    */
-  function checkNeighborsLength(){
+  this.checkNeighborsLength = function(){
     var result = false;
     var v1_offset = Infinity;
     var v2_offset = Infinity;
@@ -5420,7 +5593,7 @@ function WallMover( wall ){
 
 //      var dot = self.wall.direction.clone().dot(item.wall.direction);
 
-      if( item.wall.axisLength < 10  ){
+      if( item.wall.axisLength < item.wall.width  ){
         v1_dir = item.opposite_point.clone().sub( item.point ).normalize();
         v1_offset = v1_dir.clone().multiplyScalar ( item.wall.axisLength );
         v1_item = item;
@@ -5433,7 +5606,7 @@ function WallMover( wall ){
 
 //      var dot = self.wall.direction.clone().dot( item.wall.direction );
 
-      if( item.wall.axisLength < 10  ){
+      if( item.wall.axisLength < item.wall.width  ){
         v2_dir = item.opposite_point.clone().sub( item.point ).normalize();
         v2_offset = v2_dir.clone().multiplyScalar ( item.wall.axisLength );
         v2_item = item;
@@ -5444,7 +5617,7 @@ function WallMover( wall ){
     });
 
     //проверяем условия угол в радианах
-    if(v1_dir && v2_dir && ( THREE.Math.radToDeg(v1_dir.equals(v2_dir)) < 5 || THREE.Math.radToDeg(v1_dir.angleTo(v2_dir)) < 5 ) ){
+    if(v1_dir && v2_dir && ( v1_dir.equals(v2_dir) || THREE.Math.radToDeg(v1_dir.angleTo(v2_dir)) < 5 ) ){
 
       switch (true) {
         case v1_offset.length == v2_offset.length :
@@ -5614,11 +5787,12 @@ function WallMover( wall ){
         self.neighborsNeedUpdate = false;
 
 		  };
-  this.drag =       function ( event ) {
+  this.drag =       function ( event, newCoord ) {
 
     var neighborsNeedUpdate = false;
     var v1_exception1 = false;
     var v2_exception1 = false;
+    var newCoord = newCoord || null;
 
     if(!enabled) return;
 
@@ -5630,12 +5804,12 @@ function WallMover( wall ){
     };
 
     //удаляем стену с мин длиной
-    if( checkNeighborsLength() ){
-
-      var newCoord = {v1: self.wall.v1, v2: self.wall.v2};
-      enabled = false;
-
-    }
+//    if( self.checkNeighborsLength() ){
+//
+//      newCoord = {v1: self.wall.v1, v2: self.wall.v2};
+//      enabled = false;
+//
+//    }
 
     //удаляем активную стену при достижении min длины
     if( checkSelfLength() ){
@@ -5646,17 +5820,32 @@ function WallMover( wall ){
       return;
     }
 
-    if( enabled ){
 
-      //проекция вектора движения
+  if( enabled ){
+    //проекция вектора движения
       var y = event.object.position.y;
       event.object.position.projectOnVector ( event.object.wall.direction90.clone() );
       event.object.position.setY(y);
       //новые координаты стены
-      var newCoord = self.getNewCoord();
+
+    if( newCoord ){
+
+      self.writeCoordToWall( event, newCoord );
+
+    } else {
+
+      newCoord = self.getNewCoord();
       self.writeCoordToWall( event, newCoord );
 
     }
+
+
+
+
+
+    }
+      
+    
 
     if( self.v1_neighbors.length > 0 || self.v2_neighbors.length > 0 ){
 
@@ -5831,6 +6020,15 @@ function WallMover( wall ){
 	};
   this.dragend =    function ( event ) {
 
+      if( self.checkNeighborsLength() ){
+
+      var newCoord = {v1: self.wall.v1, v2: self.wall.v2};
+
+      self.drag(event, newCoord);
+
+    }
+
+
     self.neighborsNeedUpdate = true;
 
     controls.enabled = true;
@@ -5915,6 +6113,7 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
         this.material.visible = false;
     }
 
+//    this.checkNeighborsLength();
     this.updateNeighbors();
     
   },
@@ -6022,21 +6221,25 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
 
     //вычисление пересечения
-    var offset = newCoord.v1.multiply(new THREE.Vector3(1,0,1)).clone().sub(event.object.wall.v1);
+    //исключили вычисление пересечения при перемещении
+    //после изменения размера
+    if( !event.intersect_disable ){
+      var offset = newCoord.v1.multiply(new THREE.Vector3(1,0,1)).clone().sub(event.object.wall.v1);
 
-    event.object.wall.geometry.computeBoundingBox();
-    var originPoint = event.object.wall.geometry.boundingBox.getCenter().applyMatrix4( event.object.wall.matrix ).clone().add(offset);
+      event.object.wall.geometry.computeBoundingBox();
+      var originPoint = event.object.wall.geometry.boundingBox.getCenter().applyMatrix4( event.object.wall.matrix ).clone().add(offset);
 
-    for (var i = 0; i < event.object.wall.geometry.vertices.length; i++)
-    {
-      var localVertex = event.object.wall.geometry.vertices[i].clone();
-      var globalVertex = localVertex.applyMatrix4( event.object.wall.matrix ).clone().add(offset);;
-      var directionVector = globalVertex.sub( originPoint.clone() );
+      for (var i = 0; i < event.object.wall.geometry.vertices.length; i++)
+      {
+        var localVertex = event.object.wall.geometry.vertices[i].clone();
+        var globalVertex = localVertex.applyMatrix4( event.object.wall.matrix ).clone().add(offset);;
+        var directionVector = globalVertex.sub( originPoint.clone() );
 
-      this.raycaster.set ( originPoint, directionVector.clone().normalize() );
-      var collisionResults = this.raycaster.intersectObjects( wallsWithoutNeighbors );
-      if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
-        return;
+        this.raycaster.set ( originPoint, directionVector.clone().normalize() );
+        var collisionResults = this.raycaster.intersectObjects( wallsWithoutNeighbors );
+        if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
+          return;
+      }
     }
 
     //новые координаты
@@ -6147,9 +6350,15 @@ function WallControlPoint( wall, point ){
 
     //примагничивание
     $wallCreator.magnit(event.object, event.object.position);
+//
+  
+    if(self.wall.parent){
 
-    self.wall.setPointPosition(self.referencePoint, event.object.position.clone().multiply( new THREE.Vector3(1,0,1)))
-    self.wall.update();
+      self.wall.setPointPosition(self.referencePoint, event.object.position.clone().multiply( new THREE.Vector3(1,0,1)));
+      self.wall.update();
+
+    }
+    
     $wallCreator.updateWalls();
 
 	};
@@ -7916,6 +8125,7 @@ DragControls2 = function ( _objects, _camera, _domElement, _plane_normal ) {
 			scope.dispatchEvent( { type: 'drag', object: _selected } );
 
 //      _offset.copy( _intersection.clone() .sub( _selected.position ) );   //=============
+      if(_selected.parent)
       _offset.copy( _intersection ).sub( _selected.parent.localToWorld(_selected.position.clone()) );
 
 			return;
@@ -7975,6 +8185,7 @@ DragControls2 = function ( _objects, _camera, _domElement, _plane_normal ) {
 			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
 
 //				_offset.copy( _intersection ).sub( _selected.position.clone() );
+        if(_selected.parent)
         _offset.copy( _intersection ).sub( _selected.parent.localToWorld(_selected.position.clone()) );
 
 			}
@@ -8085,6 +8296,7 @@ DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
 			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
 
 //        _selected.position.copy(_intersection.clone().sub( _offset )) ;
+        if(_selected.parent)
         _selected.position.copy( _selected.parent.worldToLocal(_intersection.clone().sub( _offset )) )  ;
 
 			}
@@ -8151,6 +8363,7 @@ DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
 			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
 
 //				_offset.copy( _intersection ).sub( _selected.position.clone() );
+        if(_selected.parent)
         _offset.copy( _intersection ).sub( _selected.parent.localToWorld(_selected.position.clone()) );
 
 			}

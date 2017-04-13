@@ -15,19 +15,24 @@
             <div class="btn-group dropup wall_dim_type">
               <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
               <ul class="dropdown-menu">
+                <li class="without" data-type = "without"><a href="#">Стена: размер скрыть</a></li>
                 <li class="center" data-type = "center"><a href="#">Стена: размер по осевой</a></li>
                 <li class="inner" data-type = "inner"><a href="#">Стена: размер внутри</a></li>
                 <li class="outer" data-type = "outer"><a href="#">Стена: размер снаружи</a></li>
               </ul>
             </div><!-- /btn-group -->
         </div><!-- /.col-lg-6 -->
-        <div class="col-lg-3">
+        <div class="col-lg-2">
             <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
             <input type ="file" class = "floorLoader" style="display: none">
             <img class = "localImage" style="display: none">
-        </div><!-- /.col-lg-3 -->
-        <div class="col-lg-3">
-          <div class="input-group">
+        </div><!-- /.col-lg-2 -->
+        <div class="col-lg-2">
+            <button type="button" class="btn btn-default" action="exportJSON">to JSON <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
+            <img class = "localImage" style="display: none">
+        </div><!-- /.col-lg-2 -->
+        <div class="col-lg-2">
+          <div class="input-group dropup">
             <input type="text" class="form-control">
             <div class="input-group-btn">
               <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Действие <span class="caret"></span></button>
@@ -40,7 +45,7 @@
               </ul>
             </div><!-- /btn-group -->
           </div><!-- /input-group -->
-        </div><!-- /.col-lg-3 -->
+        </div><!-- /.col-lg-2 -->
       </div><!-- /.row -->
   </div>
 </nav>
