@@ -3406,6 +3406,8 @@ function initWallEditor( obj ){
   obj.windowblockSwitcherCoord = [];
   obj.doorwayMenu = [];
 
+  obj.raycaster = new THREE.Raycaster();
+
   obj.on = function(){
     
     obj.enabled = true;
@@ -3756,16 +3758,36 @@ function initWallEditor( obj ){
     return result;
     
   }
+
+
   obj.getRooms = function(){
+
+    $wallCreator.updateWalls();
     var nodes = obj.getNodes();
     var pathes = obj.getPathes();
+    var chains = obj.getChains(nodes, pathes);
 
-    var chains = obj.getChains(pathes);
+    obj.ExclusionExternalChain(nodes, chains);
+
+
+    chains.forEach(function(chain){
+    chain.forEach(function(item){
+
+      var geometry = new THREE.Geometry();
+      geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
+      var material = new THREE.LineBasicMaterial({
+        color: 'red'
+      });
+      var line = new THREE.Line(geometry);
+      scene.add( line )
+
+    })
+  })
 
     window.console.log(nodes);
     window.console.log(pathes);
+    window.console.log(chains);
   }
-
   obj.getNodes = function(){
 
     var nodes = {};
@@ -3787,36 +3809,35 @@ function initWallEditor( obj ){
         nodes[item.node22.id] = item.node22 ;
       }
 
-    })
+    });
 
-    for(var key in nodes){
-      _nodes.push(nodes[key])
-    }
+//    for(var key in nodes){
+//      _nodes.push(nodes[key])
+//    }
 
-    return _nodes;
+    return nodes;
 
-  }
-
+  };
   obj.getPathes = function(){
     
     var pathes = [];
 
     obj.walls.forEach(function( item ){
 
-
       pathes.push({
-                    id: item.uuid_11,
+                    id: item.uuid + '_11',
                     source: { id: item.node11.id },
                     target: { id: item.node21.id },
                   });
       pathes.push({
-                    id: item.uuid_12,
+                    id: item.uuid + '_12',
                     source: { id: item.node12.id },
                     target: { id: item.node22.id },
                   });
+
       if( item.mover.v1_neighbors.length == 0){
         pathes.push({
-                    id: item.uuid_01,
+                    id: item.uuid + '_01',
                     source: { id: item.node11.id },
                     target: { id: item.node12.id },
                   });
@@ -3824,7 +3845,7 @@ function initWallEditor( obj ){
 
       if( item.mover.v2_neighbors.length == 0){
         pathes.push({
-                    id: item.uuid_02,
+                    id: item.uuid + '_02',
                     source: { id: item.node21.id },
                     target: { id: item.node22.id },
                   });
@@ -3835,36 +3856,87 @@ function initWallEditor( obj ){
     return pathes;
     
   }
+  obj.getChains = function( nodes, pathes ){
 
-  obj.getChains = function(nodes, pathes){
-//
-//    var result = [];
-//    nodes.forEach(function(node){
-//      var unit = obj.getPath(pathes, node.id , -1);
-//      if(unit){
-//        result
-//      }
-//    })
-
-  }
-
-  obj.getPath = function(pathes, node_id, exclude_index){
-    var result = null;
-    pathes.forEach(function(path, index){
-
-        if( path.source.id == node_id && index != exclude_index){
-          result.path = path;
-          result.next = 'target';
-        }
-        if( path.target.id == node_id && index != exclude_index){
-          result.path = path;
-          result.next = 'source';
-        }
-
-      })
+    var result = [];
+    for(var key in nodes){
+      var unit = [];
+      obj.getChain( pathes, nodes[key].id, unit );
+      if( unit.length != 0 ){
+        result.push( unit );
+      }
+    }
 
     return result;
+
   }
+  obj.getChain = function( pathes, search_id, unit ){
+
+    pathes.forEach(function(path, index){
+
+      if( path.source.id == search_id ){
+        unit.push(path);
+        pathes.splice(index, 1);
+        obj.getChain(pathes, path.target.id, unit);
+        return;
+      }
+      if( path.target.id == search_id ){
+        unit.push(path);
+        pathes.splice(index, 1);
+        obj.getChain(pathes, path.source.id, unit);
+        return;
+      }
+
+    })
+
+  }
+  obj.ExclusionExternalChain = function(nodes, chains){
+
+    var toRemove = [];
+
+    chains.forEach(function(item, index){
+
+      var wall_uuid = item[0].id.split('_')[0];
+      var wall = scene.getObjectByProperty ( 'uuid', wall_uuid );
+      if( wall ){
+        obj.isWallInRoom(nodes, wall, item) ? toRemove.push(index) : ''
+      }
+    });
+
+    toRemove.forEach(function(item){
+      chains.splice(item,1);
+    })
+
+  };
+  obj.isWallInRoom = function(nodes, wall, chain){
+
+    //массив диний для проверки пересечения
+    var objects = [];
+    chain.forEach(function(item){
+
+      var geometry = new THREE.Geometry();
+      geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
+      var material = new THREE.LineBasicMaterial({
+        color: 'red'
+      });
+      var line = new THREE.Line(geometry, material);
+      objects.push( line );
+
+    })
+
+    //параметры луча
+    obj.raycaster.ray.origin = wall.axisLine.getCenter();
+    obj.raycaster.ray.direction.copy( new THREE.Vector3(0, 0, 1) );
+    obj.raycaster.linePrecision = 3;
+
+    //пересечение
+    var intersectObjects = obj.raycaster.intersectObjects(objects);
+    if( (intersectObjects.length % 2) != 0){
+      return true;
+    }
+
+    return false;
+  };
 
   /*===================*/
   obj.activate = function(){
@@ -4689,19 +4761,23 @@ function Wall(vertices, parameters){
 
   this.node11 = {
     id: this.uuid + '_11',
-    position: {x:this.v11.x, y: this.v11.z }
+//    position: {x:this.v11.x, y: this.v11.z }
+    position: this.v11
   }
   this.node12 = {
     id: this.uuid + '_12',
-    position: {x:this.v12.x, y: this.v12.z }
+//    position: {x:this.v12.x, y: this.v12.z }
+    position: this.v12
   }
   this.node21 = {
     id: this.uuid + '_21',
-    position: {x:this.v21.x, y: this.v21.z }
+//    position: {x:this.v21.x, y: this.v21.z }
+    position: this.v21
   }
   this.node22 = {
     id: this.uuid + '_22',
-    position: {x:this.v22.x, y: this.v22.z }
+//    position: {x:this.v22.x, y: this.v22.z }
+    position: this.v22
   }
 
   this.dimensions = []; //массив хранения объектов размеров стены
@@ -5149,6 +5225,11 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.node1.position.y = this.v1.z;
     this.node2.position.x = this.v2.x;
     this.node2.position.y = this.v2.z;
+
+    this.node11.position.copy(this.v11);
+    this.node12.position.copy(this.v12);
+    this.node21.position.copy(this.v21);
+    this.node22.position.copy(this.v22);    
     
     this.v11 = this.v1.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
     this.v12 = this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
