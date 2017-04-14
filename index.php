@@ -10,7 +10,7 @@
 <nav class="navbar navbar-default navbar-fixed-bottom footer" role="navigation">
   <div class="container-fluid">
       <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-2">
 
             <div class="btn-group dropup wall_dim_type">
               <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
@@ -22,16 +22,24 @@
               </ul>
             </div><!-- /btn-group -->
         </div><!-- /.col-lg-6 -->
-        <div class="col-lg-2">
+
+        <div class="col-lg-1">
             <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
             <input type ="file" class = "floorLoader" style="display: none">
             <img class = "localImage" style="display: none">
         </div><!-- /.col-lg-2 -->
-        <div class="col-lg-2">
+
+        <div class="col-lg-1">
             <button type="button" class="btn btn-default" action="exportJSON">to JSON <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
             <img class = "localImage" style="display: none">
-        </div><!-- /.col-lg-2 -->
-        <div class="col-lg-2">
+        </div><!-- /.col-lg-1 -->
+
+        <div class="col-lg-1">
+            <button type="button" class="btn btn-default" action="getRoomsJSON">getRoomsJSON <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
+            <img class = "localImage" style="display: none">
+        </div><!-- /.col-lg-1 -->
+
+<!--        <div class="col-lg-2">
           <div class="input-group dropup">
             <input type="text" class="form-control">
             <div class="input-group-btn">
@@ -43,9 +51,10 @@
                 <li class="divider"></li>
                 <li><a href="#">Отдельная ссылка</a></li>
               </ul>
-            </div><!-- /btn-group -->
-          </div><!-- /input-group -->
-        </div><!-- /.col-lg-2 -->
+            </div> /btn-group 
+          </div> /input-group 
+        </div> /.col-lg-2 -->
+
       </div><!-- /.row -->
   </div>
 </nav>
