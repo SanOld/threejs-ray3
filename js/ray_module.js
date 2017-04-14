@@ -3408,7 +3408,7 @@ function initWallEditor( obj ){
     obj.activateWallDimensions();
     
 
-//    obj.deactivateSelectControls();
+    obj.deactivateSelectControls();
     obj.activateSelectControls();
     
   }
@@ -3750,16 +3750,16 @@ function initWallEditor( obj ){
 
   /*===================*/
   obj.activate = function(){
-    document.addEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
-    document.addEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
-    document.addEventListener( 'keydown', onKeyDownWallEditor, false );
+//    document.addEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
+//    document.addEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
+//    document.addEventListener( 'keydown', onKeyDownWallEditor, false );
 
 //    document.addEventListener( 'wheel', onDocumentMouseWheel, false );
   };
   obj.deactivate = function(){
-    document.removeEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
-    document.removeEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
-    document.removeEventListener( 'keydown', onKeyDownWallEditor, false );
+//    document.removeEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
+//    document.removeEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
+//    document.removeEventListener( 'keydown', onKeyDownWallEditor, false );
 
 //    document.removeEventListener( 'wheel', onDocumentMouseWheel, false );
   }
@@ -3768,7 +3768,7 @@ function initWallEditor( obj ){
   function onDocumentMouseDownWallEditor( event ){
     if (!obj.enabled)
       return false;
-    event.preventDefault();
+//    event.preventDefault();
 
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
@@ -4018,12 +4018,13 @@ function Dimension( param1, param2, plane, parameters ){
 
   };
 
-  this.select =             function ( event ) {
+  this.select = this.note.select =             function ( event ) {
 
     self.showMenuLKM(event.screenCoord);
+    self.edit( {object: self.note} );
 
   };
-  this.unselect =           function ( event ) {
+  this.unselect = this.note.unselect =           function ( event ) {
 
 
     $( '.EditableField' ).offset( {left: 0 , top: 0} );
@@ -4193,7 +4194,7 @@ function Dimension( param1, param2, plane, parameters ){
         this.selectControls = new SelectControls( [this.note], camera, renderer.domElement );
       }
       
-      this.selectControls.addEventListener( 'select', self.edit );
+      this.selectControls.addEventListener( 'select', this.edit );
       
     }
     
@@ -5024,6 +5025,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
   update: function( walls ){
 
+      
+
       this.walls = walls || this.walls;
      
       //если изменилась ширина
@@ -5047,16 +5050,19 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       if(new_geometry){
         this.geometry = new_geometry;
         this.geometry.verticesNeedUpdate = true;
-        this.material.visible = true;
+        this.visible = true;
       } else {
         this.geometry = new THREE.Geometry();
-        this.material.visible = false;
+        this.visible = false;
+        this.remove();
       }
 
-      if( this.mover )
+
+      if( ! this.parent ) return;
+
       this.mover.wall = this;
       this.mover.update();
-      
+
       this.controlPoint1.update();
       this.controlPoint2.update();
 
@@ -5227,7 +5233,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.hideDimensions();
     //
     //скрываем опорные точки
-     this.hideControlPoints();
+    this.hideControlPoints();
 
   },
   doorwayProjectionMode: function(){
@@ -7024,7 +7030,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   },
   showDimensions: function(){
     this.dimensions.forEach(function(item){
-      item.visible = true;
+      item.show();
     })
 
     this.dimensions[0].addEventListener( 'edit', this.changeDoorwayDim );
@@ -7036,7 +7042,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   },
   hideDimensions: function(){
     this.dimensions.forEach(function(item){
-      item.visible = false;
+      item.hide();
     })
 
     this.dimensions[0].removeEventListener( 'edit', this.changeDoorwayDim );
@@ -8133,7 +8139,6 @@ WindowBlock2.prototype = Object.assign( Object.create( Doorway.prototype ),{
   }
 
 });
-
 
 //Перемещение mover стены
 DragControls2 = function ( _objects, _camera, _domElement, _plane_normal ) {
