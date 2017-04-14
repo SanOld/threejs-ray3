@@ -2164,6 +2164,15 @@ function initProjection(obj){
     $wallEditor.off();
 
   })
+  $('.footer').on('click','[action = getRooms]',function(){
+
+    $wallEditor.on();
+
+    $wallEditor.getRooms() ;
+
+    $wallEditor.off();
+
+  })
 
 
 
@@ -3747,6 +3756,115 @@ function initWallEditor( obj ){
     return result;
     
   }
+  obj.getRooms = function(){
+    var nodes = obj.getNodes();
+    var pathes = obj.getPathes();
+
+    var chains = obj.getChains(pathes);
+
+    window.console.log(nodes);
+    window.console.log(pathes);
+  }
+
+  obj.getNodes = function(){
+
+    var nodes = {};
+    var _nodes = [];
+
+
+    obj.walls.forEach(function( item ){
+
+      if( ! nodes[ item.node11.id ]){
+        nodes[item.node11.id] = item.node11 ;
+      }
+      if( ! nodes[ item.node12.id ]){
+        nodes[item.node12.id] = item.node12 ;
+      }
+      if( ! nodes[ item.node21.id ]){
+        nodes[item.node21.id] = item.node21 ;
+      }
+      if( ! nodes[ item.node22.id ]){
+        nodes[item.node22.id] = item.node22 ;
+      }
+
+    })
+
+    for(var key in nodes){
+      _nodes.push(nodes[key])
+    }
+
+    return _nodes;
+
+  }
+
+  obj.getPathes = function(){
+    
+    var pathes = [];
+
+    obj.walls.forEach(function( item ){
+
+
+      pathes.push({
+                    id: item.uuid_11,
+                    source: { id: item.node11.id },
+                    target: { id: item.node21.id },
+                  });
+      pathes.push({
+                    id: item.uuid_12,
+                    source: { id: item.node12.id },
+                    target: { id: item.node22.id },
+                  });
+      if( item.mover.v1_neighbors.length == 0){
+        pathes.push({
+                    id: item.uuid_01,
+                    source: { id: item.node11.id },
+                    target: { id: item.node12.id },
+                  });
+      }
+
+      if( item.mover.v2_neighbors.length == 0){
+        pathes.push({
+                    id: item.uuid_02,
+                    source: { id: item.node21.id },
+                    target: { id: item.node22.id },
+                  });
+      }
+
+    })
+
+    return pathes;
+    
+  }
+
+  obj.getChains = function(nodes, pathes){
+//
+//    var result = [];
+//    nodes.forEach(function(node){
+//      var unit = obj.getPath(pathes, node.id , -1);
+//      if(unit){
+//        result
+//      }
+//    })
+
+  }
+
+  obj.getPath = function(pathes, node_id, exclude_index){
+    var result = null;
+    pathes.forEach(function(path, index){
+
+        if( path.source.id == node_id && index != exclude_index){
+          result.path = path;
+          result.next = 'target';
+        }
+        if( path.target.id == node_id && index != exclude_index){
+          result.path = path;
+          result.next = 'source';
+        }
+
+      })
+
+    return result;
+  }
 
   /*===================*/
   obj.activate = function(){
@@ -4568,6 +4686,23 @@ function Wall(vertices, parameters){
   this.v12 = parameters.hasOwnProperty("v12") ? parameters["v12"] : this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
   this.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
   this.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
+
+  this.node11 = {
+    id: this.uuid + '_11',
+    position: {x:this.v11.x, y: this.v11.z }
+  }
+  this.node12 = {
+    id: this.uuid + '_12',
+    position: {x:this.v12.x, y: this.v12.z }
+  }
+  this.node21 = {
+    id: this.uuid + '_21',
+    position: {x:this.v21.x, y: this.v21.z }
+  }
+  this.node22 = {
+    id: this.uuid + '_22',
+    position: {x:this.v22.x, y: this.v22.z }
+  }
 
   this.dimensions = []; //массив хранения объектов размеров стены
   this.p1 = new THREE.Vector3();
@@ -6215,6 +6350,8 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             arg2 = 'v1';
             opposite_point = 'v2';
             item.node1.id = self.wall.node1.id;
+            item.node11.id = $wallEditor.isPointsNeighboors( self.wall.v12, item.v11, 1 ) ? self.wall.node12.id : item.node11.id;
+            item.node12.id = $wallEditor.isPointsNeighboors( self.wall.v11, item.v12, 1 ) ? self.wall.node11.id : item.node12.id;
             break;
           case $wallEditor.isPointsNeighboors( self.wall.v1, item.v2, 1  ):
             arr = 'v1_neighbors';
@@ -6222,6 +6359,9 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             arg2 = 'v2';
             opposite_point = 'v1';
             item.node2.id = self.wall.node1.id;
+            item.node21.id = $wallEditor.isPointsNeighboors( self.wall.v11, item.v21, 1 ) ? self.wall.node11.id : item.node21.id;
+            item.node22.id = $wallEditor.isPointsNeighboors( self.wall.v12, item.v22, 1 ) ? self.wall.node12.id : item.node22.id;
+
             break;
           case $wallEditor.isPointsNeighboors( self.wall.v2, item.v1, 1  ):
             arr = 'v2_neighbors';
@@ -6229,6 +6369,8 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             arg2 = 'v1';
             opposite_point = 'v2';
             item.node1.id = self.wall.node2.id;
+            item.node11.id = $wallEditor.isPointsNeighboors( self.wall.v21, item.v11, 1 ) ? self.wall.node21.id : item.node11.id;
+            item.node12.id = $wallEditor.isPointsNeighboors( self.wall.v22, item.v12, 1 ) ? self.wall.node22.id : item.node12.id;
             break;
           case $wallEditor.isPointsNeighboors( self.wall.v2, item.v2, 1  ):
             arr = 'v2_neighbors';
@@ -6236,6 +6378,8 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             arg2 = 'v2';
             opposite_point = 'v1';
             item.node2.id = self.wall.node2.id;
+            item.node21.id = $wallEditor.isPointsNeighboors( self.wall.v22, item.v21, 1 ) ? self.wall.node22.id : item.node21.id;
+            item.node22.id = $wallEditor.isPointsNeighboors( self.wall.v21, item.v22, 1 ) ? self.wall.node21.id : item.node22.id;
             break;
         }
 
