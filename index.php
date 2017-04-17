@@ -44,6 +44,11 @@
             <img class = "localImage" style="display: none">
         </div><!-- /.col-lg-1 -->
 
+        <div class="col-lg-1">
+            <button type="button" class="btn btn-default" action="hideWalls">Скрыть/Отобразить стены <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
+            <img class = "localImage" style="display: none">
+        </div><!-- /.col-lg-1 -->
+
 <!--        <div class="col-lg-2">
           <div class="input-group dropup">
             <input type="text" class="form-control">

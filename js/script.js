@@ -6,6 +6,7 @@ var container, scene, camera, renderer, controls, stats, selection;
 //var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock();
 // custom global variables
+var rendererStats;
 
 var mouse = new THREE.Vector2();
 var offset = new THREE.Vector3()
@@ -50,6 +51,14 @@ function initMain()
 
 //	container = document.getElementById( 'ThreeJS' );
 	container.appendChild( renderer.domElement );
+
+  //статистика
+  rendererStats	= new THREEx.RendererStats();
+  rendererStats.domElement.style.position	= 'absolute'
+  rendererStats.domElement.style.left	= '0px'
+  rendererStats.domElement.style.bottom	= '0px'
+  document.body.appendChild( rendererStats.domElement )
+
 	// EVENTS
 //	THREEx.WindowResize(renderer, camera);
 //	THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
@@ -176,6 +185,7 @@ function animate()
 function update()
 {
   updateCameraRay();
+  rendererStats.update(renderer);
 }
 
 function render()

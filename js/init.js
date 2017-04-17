@@ -24,6 +24,10 @@ $(document).ready(function() {
   
   include("js/load.js?"+HASH);
   include("js/lib/ThreeCSG.js");
+  
+  include("js/lib/threex-rendererstats/threex.rendererstats.js");
+
+
 
 
 

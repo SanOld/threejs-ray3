@@ -55,6 +55,9 @@ var wallControlPointMaterial_hover = new THREE.MeshBasicMaterial({
 var dimensionMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff } );
 var transparentMaterial = new THREE.MeshBasicMaterial( { transparent: true, opacity: 0} );
 
+
+var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
+
 var isMoveRay = false; // перестраивание луча в функции рендеринга при движении луча
 var isMoveCamera = false; // перестраивание луча и "комнаты" в функции рендеринга при движении камеры
 //=== to addCameraRay
@@ -2170,7 +2173,20 @@ function initProjection(obj){
 
     $wallEditor.getRooms() ;
 
-    $wallEditor.off();
+//    $wallEditor.off();
+
+  })
+  $('.footer').on('click','[action = hideWalls]',function(){
+    
+    $wallEditor.walls.forEach(function( item ){
+      
+      if(item.visible){
+        item.hide();
+      } else {
+        item.show();
+      }
+      
+    })
 
   })
 
@@ -3762,6 +3778,9 @@ function initWallEditor( obj ){
 
   obj.getRooms = function(){
 
+    window.console.time('t');
+
+
     $wallCreator.updateWalls();
     var nodes = obj.getNodes();
     var pathes = obj.getPathes();
@@ -3771,6 +3790,8 @@ function initWallEditor( obj ){
 
 
     chains.forEach(function(chain){
+
+    if(chain)
     chain.forEach(function(item){
 
       var geometry = new THREE.Geometry();
@@ -3778,11 +3799,14 @@ function initWallEditor( obj ){
       var material = new THREE.LineBasicMaterial({
         color: 'red'
       });
-      var line = new THREE.Line(geometry);
+      var line = new THREE.Line(geometry, material);
       scene.add( line )
 
-    })
+    });
+
   })
+
+  window.console.timeEnd('t');
 
     window.console.log(nodes);
     window.console.log(pathes);
@@ -3899,7 +3923,8 @@ function initWallEditor( obj ){
       var wall_uuid = item[0].id.split('_')[0];
       var wall = scene.getObjectByProperty ( 'uuid', wall_uuid );
       if( wall ){
-        obj.isWallInRoom(nodes, wall, item) ? toRemove.push(index) : ''
+//        obj.isWallInRoom(nodes, wall, item) ? toRemove.push(index) : ''
+      obj.isWallInRoom(nodes, wall, item) ? delete chains[index] : ''
       }
     });
 
@@ -3916,10 +3941,10 @@ function initWallEditor( obj ){
 
       var geometry = new THREE.Geometry();
       geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
-      var material = new THREE.LineBasicMaterial({
-        color: 'red'
-      });
-      var line = new THREE.Line(geometry, material);
+//      var material = new THREE.LineBasicMaterial({
+//        color: 'red'
+//      });
+      var line = new THREE.Line(geometry);
       objects.push( line );
 
     })
@@ -3927,7 +3952,14 @@ function initWallEditor( obj ){
     //параметры луча
     obj.raycaster.ray.origin = wall.axisLine.getCenter();
     obj.raycaster.ray.direction.copy( new THREE.Vector3(0, 0, 1) );
-    obj.raycaster.linePrecision = 3;
+//    obj.raycaster.linePrecision = 3;
+
+    //визуализация луча
+//    var geometry = new THREE.Geometry();
+//    geometry.vertices.push(wall.axisLine.getCenter().clone());
+//    geometry.vertices.push(wall.axisLine.getCenter().clone().add(new THREE.Vector3(0, 0, 1).multiplyScalar(1000000)));
+//    var line = new THREE.Line(geometry);
+//    scene.add(line);
 
     //пересечение
     var intersectObjects = obj.raycaster.intersectObjects(objects);
@@ -4158,7 +4190,8 @@ function Dimension( param1, param2, plane, parameters ){
   this.upArrow = self.editableFieldWrapper.find('.dim-arrow.up');
 
   //примечание (текст размера)
-  var geometry = new THREE.SphereGeometry( 100, 32, 32 );
+//  var geometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
+  var geometry = dimGeometry;
   var material = transparentMaterial;
   this.note = new THREE.Mesh( geometry, material );
   this.note.name = 'dimensionBoundingSphere';
@@ -5365,6 +5398,18 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       })
     }, 50);
     
+  },
+
+  hide: function(){
+    this.visible = false;
+    this.hideControlPoints();
+    this.hideDimensions();
+  },
+  show: function(){
+    this.visible = true;
+    this.showControlPoints();
+    this.showDimensions();
+
   },
 
   addDoorway: function( type ){
