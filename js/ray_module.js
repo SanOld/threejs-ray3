@@ -8,6 +8,8 @@ var videocameraArr = [];
 var videocameraName = 'videocamera';
 var active_camera = null;
 
+var floorHeight = 3000;
+
 var delta = 0.02; //шаг перемещения луча активной камеры
 var delta2 = 5;   //шаг линейного перемещения активной камеры
 var rayMaterial = new THREE.MeshBasicMaterial({
@@ -786,29 +788,29 @@ function onKeyDownCam ( event )
     case 49: /*1*/
       if(event.altKey){
         if($projection.enabled){
-          $projection.off();
+          toggleMode('3D');
         } else {
-          $projection.on('top');
+          toggleMode('2D');
         }
       }
       break;
     case 50: /*2*/
-      if(event.altKey){
-        if($projection.enabled){
-          $projection.off();
-        } else {
-          $projection.on('left');
-        }
-      }
+//      if(event.altKey){
+//        if($projection.enabled){
+//          $projection.off();
+//        } else {
+//          $projection.on('left');
+//        }
+//      }
       break;
     case 51: /*3*/
-      if(event.altKey){
-        if($projection.enabled){
-          $projection.off();
-        } else {
-          $projection.on('right');
-        }
-      }
+//      if(event.altKey){
+//        if($projection.enabled){
+//          $projection.off();
+//        } else {
+//          $projection.on('right');
+//        }
+//      }
       break;
     case 57: /*9*/
       if(event.altKey){
@@ -1082,6 +1084,58 @@ function onDocumentMouseUpCam( event )
   document.removeEventListener( 'mouseup', onDocumentMouseUpCam );
 //  showFocus();
 }
+
+function toggleMode( mode ){
+
+  switch ( mode ) {
+    case '2D':
+
+      if( ! $projection.enabled){
+
+        $projection.on('top');
+//        $projection.toggleModeIn2D('edition');
+
+        $('.mode2D').show();
+        $('.footer').find('[action = mode]').text('3D');
+
+      }
+
+      break;
+    case '3D':
+
+      if($projection.enabled){
+
+        $projection.off();
+        
+        $('.mode2D').hide();
+        $('.footer').find('[action = mode]').text('2D');
+
+      }
+      
+      break;
+  }
+}
+
+$('.footer').on('click','[action = mode]',function(){
+
+  if($projection.enabled){
+
+    toggleMode('3D');
+    
+  } else {
+
+    toggleMode('2D');
+
+  }
+
+});
+$('.footer').on('change','[action = floorHeight]',function(){
+  var elem = $(this);
+  $wallEditor.walls.forEach(function( wall ){
+    wall.height = 0 + elem.val();
+    wall.update();
+  });
+});
 
 
 
@@ -1924,6 +1978,7 @@ function initProjection(obj){
     obj.type = type || 'top';
     obj.cameraAdd();
     controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: THREE.MOUSE.MIDDLE, PAN: THREE.MOUSE.LEFT };
     controls.enableRotate = false;
 
     obj.planeHelperAdd();
@@ -2026,6 +2081,118 @@ function initProjection(obj){
 
   }
 
+  obj.activateSelectControls = function(){
+    var objects = [];
+    obj.walls.forEach(function(wall){
+      objects = objects.concat(wall.doors, wall)
+
+      //добавление размеров стен в массив выбора
+      wall.dimensions.forEach(function(dim){
+          objects = objects.concat(dim.note)
+      })
+
+      //добавление размеров проемов в массив выбора
+      wall.doors.forEach(function(door){
+        door.dimensions.forEach(function(dim){
+          objects = objects.concat(dim.note)
+        })
+      })
+    });
+
+    if(obj.selectControls){
+
+      obj.selectControls.activate();
+
+    } else {
+
+      obj.selectControls = new SelectControls( objects, camera, renderer.domElement );
+
+    }
+
+
+
+    obj.selectControls.addEventListener( 'select', obj.select );
+    obj.selectControls.addEventListener( 'unselect', obj.unselect );
+//    obj.dragControls.addEventListener( 'end', obj.dragend );
+    obj.selectControls.addEventListener( 'hoveron', obj.hoveron );
+    obj.selectControls.addEventListener( 'hoveroff', obj.hoveroff );
+    obj.selectControls.addEventListener( 'select_contextmenu', obj.select_contextmenu );
+  }
+  obj.deactivateSelectControls = function(){
+
+    if(obj.selectControls ){
+
+      obj.selectControls.removeEventListener( 'select', obj.select, false );
+  //    obj.dragControls.removeEventListener( 'end', obj.dragend, false );
+      obj.selectControls.removeEventListener( 'hoveron', obj.hoveron, false );
+      obj.selectControls.removeEventListener( 'hoveroff', obj.hoveroff, false );
+      obj.selectControls.removeEventListener( 'select_contextmenu', obj.select_contextmenu, false );
+
+      obj.selectControls.deactivate();
+      obj.selectControls = null;
+    }
+
+  }
+  obj.select = function(event){
+
+//    obj.hideAllMenu();
+    if( 'select' in event.object )
+    event.object.select(event);
+    obj.selected = event.object;
+
+  }
+  obj.select_contextmenu = function(event){
+    obj.hideAllMenu();
+    if('select_contextmenu' in event.object){
+    event.object.select_contextmenu(event);
+    obj.selected = event.object;
+    }
+
+  }
+
+  obj.toggleModeIn2D = function( mode ){
+
+    switch ( mode ) {
+      case 'creation':
+
+        $wallEditor.off();
+        $dimensionEditorMode.off();
+        if($wallCreator.enabled)$wallCreator.off();
+        $wallCreator.on();
+
+        $('.footer').find('[action = modeC]').addClass('active');
+        $('.footer').find('[action = modeE]').removeClass('active');
+        $('.footer').find('[action = modeD]').removeClass('active');
+
+        break;
+      case 'edition':
+
+        $wallCreator.off();
+        $dimensionEditorMode.off();
+        $wallEditor.on();
+
+        $('.footer').find('[action = modeE]').addClass('active');
+        $('.footer').find('[action = modeC]').removeClass('active');
+        $('.footer').find('[action = modeD]').removeClass('active');
+
+        break;
+      case 'dimension':
+
+        $wallEditor.off();
+        $wallCreator.off();
+        $dimensionEditorMode.on();
+
+        $('.footer').find('[action = modeD]').addClass('active');
+        $('.footer').find('[action = modeC]').removeClass('active');
+        $('.footer').find('[action = modeE]').removeClass('active');
+
+        break;
+
+    }
+
+  }
+
+
   /*===================*/
   document.addEventListener( 'mousedown', onDocumentMouseDownProjection, false );
   document.addEventListener( 'mousemove', onDocumentMouseMoveProjection, false );
@@ -2060,27 +2227,21 @@ function initProjection(obj){
     switch( event.keyCode ) {
       case 27: /*esc*/
         scene.remove(obj.selected1,obj.selected2);
+        obj.toggleModeIn2D('edition');
         break;
       case 67: /*c*/
         if(event.altKey){
-          $wallEditor.off();
-          $dimensionEditorMode.off();
-          if($wallCreator.enabled)$wallCreator.off();
-          $wallCreator.on();
+          obj.toggleModeIn2D('creation');
         }
         break;
       case 68: /*d*/
         if(event.altKey){
-          $wallEditor.off();
-          $wallCreator.off();
-          $dimensionEditorMode.on();
+          obj.toggleModeIn2D('dimension');
         }
         break;
       case 69: /*e*/
         if(event.altKey){
-           $wallCreator.off();
-           $dimensionEditorMode.off();
-           $wallEditor.on();
+          obj.toggleModeIn2D('edition');
         }
         break;
     }
@@ -2164,8 +2325,21 @@ function initProjection(obj){
     $wallEditor.off();
 
   })
+  $('.footer').on('click','[action = modeC]',function(){
 
+    obj.toggleModeIn2D('creation');
 
+  });
+  $('.footer').on('click','[action = modeE]',function(){
+
+    obj.toggleModeIn2D('edition');
+
+  });
+  $('.footer').on('click','[action = modeD]',function(){
+
+    obj.toggleModeIn2D('dimension');
+
+  })
 
 }
 $projection = {};
@@ -4546,7 +4720,7 @@ function Wall(vertices, parameters){
   this.editableField = self.editableFieldWrapper.find('input');
 
   this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 100;
-  this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 2700;
+  this.height = parameters.hasOwnProperty("height") ? parameters["height"] : floorHeight;
   this.v1 = vertices[0].clone();
   this.v2 = vertices[1].clone();
 
@@ -4591,7 +4765,7 @@ function Wall(vertices, parameters){
   this.material.opacity = 0.8;
 
   this.rotation.x = Math.PI/2;
-  this.position.set( 0, self.height, 0 )
+  this.position.set( 0, self.height, 0 );
 
   if(this.geometry)
   this.geometry.verticesNeedUpdate = true;
@@ -5056,6 +5230,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.visible = false;
         this.remove();
       }
+
+      //в случае смены высоты
+      this.position.set( 0, this.height, 0 );
 
 
       if( ! this.parent ) return;

@@ -10,3 +10,13 @@ html, body{
 .navbar {
     min-height: 34px;
 }
+
+.mode2D {
+  display: none;
+}
+
+.footer .btn-default:hover, .footer .btn-default:active, .footer .btn-default.active{
+    color: #333;
+    background-color: #317BB2;
+    border-color: #adadad;
+}

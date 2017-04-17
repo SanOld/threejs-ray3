@@ -10,52 +10,62 @@
 <nav class="navbar navbar-default navbar-fixed-bottom footer" role="navigation">
   <div class="container-fluid">
       <div class="row">
-        <div class="col-lg-2">
+        <div class="col-lg-6">
+          <div class="row">
+            <div class="col-lg-1">
+                <button type="button" class="btn btn-default" action="mode" title="Переключение режима отображения">2D</button>
+            </div> <!-- /.col-lg-1 -->
 
-            <div class="btn-group dropup wall_dim_type">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li class="without" data-type = "without"><a href="#">Стена: размер скрыть</a></li>
-                <li class="center" data-type = "center"><a href="#">Стена: размер по осевой</a></li>
-                <li class="inner" data-type = "inner"><a href="#">Стена: размер внутри</a></li>
-                <li class="outer" data-type = "outer"><a href="#">Стена: размер снаружи</a></li>
-              </ul>
-            </div><!-- /btn-group -->
-        </div><!-- /.col-lg-6 -->
+            <div class="col-lg-3 mode2D">
+              <div class="btn-group">
+                <button type="button" class="btn btn-default" action="modeE" title="Режим - редактирование">E</button>
+                <button type="button" class="btn btn-default" action="modeC" title="Режим - создание стен">C</button>
+                <button type="button" class="btn btn-default" action="modeD" title="Режим - размеры">D</button>
+              </div>
+            </div> <!-- /.col-lg-1 -->
 
-        <div class="col-lg-1">
-            <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
-            <input type ="file" class = "floorLoader" style="display: none">
-            <img class = "localImage" style="display: none">
-        </div><!-- /.col-lg-2 -->
 
-        <div class="col-lg-1">
-            <button type="button" class="btn btn-default" action="exportJSON">to JSON <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
-            <img class = "localImage" style="display: none">
-        </div><!-- /.col-lg-1 -->
 
-        <div class="col-lg-1">
-            <button type="button" class="btn btn-default" action="getRoomsJSON">getRoomsJSON <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
-            <img class = "localImage" style="display: none">
-        </div><!-- /.col-lg-1 -->
 
-<!--        <div class="col-lg-2">
-          <div class="input-group dropup">
-            <input type="text" class="form-control">
-            <div class="input-group-btn">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Действие <span class="caret"></span></button>
-              <ul class="dropdown-menu pull-right">
-                <li><a href="#">Действие</a></li>
-                <li><a href="#">Другое действие</a></li>
-                <li><a href="#">Что-то иное</a></li>
-                <li class="divider"></li>
-                <li><a href="#">Отдельная ссылка</a></li>
-              </ul>
-            </div> /btn-group 
-          </div> /input-group 
-        </div> /.col-lg-2 -->
+            <div class="col-lg-2 mode2D">
 
-      </div><!-- /.row -->
+                <div class="btn-group dropup wall_dim_type">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
+                  <ul class="dropdown-menu">
+                    <li class="without" data-type = "without"><a href="#">Стена: размер скрыть</a></li>
+                    <li class="center" data-type = "center"><a href="#">Стена: размер по осевой</a></li>
+                    <li class="inner" data-type = "inner"><a href="#">Стена: размер внутри</a></li>
+                    <li class="outer" data-type = "outer"><a href="#">Стена: размер снаружи</a></li>
+                  </ul>
+                </div><!-- /btn-group -->
+            </div><!-- /.col-lg-2 -->
+          </div>
+        </div> <!-- /.col-lg-6 -->
+
+        <div class="col-lg-6">
+          <div class="row">
+            <div class="col-lg-2">
+                <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
+                <input type ="file" class = "floorLoader" style="display: none">
+                <img class = "localImage" style="display: none">
+            </div><!-- /.col-lg-2 -->
+            <div class="col-lg-2">
+              <div class="input-group">
+                <input type="text" class="form-control floorHeight" action="floorHeight">
+                <span class="input-group-addon measure_unit" >0</span>
+              </div>
+            </div><!-- /.col-lg-1 -->
+
+            <div class="col-lg-2">
+                <button type="button" class="btn btn-default" action="exportJSON">to JSON <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
+            </div><!-- /.col-lg-1 -->
+
+            <div class="col-lg-2">
+                <button type="button" class="btn btn-default" action="getRoomsJSON">getRoomsJSON <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
+            </div><!-- /.col-lg-1 -->
+          </div>
+        </div>
+
   </div>
 </nav>
 </body>
