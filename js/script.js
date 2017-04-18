@@ -53,11 +53,11 @@ function initMain()
 	container.appendChild( renderer.domElement );
 
   //статистика
-  rendererStats	= new THREEx.RendererStats();
-  rendererStats.domElement.style.position	= 'absolute'
-  rendererStats.domElement.style.left	= '0px'
-  rendererStats.domElement.style.bottom	= '0px'
-  document.body.appendChild( rendererStats.domElement )
+//  rendererStats	= new THREEx.RendererStats();
+//  rendererStats.domElement.style.position	= 'absolute'
+//  rendererStats.domElement.style.left	= '0px'
+//  rendererStats.domElement.style.bottom	= '0px'
+//  document.body.appendChild( rendererStats.domElement )
 
 	// EVENTS
 //	THREEx.WindowResize(renderer, camera);
@@ -191,7 +191,7 @@ function animate()
 function update()
 {
   updateCameraRay();
-  rendererStats.update(renderer);
+//  rendererStats.update(renderer);
 }
 
 function render()
