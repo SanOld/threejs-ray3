@@ -157,6 +157,12 @@ function init()
 //$wallCreator.addWall([new THREE.Vector3(200,0,0), new THREE.Vector3(200,0,200)]);
 
 
+//$wallCreator.addWall([ new THREE.Vector3(-2000,0,-2000), new THREE.Vector3(2000,0,-2000) ]);
+//$wallCreator.addWall([ new THREE.Vector3(2000,0,-2000), new THREE.Vector3(2000,0,2000) ]);
+//$wallCreator.addWall([ new THREE.Vector3(2000,0,2000), new THREE.Vector3(-2000,0,2000) ]);
+//$wallCreator.addWall([ new THREE.Vector3(-2000,0,2000), new THREE.Vector3(-2000,0,-2000) ]);
+
+
 
 //loadScene();
 //loadCamera();

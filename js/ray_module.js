@@ -386,7 +386,7 @@ geometry.vertices.push(
 );
 
 //var line = new THREE.Line( geometry );
-//  window.console.log(ray.intersectObject(line)[0]);;
+
 
 }
 
@@ -962,7 +962,7 @@ function onDocumentMouseDownCam( event )
 
   //выбор активной камеры
   if(click_cam && active_camera !== click_cam){
-	//console.log(click_cam);
+
 	if ('name' in click_cam && click_cam['userData'].is_camera == true) {
 	  if ( active_camera && active_camera['currentMaterial']){
 		if (active_camera.getMainMesh().material)
@@ -1989,8 +1989,8 @@ function initProjection(obj){
   obj.planeHelperAdd = function(){
     var geometry = new THREE.PlaneGeometry( 100000, 100000, 1 );
     obj.plane = new THREE.Mesh( geometry );
-    obj.plane.rotateX(-Math.PI/2);
-    obj.plane.translateZ (-5);
+    obj.plane.rotateX( -Math.PI/2 );
+    obj.plane.translateZ ( -5 );
     obj.plane.material.visible = false;
     scene.add( obj.plane );
   }
@@ -2150,32 +2150,16 @@ function initProjection(obj){
     $wallEditor.off();
     
   })
-  $('.footer').on('click','[action = getRoomsJSON]',function(){
 
-    $wallEditor.on();
-
-      var result = $wallEditor.getRoomsJSON() ;
-      var nodes = JSON.stringify(result.nodes);
-      var pathes = JSON.stringify(result.pathes);
-      if(result){
-
-        window.console.log( nodes );
-        window.console.log( pathes );
-      }
-
-
-    $wallEditor.off();
-
-  })
-  $('.footer').on('click','[action = getRooms]',function(){
-
-    $wallEditor.on();
-
-    $wallEditor.getRooms() ;
-
-//    $wallEditor.off();
-
-  })
+//  $('.footer').on('click','[action = getRooms]',function(){
+//
+//    $wallEditor.on();
+//
+//    $wallEditor.getRooms() ;
+//
+////    $wallEditor.off();
+//
+//  })
   $('.footer').on('click','[action = hideWalls]',function(){
     
     $wallEditor.walls.forEach(function( item ){
@@ -2740,7 +2724,7 @@ function initWallCreator(obj){
     var vertices = vertices;
     var params = params || {width: obj.wall_width};
 
-    if(!params.auto_building)
+    if( !params.auto_building )
     //проверка doubleclck и расстояние меньше половины ширины стены
     if(vertices && vertices[0].equals(vertices[1]) || vertices[0].distanceTo(vertices[1]) < params.width/2){
       window.console.warn("Неверные параметры для создания стены!");
@@ -3647,12 +3631,36 @@ function initWallEditor( obj ){
   obj.getJSON = function(callback){
     var export_data;
     $.getJSON("../data/export_example.json", function(data) {
-                window.console.log(data);
 
                 export_data = data;
-                obj.walls.forEach(function(item){
+
+                var rooms = obj.getRooms();
+                rooms.forEach(function(room, room_index){
 
 
+
+                  export_data.floors[0].rooms[ room_index ] =
+                                                                {
+                                                                  "id": room.uuid,
+                                                                  "furniture": [],
+                                                                  "closedRoom": true,
+                                                                  "roomID": "",
+                                                                  "room_type": "undefined",
+                                                                  "room_name": "",
+                                                                  "room_number": "",
+                                                                  "room_zone": "",
+                                                                  "room_area": "",
+                                                                  "area_coords": {
+                                                                    "x": 0,
+                                                                    "y": 0
+                                                                  },
+                                                                  "walls": [],
+                                                                  "elements": []
+                                                                };
+
+                  room.walls.forEach(function(uuid){
+
+                  var item = scene.getObjectByProperty('uuid', uuid)
                   //координаты
                   if ( item.v11.distanceTo( item.v21 ) < item.v12.distanceTo( item.v22 ) ){
 
@@ -3712,7 +3720,8 @@ function initWallEditor( obj ){
                                 );
                   })
 
-                  export_data.floors[0].rooms[0].walls.push(
+
+                  export_data.floors[0].rooms[ room_index ].walls.push(
                                           {
                                           id: item.id,
                                           inner: inner,
@@ -3725,7 +3734,7 @@ function initWallEditor( obj ){
                                           width_units: item.width * current_unit.c,
                                           type: "bearing_wall",
                                           height: {
-                                            start: item.v1.y,
+                                            start: item.height,
                                             end: item.height
                                           },
                                           openings: openings,
@@ -3735,6 +3744,7 @@ function initWallEditor( obj ){
                                         }
                           )
 
+                })
                 })
 
                 callback( JSON.stringify(export_data) );
@@ -3780,37 +3790,72 @@ function initWallEditor( obj ){
 
     window.console.time('t');
 
+//    obj.walls.forEach(function( item, i ){
+//      item.setDefaultNode();
+//      item.update();
+//    })
+    
+    var result = [];
 
     $wallCreator.updateWalls();
-    var nodes = obj.getNodes();
+    var nodes =  obj.getNodes();
     var pathes = obj.getPathes();
     var chains = obj.getChains(nodes, pathes);
-
     obj.ExclusionExternalChain(nodes, chains);
+ 
 
+    //удаление линий контура комнат
+    var _lines = [];
+    scene.children.forEach(function(line){
+      if(line.name === 'room_line'){
+        _lines.push(line);
+      }
+    })
+    _lines.forEach(function(item){
+      scene.remove(item);
+    })
+    //=================
 
     chains.forEach(function(chain){
 
-    if(chain)
-    chain.forEach(function(item){
+      var walls = [];
 
-      var geometry = new THREE.Geometry();
-      geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
-      var material = new THREE.LineBasicMaterial({
-        color: 'red'
+      if(chain)
+      chain.forEach(function(item){
+
+
+
+        //отрисовка контура комнаты
+        var geometry = new THREE.Geometry();
+        geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
+        var material = new THREE.LineBasicMaterial({
+          color: 'red'
+        });
+        var line = new THREE.Line(geometry, material);
+        line.name = 'room_line';
+
+        scene.add( line );
+        //=================
+
+        
+        if( walls.indexOf( item.wall_uuid ) == -1 ){
+          walls.push( item.wall_uuid );
+        }
+
       });
-      var line = new THREE.Line(geometry, material);
-      scene.add( line )
 
-    });
+      result.push({
+        id: THREE.Math.generateUUID(),
+        walls: walls
+      })
 
-  })
+    })
 
-  window.console.timeEnd('t');
+    window.console.timeEnd('t');
 
-    window.console.log(nodes);
-    window.console.log(pathes);
-    window.console.log(chains);
+    window.console.log(result);
+    return result;
+
   }
   obj.getNodes = function(){
 
@@ -3850,18 +3895,43 @@ function initWallEditor( obj ){
 
       pathes.push({
                     id: item.uuid + '_11',
+                    wall_uuid:item.uuid,
                     source: { id: item.node11.id },
                     target: { id: item.node21.id },
                   });
       pathes.push({
                     id: item.uuid + '_12',
+                    wall_uuid:item.uuid,
                     source: { id: item.node12.id },
                     target: { id: item.node22.id },
                   });
+      //из исключения толстая тонкая
+      if(item._e_path11){
 
+        pathes.push(item._e_path11);
+
+      };
+      if(item._e_path12){
+
+        pathes.push(item._e_path12);
+
+      };
+      if(item._e_path21){
+
+        pathes.push(item._e_path21);
+
+      };
+      if(item._e_path22){
+
+        pathes.push(item._e_path22);
+
+      };
+
+      //при отсуствии соседей
       if( item.mover.v1_neighbors.length == 0){
         pathes.push({
                     id: item.uuid + '_01',
+                    wall_uuid:item.uuid,
                     source: { id: item.node11.id },
                     target: { id: item.node12.id },
                   });
@@ -3870,10 +3940,12 @@ function initWallEditor( obj ){
       if( item.mover.v2_neighbors.length == 0){
         pathes.push({
                     id: item.uuid + '_02',
+                    wall_uuid:item.uuid,
                     source: { id: item.node21.id },
                     target: { id: item.node22.id },
                   });
       }
+
 
     })
 
@@ -3920,11 +3992,11 @@ function initWallEditor( obj ){
 
     chains.forEach(function(item, index){
 
-      var wall_uuid = item[0].id.split('_')[0];
+      var wall_uuid = item[0].wall_uuid;
       var wall = scene.getObjectByProperty ( 'uuid', wall_uuid );
+      
       if( wall ){
-//        obj.isWallInRoom(nodes, wall, item) ? toRemove.push(index) : ''
-      obj.isWallInRoom(nodes, wall, item) ? delete chains[index] : ''
+        obj.isWallInRoom(nodes, wall, item) ? delete chains[index] : ''
       }
     });
 
@@ -3940,6 +4012,9 @@ function initWallEditor( obj ){
     chain.forEach(function(item){
 
       var geometry = new THREE.Geometry();
+      if(!nodes[item.source.id] || !nodes[item.target.id]){
+        debugger
+      }
       geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
 //      var material = new THREE.LineBasicMaterial({
 //        color: 'red'
@@ -4085,7 +4160,6 @@ function initWallEditor( obj ){
 		obj.selected.addDoorway('niche');
 	});
   $('.ActiveElementMenu').on('click', '[action = scaleFloor]', function(event){
-    window.console.log(event);
 		obj.selected.setFloorScale(event);
 	});
 
@@ -4166,13 +4240,14 @@ function Dimension( param1, param2, plane, parameters ){
   this.lkmMenu = '';
   this.rkmMenu = '.DimensionMenu';
 
-  this.planeNormal
+  this.planeNormal;
 
   this.point1 = null;
   this.point2 = null;
   this.dimLine = null;
   this.direction = null;
   this.plane = plane || null;
+  this.planeNormal = new THREE.Vector3( 0, 1, 0 );
   this.planeMousePoint = new THREE.Vector3();
   this.raycaster = new THREE.Raycaster();
 
@@ -4467,10 +4542,14 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
     }
   },
   setPlaneNormal: function(){
+
     if(this.plane){
+
       this.planeNormal = this.plane.geometry.faces[0].normal.clone();
       this.planeNormal.applyMatrix4(this.plane.matrixWorld).round();
+
     }
+    
   },
   definePoints: function(){
     switch (this._type) {
@@ -4772,14 +4851,7 @@ function Wall(vertices, parameters){
   this.v1 = vertices[0].clone();
   this.v2 = vertices[1].clone();
 
-  this.node1 = {
-    id: this.uuid + '_1',
-    position: {x:this.v1.x, y: this.v1.z }
-  }
-  this.node2 = {
-    id: this.uuid + '_2',
-    position: {x:this.v2.x, y: this.v2.z }
-  }
+  
 //    this.offset = {x: this.v1.x, y: this.v1.z};
 
   this.axisLine = new THREE.Line3(this.v1,this.v2);
@@ -4792,27 +4864,7 @@ function Wall(vertices, parameters){
   this.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
   this.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
 
-  this.node11 = {
-    id: this.uuid + '_11',
-//    position: {x:this.v11.x, y: this.v11.z }
-    position: this.v11
-  }
-  this.node12 = {
-    id: this.uuid + '_12',
-//    position: {x:this.v12.x, y: this.v12.z }
-    position: this.v12
-  }
-  this.node21 = {
-    id: this.uuid + '_21',
-//    position: {x:this.v21.x, y: this.v21.z }
-    position: this.v21
-  }
-  this.node22 = {
-    id: this.uuid + '_22',
-//    position: {x:this.v22.x, y: this.v22.z }
-    position: this.v22
-  }
-
+  
   this.dimensions = []; //массив хранения объектов размеров стены
   this.p1 = new THREE.Vector3();
   this.p2 = new THREE.Vector3();
@@ -4826,7 +4878,6 @@ function Wall(vertices, parameters){
     new THREE.Line3(this.p1, this.p2),
   ]
   
-
   this.geometry = this.buildGeometry();
 
 //    this.material = $projection.projectionWallMaterial
@@ -4849,11 +4900,40 @@ function Wall(vertices, parameters){
   //хелпер примечание id
 //  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
 
-
-
   //хелпер осей
 //  var axisHelper = new THREE.AxisHelper( 50 );
 //  this.add( axisHelper );
+  this.setDefaultNode = function(){
+
+    this.node1 = {
+      id: this.uuid + '_1',
+      position: {x:this.v1.x, y: this.v1.z }
+    }
+    this.node2 = {
+      id: this.uuid + '_2',
+      position: {x:this.v2.x, y: this.v2.z }
+    }
+
+    this.node11 = {
+      id: this.uuid + '_11',
+      position: this.v11
+    }
+    this.node12 = {
+      id: this.uuid + '_12',
+      position: this.v12
+    }
+    this.node21 = {
+      id: this.uuid + '_21',
+      position: this.v21
+    }
+    this.node22 = {
+      id: this.uuid + '_22',
+      position: this.v22
+    }
+  },
+          //Ноды
+  this.setDefaultNode();
+
   this.changeDim =       function ( event ) {
 
     var offset = 0;
@@ -4903,7 +4983,7 @@ function Wall(vertices, parameters){
     
   };
 
-    setTimeout(function(){
+  setTimeout(function(){
     self.calcDimensionsPoints();
     self.createDimensions();
     self.updateDimensions();
@@ -4935,10 +5015,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 //      var shapePoints = wallShape.extractPoints();
 //      var vertices = shapePoints.shape;
 //      THREE.ShapeUtils.isClockWise(vertices)
-//      window.console.log(vertices);
+
 //      var arr = THREE.ShapeUtils.triangulate( vertices, false );
-//      window.console.log(vertices);
-//      window.console.log(arr);
+
 //
 //      if( arr.lenth > 0 ){
 //        var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
@@ -4978,7 +5057,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v1, p2: item.v12};
+            target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
           }
         }
 
@@ -4993,7 +5072,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v2, p2: item.v21};
+            target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
           } 
         }
       }
@@ -5001,10 +5080,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     })
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
+    var exception = false;
+    self._e_path22 = null;
     if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
+      exception = true;
 
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
@@ -5014,25 +5096,19 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     }
     //пересечение
     if(angle_max > -Math.PI && angle_max != 0){
+
       var ray = new THREE.Ray(self.v12, self.direction);
-
       ray.distanceSqToSegment ( segment_start, segment_end, result_point );
-//
-//      var material_ray = new THREE.LineBasicMaterial({ color: 'red' });
-//      var material = new THREE.LineBasicMaterial({ color: 'blue' });
-//
-//      var geometry_ray = new THREE.Geometry();
-//      geometry_ray.vertices.push(self.v12);
-//      geometry_ray.vertices.push(self.v12.clone().add( self.direction.clone().multiplyScalar(200) ));
-//
-//      var geometry = new THREE.Geometry();
-//      geometry.vertices.push( segment_start );
-//      geometry.vertices.push( segment_end );
-//
-//      var line_ray = new THREE.Line(geometry_ray, material_ray);
-//      var line = new THREE.Line(geometry, material);
-//      scene.add(line_ray, line);
 
+    }
+
+    if(exception){
+      self._e_path22 = {
+                  id: self.uuid + '_e22',
+                  wall_uuid: self.uuid,
+                  source: { id: self.node22.id },
+                  target: { id: target_foundation.node_id },
+                };
     }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
@@ -5063,7 +5139,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v1, p2: item.v11};
+            target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
           }
         }
 
@@ -5078,7 +5154,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v2, p2: item.v22};
+            target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
           }
         }
       }
@@ -5087,10 +5163,14 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
+    var exception = false;
+    self._e_path21 = null;
+
     if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
       
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
+      exception = true;
       
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
@@ -5104,6 +5184,15 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       var ray = new THREE.Ray(self.v11, self.direction);
       ray.distanceSqToSegment ( segment_start, segment_end, result_point );
 
+    }
+
+    if(exception){
+      self._e_path21 = {
+                  id: self.uuid + '_e21',
+                  wall_uuid: self.uuid,
+                  source: { id: self.node21.id },
+                  target: { id: target_foundation.node_id },
+                };
     }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
@@ -5133,7 +5222,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v2, p2: item.v22};
+            target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
           }
         }
 
@@ -5148,7 +5237,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v1, p2: item.v11};
+            target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
           }
         }
       }
@@ -5156,10 +5245,14 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     })
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
+    var exception = false;
+    self._e_path12 = null;
+
     if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
+      exception = true;
 
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
@@ -5174,6 +5267,15 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       ray.distanceSqToSegment ( segment_start, segment_end, result_point );
 
     }
+
+    if(exception){
+        self._e_path12 = {
+                    id: self.uuid + '_e12',
+                    wall_uuid: self.uuid,
+                    source: { id: self.node12.id },
+                    target: { id: target_foundation.node_id },
+                  };
+      }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
@@ -5202,7 +5304,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v2, p2: item.v21};
+            target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
           }
         }
 
@@ -5217,7 +5319,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v1, p2: item.v12};
+            target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
           }
         }
       }
@@ -5225,15 +5327,22 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     })
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
+    var exception = false;
+    self._e_path11 = null;
+    
     if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
+      exception = true;
       
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
 
       angle_max = 0;
+      exception = true;
+      
+
 
     }
     //пересечение
@@ -5243,6 +5352,16 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       ray.distanceSqToSegment ( segment_start, segment_end, result_point );
 
     }
+
+    
+    if(exception){
+        self._e_path11 = {
+                    id: self.uuid + '_e11',
+                    wall_uuid: self.uuid,
+                    source: { id: self.node11.id },
+                    target: { id: target_foundation.node_id },
+                  };
+      }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
@@ -5262,12 +5381,14 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.node11.position.copy(this.v11);
     this.node12.position.copy(this.v12);
     this.node21.position.copy(this.v21);
-    this.node22.position.copy(this.v22);    
+    this.node22.position.copy(this.v22);
+
+    this.v11.copy( this.v1.clone().add( this.direction90.clone().multiplyScalar(this.width/2) ) );
+    this.v12.copy( this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );
+    this.v21.copy( this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) ) );
+    this.v22.copy( this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );
+
     
-    this.v11 = this.v1.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
-    this.v12 = this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
-    this.v21 = this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
-    this.v22 = this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
 
   },
 
@@ -5291,6 +5412,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       this.v12 = v12 ? v12 : this.v12 ;
       this.v21 = v21 ? v21 : this.v21 ;
       this.v22 = v22 ? v22 : this.v22 ;
+
+      this.setDefaultNode();
 
       var new_geometry = this.buildGeometry();
       if(new_geometry){
@@ -5828,13 +5951,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       }
 
-      window.console.log(scene.getObjectByName('floor').scale);
+
       scene.getObjectByName('floor').scale.set ( 
                                                 scene.getObjectByName('floor').scale.x * floorScaleX,
                                                 scene.getObjectByName('floor').scale.y * floorScaleY,
                                                 scene.getObjectByName('floor').scale.z * floorScaleZ
                                                 );
-      window.console.log(scene.getObjectByName('floor').scale);
+
 
 
 
@@ -6460,16 +6583,21 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     self.v1_neighbors = [];
     self.v2_neighbors = [];
 
+    
+
     this.wall.walls.forEach(function( item, i ){
 
-      if(item.type == 'Wall' && self.wall.index != i){
+
+      if( item.type == 'Wall' && self.wall.index != i ){
+
+        
 
         var arr = null;
         var arg1;
         var arg2;
         var opposite_point;
 
-        switch (true) {
+        switch ( true ) {
           case $wallEditor.isPointsNeighboors( self.wall.v1, item.v1, 1 ) :
             arr = 'v1_neighbors';
             arg1 = 'v1';
@@ -8921,3 +9049,6 @@ SelectControls = function ( _objects, _camera, _domElement ){
 }
 SelectControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 SelectControls.prototype.constructor = SelectControls;
+
+
+
