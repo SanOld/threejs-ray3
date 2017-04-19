@@ -3823,8 +3823,6 @@ function initWallEditor( obj ){
       if(chain)
       chain.forEach(function(item){
 
-
-
         //отрисовка контура комнаты
         var geometry = new THREE.Geometry();
         geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
@@ -3837,7 +3835,7 @@ function initWallEditor( obj ){
         scene.add( line );
         //=================
 
-        
+
         if( walls.indexOf( item.wall_uuid ) == -1 ){
           walls.push( item.wall_uuid );
         }
@@ -3854,6 +3852,21 @@ function initWallEditor( obj ){
     window.console.timeEnd('t');
 
     window.console.log(result);
+    var countur = [
+      new THREE.Vector2(0,0),
+      new THREE.Vector2(1000,0),
+      new THREE.Vector2(1000,1000),
+      new THREE.Vector2(2000,1000),
+      new THREE.Vector2(2000,0),
+      new THREE.Vector2(3000,0),
+      new THREE.Vector2(3000,2000),
+      new THREE.Vector2(0,2000),
+      new THREE.Vector2(0,0)
+
+    ]
+
+    var t = THREE.ShapeUtils.area(countur)
+    window.console.log( t/1000000 );
     return result;
 
   }
