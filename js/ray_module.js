@@ -5,6 +5,7 @@
 //=== to addCameraRay
 var Dimensions = new THREE.Object3D(0,3000,0); //объект хранилище размеров
 var Areas = new THREE.Object3D(0,3000,0); //объект хранилище размеров площадей
+var AreaCounturs = new THREE.Object3D(0,1,0); //объект хранилище размеров площадей
 var videocameraArr = [];
 var videocameraName = 'videocamera';
 var active_camera = null;
@@ -262,10 +263,12 @@ function addCameraRay(scene)
 //  var ray_axis_y; // доп ось камеры
   var allCamArr = [];
 
-  //глобальный объект размеров
+  //глобальный объект-хранилище размеров
   scene.add(Dimensions);
-  //глобальный объект размеров gkjofltq
+  //глобальный объект-хранилище размеров площадей комнат
   scene.add(Areas);
+  //глобальный объект-хранилище размеров контуров комнат
+  scene.add(AreaCounturs);
 
   scene.children.forEach(function(videocamera_one, idx) {
       if(videocamera_one.userData.is_camera == true && videocamera_one.parent.name != 'ray_axis_x')
@@ -1942,6 +1945,9 @@ function initProjection(obj){
 
     obj.doorwaysProjectionMode();
 
+    Areas.visible = true;
+    AreaCounturs.visible = true;
+
     $wallEditor.on();
 
   }
@@ -1956,6 +1962,8 @@ function initProjection(obj){
     delete obj.plane;
 
     Dimensions.visible = false;
+    Areas.visible = false;
+    AreaCounturs.visible = false;
     obj.setMaterialToWall(obj.acsWallMaterial);
 
 
@@ -3763,12 +3771,6 @@ function initWallEditor( obj ){
 
     window.console.time('t');
 
-//    obj.walls.forEach(function( item, i ){
-//      item.setDefaultNode();
-//      item.update();
-//    })
-    
-//    $wallCreator.updateWalls();
     obj.hideAreaNotifications();
 
     var rooms = [];
@@ -3780,7 +3782,6 @@ function initWallEditor( obj ){
 
     //удаление линий контура комнат
     obj.removeCounturLine();
-    
     //=================
 
     chains.forEach(function(chain){
@@ -4069,7 +4070,7 @@ function initWallEditor( obj ){
                                       {
                                         backgroundColor: { r:255, g:255, b:255, a:0 },
                                         borderColor:     { r:255, g:255, b:255, a:0 },
-                                        fontsize: 48
+                                        fontsize: 36
                                       }
                                       );
     notification.position.copy( area_coord );
@@ -4099,19 +4100,19 @@ function initWallEditor( obj ){
       var line = new THREE.Line(geometry, LineBasicMaterialRed);
       line.name = 'room_line';
 
-      scene.add( line );
+      AreaCounturs.add( line );
 
     })
   }
   obj.removeCounturLine = function(){
     var _lines = [];
-    scene.children.forEach(function(line){
+    AreaCounturs.children.forEach(function(line){
       if(line.name === 'room_line'){
         _lines.push(line);
       }
     })
     _lines.forEach(function(item){
-      scene.remove(item);
+      AreaCounturs.remove(item);
     })
   }
   //============
