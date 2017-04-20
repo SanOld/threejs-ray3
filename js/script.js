@@ -13,6 +13,7 @@ var offset = new THREE.Vector3()
 
 var measure_unit = {
   'm':  {full_name: 'метр',       short_name: 'м',  c: 0.001 },
+  'm2': {full_name: 'квадратный метр',short_name: 'м2',  c: 0.000001 },
   'cm': {full_name: 'сантиметр',  short_name: 'см', c: 0.1 },
   'mm': {full_name: 'миллиметр',  short_name: 'мм', c: 1 },
   'ft': {full_name: 'фут',        short_name: 'ft', c: 0.003281 },
@@ -20,6 +21,9 @@ var measure_unit = {
 }
 var current_unit = measure_unit.mm;
 var accuracy_measurements = 0;
+
+var area_unit = measure_unit.m2;
+var area_accuracy_measurements = 2;
 
 var floorScale = 1;
 var floorWidth = 20000;
