@@ -1,11 +1,75 @@
 "use strict";
 // MAIN
 
+	var parentURL = '*';
+
+	window.onbeforeunload = function() {  
+		//console.log('unload widget');
+		post_cancel();	
+	};	
+
+	window.onpopstate = function(event) {
+		//alert("location: " + document.location + ", state: " + JSON.stringify(event.state));
+		post_cancel();
+	};
+
+    $(function () {
+
+        $(document).keypress(function(e) {
+            if (e.keyCode == 119) {
+                post_ok();
+            }
+            if (e.keyCode == 27) {
+                post_cancel();
+            }
+        });
+
+        $(window).on("message onmessage", listener);
+		
+		parent.window.postMessage({message: {cmd: 'ready', data: {} }}, parentURL);
+
+        function listener(event) {
+            var mess = event.originalEvent.data.message;
+
+            if (mess && mess.cmd == 'put_data') {
+				parentURL = event.originalEvent.origin;
+            }
+        }
+
+    });
+
+	// на "OK" выходной джсон передается в заданное место (в тестовом варианте - на страницу документа)
+    function post_ok(data) {
+		if (data == undefined)
+		{
+			$wallEditor.on();
+			$wallEditor.getJSON(post_ok) ;
+			$wallEditor.off();
+		}
+		else
+		{
+			console.log(parentURL);
+			if (parentURL != '*')
+				parent.window.postMessage({message: {cmd: 'put_data', data: JSON.parse(data) }}, parentURL);
+			else {	
+				console.log('JSON:');
+				console.log(data);
+			}	
+		}
+    }
+
+    function post_cancel() {
+		console.log(parentURL);
+        parent.window.postMessage({message: {cmd: 'cancel'}}, parentURL);
+    }
+
+
 // standard global variables
 var container, scene, camera, renderer, controls, stats, selection;
 //var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock();
 // custom global variables
+var rendererStats;
 
 var mouse = new THREE.Vector2();
 var offset = new THREE.Vector3()
@@ -19,12 +83,10 @@ var measure_unit = {
 }
 var current_unit = measure_unit.mm;
 var accuracy_measurements = 0;
-$('.floorHeight').val( floorHeight );
-$('.measure_unit').html( current_unit.short_name );
 
 var floorScale = 1;
-var floorLength = 20000;
-var floorWidth = 12000;
+var floorWidth = 20000;
+var floorHeight = 12000;
 
 
 init();
@@ -52,6 +114,14 @@ function initMain()
 
 //	container = document.getElementById( 'ThreeJS' );
 	container.appendChild( renderer.domElement );
+
+  //статистика
+//  rendererStats	= new THREEx.RendererStats();
+//  rendererStats.domElement.style.position	= 'absolute'
+//  rendererStats.domElement.style.left	= '0px'
+//  rendererStats.domElement.style.bottom	= '0px'
+//  document.body.appendChild( rendererStats.domElement )
+
 	// EVENTS
 //	THREEx.WindowResize(renderer, camera);
 //	THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
@@ -85,13 +155,13 @@ var loader = new THREE.TextureLoader();
 // load a resource
 loader.load(
 	// resource URL
-  '/img/plan3.jpg',
+  '/img/DrawA4_2.jpg',
 	// Function when resource is loaded
 	function ( floorTexture ) {
 		// do something with the texture 
       floorTexture.repeat.set( 1, 1 );
       var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
-      var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
+      var floorGeometry = new THREE.PlaneBufferGeometry(floorWidth * floorScale, floorHeight * floorScale, 10, 10);
       var floor = new THREE.Mesh(floorGeometry, floorMaterial);
       floor.name = 'floor'
       floor.position.y = -1;
@@ -131,23 +201,16 @@ function init()
 //	// CUSTOM //
 //	////////////
 
-
 //
 //var axisHelper = new THREE.AxisHelper( 300 );
 //scene.add( axisHelper );
 //
 
 
-//$wallCreator.addWall([new THREE.Vector3(-500,0,-500), new THREE.Vector3(0,0,-500)]);
-//$wallCreator.addWall([new THREE.Vector3(-500,0,-500), new THREE.Vector3(-500,0,0)]);
-//
-//$wallCreator.addWall([new THREE.Vector3(-350,0,-150), new THREE.Vector3(-150,0,-350)]);
-//
-//$wallCreator.addWall([new THREE.Vector3(0,0,-100), new THREE.Vector3(0,0,-50)],{width: 50});//колонна
-
-//$wallCreator.addWall([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,200)]);
-//
-//$wallCreator.addWall([new THREE.Vector3(200,0,0), new THREE.Vector3(200,0,200)]);
+//$wallCreator.addWall([ new THREE.Vector3(-2000,0,-2000), new THREE.Vector3(2000,0,-2000) ]);
+//$wallCreator.addWall([ new THREE.Vector3(2000,0,-2000), new THREE.Vector3(2000,0,2000) ]);
+//$wallCreator.addWall([ new THREE.Vector3(2000,0,2000), new THREE.Vector3(-2000,0,2000) ]);
+//$wallCreator.addWall([ new THREE.Vector3(-2000,0,2000), new THREE.Vector3(-2000,0,-2000) ]);
 
 
 
@@ -178,6 +241,7 @@ function animate()
 function update()
 {
   updateCameraRay();
+//  rendererStats.update(renderer);
 }
 
 function render()

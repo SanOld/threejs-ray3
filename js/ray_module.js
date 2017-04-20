@@ -1106,12 +1106,12 @@ function toggleMode( mode ){
       if($projection.enabled){
 
         $projection.off();
-        
+
         $('.mode2D').hide();
         $('.footer').find('[action = mode]').text('2D');
 
       }
-      
+
       break;
   }
 }
@@ -1121,7 +1121,7 @@ $('.footer').on('click','[action = mode]',function(){
   if($projection.enabled){
 
     toggleMode('3D');
-    
+
   } else {
 
     toggleMode('2D');
@@ -2302,7 +2302,8 @@ function initProjection(obj){
     $wallEditor.on();
     
     $wallEditor.getJSON(function(result){
-      window.console.log( result );
+      //window.console.log( result );
+	  post_ok(result);
     }) ;
 
     $wallEditor.off();
@@ -2758,12 +2759,12 @@ function initWallCreator(obj){
   obj.lineHelperMaterial = new THREE.LineDashedMaterial( {
       color: 0x0000ff,
       dashSize: 100,
-      gapSize: 30,
+      gapSize: 30
     } );
   obj.lineDashedMaterial = new THREE.LineDashedMaterial( {
       color: 'black',
       dashSize: 100,
-      gapSize: 30,
+      gapSize: 30
     } );
 
   obj.dimensions = [];//размеры
@@ -3907,7 +3908,7 @@ function initWallEditor( obj ){
       pathes.push({
                     id: item.uuid,
                     source: { id: item.node1.id },
-                    target: { id: item.node2.id },
+                    target: { id: item.node2.id }
                   });
     });
 
@@ -4754,7 +4755,7 @@ function Wall(vertices, parameters){
   this.dimension_lines = [
     new THREE.Line3(this.p11, this.p21),
     new THREE.Line3(this.p12, this.p22),
-    new THREE.Line3(this.p1, this.p2),
+    new THREE.Line3(this.p1, this.p2)
   ]
   
 
@@ -5488,7 +5489,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.dimension_lines = [
     new THREE.Line3(this.p11, this.p21),
     new THREE.Line3(this.p12, this.p22),
-    new THREE.Line3(this.p1, this.p2),
+    new THREE.Line3(this.p1, this.p2)
   ]
 
   },
@@ -7596,7 +7597,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
     }
   },
-
+  
 });
 //Окно
 function WindowBlock( wall, parameters ){
