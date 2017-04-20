@@ -89,8 +89,8 @@ var area_unit = measure_unit.m2;
 var area_accuracy_measurements = 2;
 
 var floorScale = 1;
-var floorWidth = 20000;
-var floorHeight = 12000;
+var floorLength = 20000;
+var floorWidth = 12000;
 
 
 init();
@@ -164,7 +164,7 @@ loader.load(
 		// do something with the texture 
       floorTexture.repeat.set( 1, 1 );
       var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
-      var floorGeometry = new THREE.PlaneBufferGeometry(floorWidth * floorScale, floorHeight * floorScale, 10, 10);
+      var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
       var floor = new THREE.Mesh(floorGeometry, floorMaterial);
       floor.name = 'floor'
       floor.position.y = -1;

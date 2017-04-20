@@ -24,19 +24,12 @@
               </div>
             </div> <!-- /.col-lg-1 -->
 
-
-
-<!--        <div class="col-lg-1">
-            <button type="button" class="btn btn-default" action="getRooms">getRooms <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
-            <img class = "localImage" style="display: none">
-        </div> /.col-lg-1 -->
-
-        <div class="col-lg-1">
-            <button type="button" class="btn btn-default" action="hideWalls">Скрыть/Отобразить стены <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
-            <img class = "localImage" style="display: none">
-        </div><!-- /.col-lg-1 -->
-
             <div class="col-lg-2 mode2D">
+                <button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>
+                <img class = "localImage" style="display: none">
+            </div><!-- /.col-lg-1 -->
+
+            <div class="col-lg-2  mode2D">
 
                 <div class="btn-group dropup wall_dim_type">
                   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
@@ -58,10 +51,11 @@
                 <input type ="file" class = "floorLoader" style="display: none">
                 <img class = "localImage" style="display: none">
             </div><!-- /.col-lg-2 -->
-            <div class="col-lg-2">
+            <div class="col-lg-4">
               <div class="input-group">
+                <span class="input-group-addon" >Высота стен:</span>
                 <input type="text" class="form-control floorHeight" action="floorHeight">
-                <span class="input-group-addon measure_unit" >0</span>
+                <span class="input-group-addon measure_unit" >мм</span>
               </div>
             </div><!-- /.col-lg-1 -->
 
@@ -69,9 +63,6 @@
                 <button type="button" class="btn btn-default" action="exportJSON">to JSON <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
             </div><!-- /.col-lg-1 -->
 
-            <div class="col-lg-2">
-                <button type="button" class="btn btn-default" action="getRoomsJSON">getRoomsJSON <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
-            </div><!-- /.col-lg-1 -->
           </div>
         </div>
 

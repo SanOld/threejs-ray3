@@ -12,7 +12,8 @@ var active_camera = null;
 
 var floorHeight = 3000;
 
-var delta = 0.02; //шаг перемещения луча активной камеры
+var delta = 0.02; //шаг перемещенияп5662
+// луча активной камеры
 var delta2 = 5;   //шаг линейного перемещения активной камеры
 var rayMaterial = new THREE.MeshBasicMaterial({
   wireframe: false,
@@ -1142,7 +1143,7 @@ $('.footer').on('click','[action = mode]',function(){
 $('.footer').on('change','[action = floorHeight]',function(){
   var elem = $(this);
   $wallEditor.walls.forEach(function( wall ){
-    wall.height = 0 + elem.val();
+    wall.height =  + elem.val();
     wall.update();
   });
 });
@@ -2322,7 +2323,7 @@ function initProjection(obj){
     
     $wallEditor.getJSON(function(result){
       //window.console.log( result );
-	  post_ok(result);
+      post_ok(result);
     }) ;
 
     $wallEditor.off();
@@ -3945,7 +3946,7 @@ function initWallEditor( obj ){
   //комнаты TODO перенести в объект
   obj.getRooms = function(){
 
-    window.console.time('t');
+//    window.console.time('t');
 
     obj.hideAreaNotifications();
 
@@ -4017,7 +4018,7 @@ function initWallEditor( obj ){
 
     })
 
-    window.console.timeEnd('t');
+//    window.console.timeEnd('t');
 
     return rooms;
 
@@ -4211,8 +4212,6 @@ function initWallEditor( obj ){
     var area_coord = new THREE.Vector3();
     var max_area = 0;
     var triangles = THREE.ShapeUtils.triangulate( countur );
-    window.console.log(countur);
-    window.console.log(triangles);
     
     if(triangles)
     triangles.forEach(function( item2 ){
@@ -5126,8 +5125,9 @@ function Wall(vertices, parameters){
   this.material.transparent = true;
   this.material.opacity = 0.8;
 
-  this.rotation.x = Math.PI/2;
-  this.position.set( 0, self.height, 0 );
+//  this.rotation.x = Math.PI/2;
+//  this.position.set( 0, self.height, 0 );
+  this.setDefaultPosition();
 
   if(this.geometry)
   this.geometry.verticesNeedUpdate = true;
@@ -5272,6 +5272,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       return null;
     }
     return geometry;
+  },
+  setDefaultPosition: function(){
+    this.rotation.x = Math.PI/2;
+    this.position.set( 0, this.height, 0 );
   },
   getV22: function (walls){
     var result_point =  new THREE.Vector3();
@@ -5630,13 +5634,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.v21.copy( this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) ) );
     this.v22.copy( this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );
 
-    
-
   },
 
   update: function( walls ){
-
-      
 
       this.walls = walls || this.walls;
      
@@ -5653,6 +5653,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       this.v22 = v22 ? v22 : this.v22 ;
 
       var new_geometry = this.buildGeometry();
+      this.setDefaultPosition();
       if(new_geometry){
         this.geometry = new_geometry;
         this.geometry.verticesNeedUpdate = true;
@@ -5663,7 +5664,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.remove();
       }
 
-
       this.setDefaultNode();
       
       if( this.mover )
@@ -5672,8 +5672,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       this.controlPoint1.update();
       this.controlPoint2.update();
-
-      
 
       this.doors.forEach(function(item){
         item.update();
@@ -5958,7 +5956,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
   },
   showDimensions: function(){
-
+    
+    if( ! $projection.enabled){
+      return;
+    }
     var self = this;
     
     this.dimensions.forEach(function(item, i, arr){
@@ -6801,6 +6802,8 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   update: function(){
 
     var geometry = this.buildGeometry();
+    //позиционирование
+    this.setStartPosition();
     
     if(geometry){
       this.geometry = geometry;
