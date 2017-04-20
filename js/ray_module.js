@@ -4,6 +4,8 @@
 
 //=== to addCameraRay
 var Dimensions = new THREE.Object3D(0,3000,0); //объект хранилище размеров
+var Areas = new THREE.Object3D(0,3000,0); //объект хранилище размеров площадей
+var AreaCounturs = new THREE.Object3D(0,1,0); //объект хранилище размеров площадей
 var videocameraArr = [];
 var videocameraName = 'videocamera';
 var active_camera = null;
@@ -53,9 +55,13 @@ var wallControlPointMaterial_hover = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
   color: 'red'
 });
+var LineBasicMaterialRed = new THREE.LineBasicMaterial( {color: 'red'} );
 
 var dimensionMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff } );
 var transparentMaterial = new THREE.MeshBasicMaterial( { transparent: true, opacity: 0} );
+
+
+var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
 
 var isMoveRay = false; // перестраивание луча в функции рендеринга при движении луча
 var isMoveCamera = false; // перестраивание луча и "комнаты" в функции рендеринга при движении камеры
@@ -259,8 +265,12 @@ function addCameraRay(scene)
 //  var ray_axis_y; // доп ось камеры
   var allCamArr = [];
 
-  //глобальный объект размеров
+  //глобальный объект-хранилище размеров
   scene.add(Dimensions);
+  //глобальный объект-хранилище размеров площадей комнат
+  scene.add(Areas);
+  //глобальный объект-хранилище размеров контуров комнат
+  scene.add(AreaCounturs);
 
   scene.children.forEach(function(videocamera_one, idx) {
       if(videocamera_one.userData.is_camera == true && videocamera_one.parent.name != 'ray_axis_x')
@@ -385,7 +395,7 @@ geometry.vertices.push(
 );
 
 //var line = new THREE.Line( geometry );
-//  window.console.log(ray.intersectObject(line)[0]);;
+
 
 }
 
@@ -961,7 +971,7 @@ function onDocumentMouseDownCam( event )
 
   //выбор активной камеры
   if(click_cam && active_camera !== click_cam){
-	//console.log(click_cam);
+
 	if ('name' in click_cam && click_cam['userData'].is_camera == true) {
 	  if ( active_camera && active_camera['currentMaterial']){
 		if (active_camera.getMainMesh().material)
@@ -1207,7 +1217,6 @@ function noteMaker( obj, message, parameters )
     }
    return self.message.split("\n");
   }
-
   this.setMessage = function(message){
     if(typeof message == 'object'){
       self.message = message;
@@ -1238,7 +1247,6 @@ function noteMaker( obj, message, parameters )
 
     return metrics.width;
   }
-
   this.getFontHeight = function (font) {
     var parent = document.createElement("span");
     parent.appendChild(document.createTextNode("height"));
@@ -1282,6 +1290,10 @@ function noteMaker( obj, message, parameters )
 
   }
 
+  this.clearRect = function(){
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
   this.addText = function(){
     // text color
     self.context.fillStyle = "rgba(0, 0, 0, 1.0)";
@@ -1323,6 +1335,7 @@ function noteMaker( obj, message, parameters )
       self.message = this.getMessage();
       self.textWidth = self.getTextWidth(self.message) * 1.0;
       self.fontheight = self.getFontHeight(self.context.font) * 1.0;
+      self.clearRect();
       self.addRectangle();
       self.addText();
       self.toCanvas2();
@@ -1360,6 +1373,7 @@ function noteMaker( obj, message, parameters )
     self.message = self.getMessage();
     self.textWidth = self.getTextWidth(self.message);
     self.fontheight = self.getFontHeight(self.context.font);
+    self.clearRect();
     self.addRectangle();
     self.addText();
     self.toCanvas2();
@@ -1987,6 +2001,9 @@ function initProjection(obj){
 
     obj.doorwaysProjectionMode();
 
+    Areas.visible = true;
+    AreaCounturs.visible = true;
+
     $wallEditor.on();
 
   }
@@ -2001,6 +2018,8 @@ function initProjection(obj){
     delete obj.plane;
 
     Dimensions.visible = false;
+    Areas.visible = false;
+    AreaCounturs.visible = false;
     obj.setMaterialToWall(obj.acsWallMaterial);
 
 
@@ -2041,8 +2060,8 @@ function initProjection(obj){
   obj.planeHelperAdd = function(){
     var geometry = new THREE.PlaneGeometry( 100000, 100000, 1 );
     obj.plane = new THREE.Mesh( geometry );
-    obj.plane.rotateX(-Math.PI/2);
-    obj.plane.translateZ (-5);
+    obj.plane.rotateX( -Math.PI/2 );
+    obj.plane.translateZ ( -5 );
     obj.plane.material.visible = false;
     scene.add( obj.plane );
   }
@@ -2309,21 +2328,18 @@ function initProjection(obj){
     $wallEditor.off();
     
   })
-  $('.footer').on('click','[action = getRoomsJSON]',function(){
 
-    $wallEditor.on();
-
-      var result = $wallEditor.getRoomsJSON() ;
-      var nodes = JSON.stringify(result.nodes);
-      var pathes = JSON.stringify(result.pathes);
-      if(result){
-
-        window.console.log( nodes );
-        window.console.log( pathes );
+  $('.footer').on('click','[action = hideWalls]',function(){
+    
+    $wallEditor.walls.forEach(function( item ){
+      
+      if(item.visible){
+        item.hide();
+      } else {
+        item.show();
       }
-
-
-    $wallEditor.off();
+      
+    })
 
   })
   $('.footer').on('click','[action = modeC]',function(){
@@ -2856,9 +2872,23 @@ function initWallCreator(obj){
     });
   }
   obj.updateWalls = function(){
+
     obj.walls.forEach(function( item, i, arr ){
       item.update( obj.walls );
     })
+
+    obj.calculateRooms();
+    
+  }
+  obj.updateWallsNodes = function(){
+
+    obj.walls.forEach(function( item, i ){
+      item.setDefaultNode();
+    });
+
+  }
+  obj.calculateRooms = function(){
+    obj.rooms = $wallEditor.getRooms();
   }
   obj.removeWall = function(wall){
 
@@ -2879,18 +2909,18 @@ function initWallCreator(obj){
 
       obj.hideAllMenu();
   }
+
   /*
    *
    * @param {Array} [Vector3, Vector3] vertices
    * @param {Object} params
    * @returns {type Mesh}
    */
-
   obj.addWall = function( vertices, params ){
     var vertices = vertices;
     var params = params || {width: obj.wall_width};
 
-    if(!params.auto_building)
+    if( !params.auto_building )
     //проверка doubleclck и расстояние меньше половины ширины стены
     if(vertices && vertices[0].equals(vertices[1]) || vertices[0].distanceTo(vertices[1]) < params.width/2){
       window.console.warn("Неверные параметры для создания стены!");
@@ -2899,13 +2929,11 @@ function initWallCreator(obj){
 
     var wall = new Wall(vertices, params);
     if(wall){
+
       obj.walls.push(wall);
       wall.index = obj.walls.length - 1;
 
-      scene.add(wall);
-
-    //Обновляем состояние стен
-    obj.updateWalls();
+      scene.add(wall);     
 
     } else {
       window.console.warn("Ошибка при создании стены!");
@@ -2913,6 +2941,7 @@ function initWallCreator(obj){
     }
     
     setTimeout(function(){
+      obj.updateWalls();           //Обновляем состояние стен
       obj.magnitVerticiesCreate(); //пересоздание магнитных точек
     },100)
 
@@ -2936,7 +2965,6 @@ function initWallCreator(obj){
     return !(param1 + param2);
 
   }
-
   function isIntersectCollinear(newWallVertices){
     var result = false;
 
@@ -2981,7 +3009,6 @@ function initWallCreator(obj){
     return result;
  
   }
-
   function changeIntersectWalls (){
 
     intersectWalls.forEach(function( item, i ){
@@ -3572,6 +3599,8 @@ function initWallEditor( obj ){
   obj.windowblockSwitcherCoord = [];
   obj.doorwayMenu = [];
 
+  obj.raycaster = new THREE.Raycaster();
+
   obj.on = function(){
     
     obj.enabled = true;
@@ -3777,7 +3806,6 @@ function initWallEditor( obj ){
     })
 
   }
-
   obj.isPointsNeighboors = function( p1, p2, koef ){
 
     var p1 = p1 || new THREE.Vector3();
@@ -3795,12 +3823,34 @@ function initWallEditor( obj ){
   obj.getJSON = function(callback){
     var export_data;
     $.getJSON("../data/export_example.json", function(data) {
-                window.console.log(data);
 
                 export_data = data;
-                obj.walls.forEach(function(item){
+
+                var rooms = obj.getRooms();
+
+                rooms.forEach(function(room, room_index){
 
 
+
+                  export_data.floors[0].rooms[ room_index ] =
+                                                                {
+                                                                  "id": room.uuid,
+                                                                  "furniture": [],
+                                                                  "closedRoom": true,
+                                                                  "roomID": "",
+                                                                  "room_type": "undefined",
+                                                                  "room_name": "",
+                                                                  "room_number": "",
+                                                                  "room_zone": "",
+                                                                  "room_area": room.area,
+                                                                  "area_coords": room.area_coords,
+                                                                  "walls": [],
+                                                                  "elements": []
+                                                                };
+
+                  room.walls.forEach(function(uuid){
+
+                  var item = scene.getObjectByProperty('uuid', uuid)
                   //координаты
                   if ( item.v11.distanceTo( item.v21 ) < item.v12.distanceTo( item.v22 ) ){
 
@@ -3860,7 +3910,8 @@ function initWallEditor( obj ){
                                 );
                   })
 
-                  export_data.floors[0].rooms[0].walls.push(
+
+                  export_data.floors[0].rooms[ room_index ].walls.push(
                                           {
                                           id: item.id,
                                           inner: inner,
@@ -3873,7 +3924,7 @@ function initWallEditor( obj ){
                                           width_units: item.width * current_unit.c,
                                           type: "bearing_wall",
                                           height: {
-                                            start: item.v1.y,
+                                            start: item.height,
                                             end: item.height
                                           },
                                           openings: openings,
@@ -3884,44 +3935,363 @@ function initWallEditor( obj ){
                           )
 
                 })
+                })
 
                 callback( JSON.stringify(export_data) );
             });
 
   }
-  obj.getRoomsJSON = function(){
 
-    var result ={};
+  //комнаты TODO перенести в объект
+  obj.getRooms = function(){
+
+    window.console.time('t');
+
+    obj.hideAreaNotifications();
+
+    var rooms = [];
+    var nodes =  obj.getNodes();
+    var pathes = obj.getPathes();
+    var chains = obj.getChains(nodes, pathes);
+    obj.ExclusionExternalChain(nodes, chains);
+ 
+
+    //удаление линий контура комнат
+    obj.removeCounturLine();
+    //=================
+
+    chains.forEach(function(chain){
+
+      var walls = [];
+      var countur = [];
+
+      if(chain){
+            //отрисовка контура комнаты
+             obj.addCounturLine(chain, nodes);
+            //=================
+        
+          chain.forEach(function(item){
+
+            if(countur.length == 0){
+              countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
+              countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
+            } else if(countur[countur.length-1].x == nodes[item.target.id].position.x && countur[countur.length-1].y == nodes[item.target.id].position.z ){
+              countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
+            } else {
+              countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
+            }
+            
+            if( walls.indexOf( item.wall_uuid ) == -1 ){
+              walls.push( item.wall_uuid );
+            }
+
+          });
+          countur.length = countur.length - 1;
+
+          var objArea = obj.getArea( countur );
+
+          rooms.push({
+                      id: THREE.Math.generateUUID(),
+                      walls: walls,
+                      area: objArea.area,
+                      area_coords: {x: objArea.coord.x, y: objArea.coord.z},
+                      area_coords_3D: objArea.coord
+                    })
+
+
+          if( Areas.children.length < rooms.length && objArea.area){
+
+            obj.addAreaNotification( objArea.coord, objArea.area );
+
+          } else if(+objArea.area){
+
+            var note = Areas.children[ rooms.length - 1 ];
+            note.position.copy( objArea.coord );
+            note.setMessage( objArea.area + " " + area_unit.short_name );
+            note.update();
+            note.material.visible = true;
+
+          }
+
+      }
+
+    })
+
+    window.console.timeEnd('t');
+
+    return rooms;
+
+  }
+  obj.getNodes = function(){
+
     var nodes = {};
-    var _nodes = [];
+
+    obj.walls.forEach(function( item ){
+
+      if( ! nodes[ item.node11.id ]){
+        nodes[item.node11.id] = item.node11 ;
+      }
+      if( ! nodes[ item.node12.id ]){
+        nodes[item.node12.id] = item.node12 ;
+      }
+      if( ! nodes[ item.node21.id ]){
+        nodes[item.node21.id] = item.node21 ;
+      }
+      if( ! nodes[ item.node22.id ]){
+        nodes[item.node22.id] = item.node22 ;
+      }
+
+    });
+
+    return nodes;
+
+  };
+  obj.getPathes = function(){
+    
     var pathes = [];
 
     obj.walls.forEach(function( item ){
 
-      if( ! nodes[ item.node1.id ]){
-        nodes[item.node1.id] = item.node1 ;
-      }
-      if( ! nodes[ item.node2.id ]){
-        nodes[item.node2.id] = item.node2 ;
-      }
-
       pathes.push({
-                    id: item.uuid,
-                    source: { id: item.node1.id },
-                    target: { id: item.node2.id }
+                    id: item.uuid + '_11',
+                    wall_uuid:item.uuid,
+                    source: { id: item.node11.id },
+                    target: { id: item.node21.id },
                   });
-    });
+      pathes.push({
+                    id: item.uuid + '_12',
+                    wall_uuid:item.uuid,
+                    source: { id: item.node12.id },
+                    target: { id: item.node22.id },
+                  });
+      //из исключения толстая тонкая
+      if(item._e_path11){
 
-    for(var key in nodes){
-      _nodes.push(nodes[key])
-    }
+        pathes.push(item._e_path11);
 
-    result.nodes =  _nodes ;
-    result.pathes = pathes;
+      };
+      if(item._e_path12){
 
-    return result;
+        pathes.push(item._e_path12);
+
+      };
+      if(item._e_path21){
+
+        pathes.push(item._e_path21);
+
+      };
+      if(item._e_path22){
+
+        pathes.push(item._e_path22);
+
+      };
+
+      //при отсуствии соседей
+      if( item.mover.v1_neighbors.length == 0){
+        pathes.push({
+                    id: item.uuid + '_01',
+                    wall_uuid:item.uuid,
+                    source: { id: item.node11.id },
+                    target: { id: item.node12.id },
+                  });
+      }
+
+      if( item.mover.v2_neighbors.length == 0){
+        pathes.push({
+                    id: item.uuid + '_02',
+                    wall_uuid:item.uuid,
+                    source: { id: item.node21.id },
+                    target: { id: item.node22.id },
+                  });
+      }
+
+
+    })
+
+    return pathes;
     
   }
+  obj.getChains = function( nodes, pathes ){
+
+    var result = [];
+    for(var key in nodes){
+      var unit = [];
+      obj.getChain( pathes, nodes[key].id, unit );
+      if( unit.length != 0 ){
+        result.push( unit );
+      }
+    }
+
+    return result;
+
+  }
+  obj.getChain = function( pathes, search_id, unit ){
+
+    pathes.forEach(function(path, index){
+
+      if( path.source.id == search_id ){
+        unit.push(path);
+        pathes.splice(index, 1);
+        obj.getChain(pathes, path.target.id, unit);
+        return;
+      }
+      if( path.target.id == search_id ){
+        unit.push(path);
+        pathes.splice(index, 1);
+        obj.getChain(pathes, path.source.id, unit);
+        return;
+      }
+
+    })
+
+  }
+  obj.ExclusionExternalChain = function(nodes, chains){
+
+    var toRemove = [];
+
+    chains.forEach(function(item, index){
+
+      var wall_uuid = item[0].wall_uuid;
+      var wall = scene.getObjectByProperty ( 'uuid', wall_uuid );
+      
+      if( wall ){
+        obj.isWallInRoom(nodes, wall, item) ? delete chains[index] : ''
+      }
+    });
+
+    toRemove.forEach(function(item){
+      chains.splice(item,1);
+    })
+
+  };
+  obj.isWallInRoom = function(nodes, wall, chain){
+
+    //массив диний для проверки пересечения
+    var objects = [];
+    chain.forEach(function(item){
+
+      var geometry = new THREE.Geometry();
+      if(!nodes[item.source.id] || !nodes[item.target.id]){
+        debugger
+      }
+      geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
+//      var material = new THREE.LineBasicMaterial({
+//        color: 'red'
+//      });
+      var line = new THREE.Line(geometry);
+      objects.push( line );
+
+    })
+
+    //параметры луча
+    obj.raycaster.ray.origin = wall.axisLine.getCenter();
+    obj.raycaster.ray.direction.copy( new THREE.Vector3(0, 0, 1) );
+//    obj.raycaster.linePrecision = 3;
+
+    //визуализация луча
+//    var geometry = new THREE.Geometry();
+//    geometry.vertices.push(wall.axisLine.getCenter().clone());
+//    geometry.vertices.push(wall.axisLine.getCenter().clone().add(new THREE.Vector3(0, 0, 1).multiplyScalar(1000000)));
+//    var line = new THREE.Line(geometry);
+//    scene.add(line);
+
+    //пересечение
+    var intersectObjects = obj.raycaster.intersectObjects(objects);
+    if( (intersectObjects.length % 2) != 0){
+      return true;
+    }
+
+    return false;
+  };
+  obj.getArea = function(countur){
+
+    var result = {};
+    result.area = Math.abs( THREE.ShapeUtils.area( countur )* area_unit.c ).toFixed( area_accuracy_measurements );
+
+    var area_coord = new THREE.Vector3();
+    var max_area = 0;
+    var triangles = THREE.ShapeUtils.triangulate( countur );
+    window.console.log(countur);
+    window.console.log(triangles);
+    
+    if(triangles)
+    triangles.forEach(function( item2 ){
+
+      var triangle = new THREE.Triangle(
+                                    new THREE.Vector3(item2[0].x, 0, item2[0].y),
+                                    new THREE.Vector3(item2[1].x, 0, item2[1].y),
+                                    new THREE.Vector3(item2[2].x, 0, item2[2].y)
+                                    )
+
+      
+      var current_area = triangle.area();
+      if( current_area > max_area ){
+        max_area = current_area;
+        area_coord = triangle.midpoint();
+      }
+
+    });
+
+
+    result.coord = area_coord;
+
+
+    return  result ;
+  };
+  obj.addAreaNotification = function( area_coord, area ){
+
+    var notification = new noteSimple(
+                                      null,
+                                      area + " " + area_unit.short_name,
+                                      {
+                                        backgroundColor: { r:255, g:255, b:255, a:0 },
+                                        borderColor:     { r:255, g:255, b:255, a:0 },
+                                        fontsize: 36
+                                      }
+                                      );
+    notification.position.copy( area_coord );
+    notification.position.setY( 3000 );
+    Areas.add( notification );
+    
+  };
+  obj.removeAreaNotifications = function(){
+
+    Areas.children.forEach(function(item){
+      item.parent.remove(item);
+    })
+
+    Areas.children.length = 0;
+    
+  };
+  obj.hideAreaNotifications = function(){
+    Areas.children.forEach(function(item){
+      item.material.visible = false;
+    })
+  }
+  obj.addCounturLine = function(chain, nodes){
+    chain.forEach(function(item){
+
+      var geometry = new THREE.Geometry();
+      geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
+      var line = new THREE.Line(geometry, LineBasicMaterialRed);
+      line.name = 'room_line';
+
+      AreaCounturs.add( line );
+
+    })
+  }
+  obj.removeCounturLine = function(){
+    var _lines = [];
+    AreaCounturs.children.forEach(function(line){
+      if(line.name === 'room_line'){
+        _lines.push(line);
+      }
+    })
+    _lines.forEach(function(item){
+      AreaCounturs.remove(item);
+    })
+  }
+  //============
 
   /*===================*/
   obj.activate = function(){
@@ -3939,7 +4309,6 @@ function initWallEditor( obj ){
 //    document.removeEventListener( 'wheel', onDocumentMouseWheel, false );
   }
   
-
   function onDocumentMouseDownWallEditor( event ){
     if (!obj.enabled)
       return false;
@@ -4038,10 +4407,8 @@ function initWallEditor( obj ){
 		obj.selected.addDoorway('niche');
 	});
   $('.ActiveElementMenu').on('click', '[action = scaleFloor]', function(event){
-    window.console.log(event);
 		obj.selected.setFloorScale(event);
 	});
-
 
   $('.FourStateSwitcher').on('click', '[action = location_1]', function(){
     obj.selected.setLocation(1);
@@ -4078,7 +4445,6 @@ function initWallEditor( obj ){
     obj.activateSelectControls();
 
 	})
-
 
 }
 $wallEditor = {};
@@ -4119,13 +4485,14 @@ function Dimension( param1, param2, plane, parameters ){
   this.lkmMenu = '';
   this.rkmMenu = '.DimensionMenu';
 
-  this.planeNormal
+  this.planeNormal;
 
   this.point1 = null;
   this.point2 = null;
   this.dimLine = null;
   this.direction = null;
   this.plane = plane || null;
+  this.planeNormal = new THREE.Vector3( 0, 1, 0 );
   this.planeMousePoint = new THREE.Vector3();
   this.raycaster = new THREE.Raycaster();
 
@@ -4143,7 +4510,8 @@ function Dimension( param1, param2, plane, parameters ){
   this.upArrow = self.editableFieldWrapper.find('.dim-arrow.up');
 
   //примечание (текст размера)
-  var geometry = new THREE.SphereGeometry( 100, 32, 32 );
+//  var geometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
+  var geometry = dimGeometry;
   var material = transparentMaterial;
   this.note = new THREE.Mesh( geometry, material );
   this.note.name = 'dimensionBoundingSphere';
@@ -4420,10 +4788,14 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
     }
   },
   setPlaneNormal: function(){
+
     if(this.plane){
+
       this.planeNormal = this.plane.geometry.faces[0].normal.clone();
       this.planeNormal.applyMatrix4(this.plane.matrixWorld).round();
+
     }
+    
   },
   definePoints: function(){
     switch (this._type) {
@@ -4625,10 +4997,6 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
       this.add(this.line_part1, this.line_part2, this.note );
     }
 
-    
-
-      
-
     this.ready = true;
   },
 
@@ -4725,14 +5093,7 @@ function Wall(vertices, parameters){
   this.v1 = vertices[0].clone();
   this.v2 = vertices[1].clone();
 
-  this.node1 = {
-    id: this.uuid + '_1',
-    position: {x:this.v1.x, y: this.v1.z }
-  }
-  this.node2 = {
-    id: this.uuid + '_2',
-    position: {x:this.v2.x, y: this.v2.z }
-  }
+  
 //    this.offset = {x: this.v1.x, y: this.v1.z};
 
   this.axisLine = new THREE.Line3(this.v1,this.v2);
@@ -4745,6 +5106,7 @@ function Wall(vertices, parameters){
   this.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
   this.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
 
+  
   this.dimensions = []; //массив хранения объектов размеров стены
   this.p1 = new THREE.Vector3();
   this.p2 = new THREE.Vector3();
@@ -4758,7 +5120,6 @@ function Wall(vertices, parameters){
     new THREE.Line3(this.p1, this.p2)
   ]
   
-
   this.geometry = this.buildGeometry();
 
 //    this.material = $projection.projectionWallMaterial
@@ -4781,11 +5142,40 @@ function Wall(vertices, parameters){
   //хелпер примечание id
 //  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
 
-
-
   //хелпер осей
 //  var axisHelper = new THREE.AxisHelper( 50 );
 //  this.add( axisHelper );
+  this.setDefaultNode = function(){
+
+    this.node1 = {
+      id: this.uuid + '_1',
+      position: {x:this.v1.x, y: this.v1.z }
+    }
+    this.node2 = {
+      id: this.uuid + '_2',
+      position: {x:this.v2.x, y: this.v2.z }
+    }
+
+    this.node11 = {
+      id: this.uuid + '_11',
+      position: this.v11.clone()
+    }
+    this.node12 = {
+      id: this.uuid + '_12',
+      position: this.v12.clone()
+    }
+    this.node21 = {
+      id: this.uuid + '_21',
+      position: this.v21.clone()
+    }
+    this.node22 = {
+      id: this.uuid + '_22',
+      position: this.v22.clone()
+    }
+  },
+          //Ноды
+  this.setDefaultNode();
+
   this.changeDim =       function ( event ) {
 
     var offset = 0;
@@ -4835,7 +5225,7 @@ function Wall(vertices, parameters){
     
   };
 
-    setTimeout(function(){
+  setTimeout(function(){
     self.calcDimensionsPoints();
     self.createDimensions();
     self.updateDimensions();
@@ -4867,10 +5257,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 //      var shapePoints = wallShape.extractPoints();
 //      var vertices = shapePoints.shape;
 //      THREE.ShapeUtils.isClockWise(vertices)
-//      window.console.log(vertices);
+
 //      var arr = THREE.ShapeUtils.triangulate( vertices, false );
-//      window.console.log(vertices);
-//      window.console.log(arr);
+
 //
 //      if( arr.lenth > 0 ){
 //        var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
@@ -4910,7 +5299,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v1, p2: item.v12};
+            target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
           }
         }
 
@@ -4925,7 +5314,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v2, p2: item.v21};
+            target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
           } 
         }
       }
@@ -4933,10 +5322,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     })
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
+    var exception = false;
+    self._e_path22 = null;
     if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
+      exception = true;
 
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
@@ -4946,25 +5338,19 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     }
     //пересечение
     if(angle_max > -Math.PI && angle_max != 0){
+
       var ray = new THREE.Ray(self.v12, self.direction);
-
       ray.distanceSqToSegment ( segment_start, segment_end, result_point );
-//
-//      var material_ray = new THREE.LineBasicMaterial({ color: 'red' });
-//      var material = new THREE.LineBasicMaterial({ color: 'blue' });
-//
-//      var geometry_ray = new THREE.Geometry();
-//      geometry_ray.vertices.push(self.v12);
-//      geometry_ray.vertices.push(self.v12.clone().add( self.direction.clone().multiplyScalar(200) ));
-//
-//      var geometry = new THREE.Geometry();
-//      geometry.vertices.push( segment_start );
-//      geometry.vertices.push( segment_end );
-//
-//      var line_ray = new THREE.Line(geometry_ray, material_ray);
-//      var line = new THREE.Line(geometry, material);
-//      scene.add(line_ray, line);
 
+    }
+
+    if(exception){
+      self._e_path22 = {
+                  id: self.uuid + '_e22',
+                  wall_uuid: self.uuid,
+                  source: { id: self.node22.id },
+                  target: { id: target_foundation.node_id },
+                };
     }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
@@ -4995,7 +5381,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v1, p2: item.v11};
+            target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
           }
         }
 
@@ -5010,7 +5396,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v2, p2: item.v22};
+            target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
           }
         }
       }
@@ -5019,10 +5405,14 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
+    var exception = false;
+    self._e_path21 = null;
+
     if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
       
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
+      exception = true;
       
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
@@ -5036,6 +5426,15 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       var ray = new THREE.Ray(self.v11, self.direction);
       ray.distanceSqToSegment ( segment_start, segment_end, result_point );
 
+    }
+
+    if(exception){
+      self._e_path21 = {
+                  id: self.uuid + '_e21',
+                  wall_uuid: self.uuid,
+                  source: { id: self.node21.id },
+                  target: { id: target_foundation.node_id },
+                };
     }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
@@ -5065,7 +5464,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v2, p2: item.v22};
+            target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
           }
         }
 
@@ -5080,7 +5479,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v1, p2: item.v11};
+            target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
           }
         }
       }
@@ -5088,10 +5487,14 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     })
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
+    var exception = false;
+    self._e_path12 = null;
+
     if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
+      exception = true;
 
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
@@ -5106,6 +5509,15 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       ray.distanceSqToSegment ( segment_start, segment_end, result_point );
 
     }
+
+    if(exception){
+        self._e_path12 = {
+                    id: self.uuid + '_e12',
+                    wall_uuid: self.uuid,
+                    source: { id: self.node12.id },
+                    target: { id: target_foundation.node_id },
+                  };
+      }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
@@ -5134,7 +5546,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v2, p2: item.v21};
+            target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
           }
         }
 
@@ -5149,7 +5561,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_foundation = {p1: item.v1, p2: item.v12};
+            target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
           }
         }
       }
@@ -5157,15 +5569,22 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     })
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
+    var exception = false;
+    self._e_path11 = null;
+    
     if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
+      exception = true;
       
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
 
       angle_max = 0;
+      exception = true;
+      
+
 
     }
     //пересечение
@@ -5175,6 +5594,16 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       ray.distanceSqToSegment ( segment_start, segment_end, result_point );
 
     }
+
+    
+    if(exception){
+        self._e_path11 = {
+                    id: self.uuid + '_e11',
+                    wall_uuid: self.uuid,
+                    source: { id: self.node11.id },
+                    target: { id: target_foundation.node_id },
+                  };
+      }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
@@ -5190,11 +5619,18 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.node1.position.y = this.v1.z;
     this.node2.position.x = this.v2.x;
     this.node2.position.y = this.v2.z;
+
+    this.node11.position.copy(this.v11);
+    this.node12.position.copy(this.v12);
+    this.node21.position.copy(this.v21);
+    this.node22.position.copy(this.v22);
+
+    this.v11.copy( this.v1.clone().add( this.direction90.clone().multiplyScalar(this.width/2) ) );
+    this.v12.copy( this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );
+    this.v21.copy( this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) ) );
+    this.v22.copy( this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );
+
     
-    this.v11 = this.v1.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
-    this.v12 = this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
-    this.v21 = this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
-    this.v22 = this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
 
   },
 
@@ -5206,11 +5642,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
      
       //если изменилась ширина
       this.recalculatePoints();
-
-//      if( $wallEditor.isPointsNeighboors( this.v1, this.v2 ) ){
-//        this.remove();
-//        return;
-//      }
 
       var v11 = this.getV11(this.walls);
       var v12 = this.getV12(this.walls);
@@ -5232,17 +5663,17 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.remove();
       }
 
-      //в случае смены высоты
-      this.position.set( 0, this.height, 0 );
 
-
-      if( ! this.parent ) return;
-
+      this.setDefaultNode();
+      
+      if( this.mover )
       this.mover.wall = this;
       this.mover.update();
 
       this.controlPoint1.update();
       this.controlPoint2.update();
+
+      
 
       this.doors.forEach(function(item){
         item.update();
@@ -5333,6 +5764,18 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       })
     }, 50);
     
+  },
+
+  hide: function(){
+    this.visible = false;
+    this.hideControlPoints();
+    this.hideDimensions();
+  },
+  show: function(){
+    this.visible = true;
+    this.showControlPoints();
+    this.showDimensions();
+
   },
 
   addDoorway: function( type ){
@@ -5751,13 +6194,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       }
 
-      window.console.log(scene.getObjectByName('floor').scale);
+
       scene.getObjectByName('floor').scale.set ( 
                                                 scene.getObjectByName('floor').scale.x * floorScaleX,
                                                 scene.getObjectByName('floor').scale.y * floorScaleY,
                                                 scene.getObjectByName('floor').scale.z * floorScaleZ
                                                 );
-      window.console.log(scene.getObjectByName('floor').scale);
+
 
 
 
@@ -6045,7 +6488,7 @@ function WallMover( wall ){
 
 		  };
   this.drag =       function ( event, newCoord ) {
-
+    
     var neighborsNeedUpdate = false;
     var v1_exception1 = false;
     var v2_exception1 = false;
@@ -6265,14 +6708,14 @@ function WallMover( wall ){
     }
 
     if( ! enabled){
-          self.hoveroff();
-          self.dragend();
-        } else {
-          self.neighborsNeedUpdate = neighborsNeedUpdate ? true : false;
-          self.updateNeighborsWalls();
-          self.wall.update();
-          self.neighborsNeedUpdate = neighborsNeedUpdate = false;
-        }
+      self.hoveroff();
+      self.dragend();
+    } else {
+      self.neighborsNeedUpdate = neighborsNeedUpdate ? true : false;
+      self.updateNeighborsWalls();
+      self.wall.update();
+      self.neighborsNeedUpdate = neighborsNeedUpdate = false;
+    }
 
 	};
   this.dragend =    function ( event ) {
@@ -6383,22 +6826,29 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     self.v1_neighbors = [];
     self.v2_neighbors = [];
 
+    
+
     this.wall.walls.forEach(function( item, i ){
 
-      if(item.type == 'Wall' && self.wall.index != i){
+
+      if( item.type == 'Wall' && self.wall.index != i ){
+
+        
 
         var arr = null;
         var arg1;
         var arg2;
         var opposite_point;
 
-        switch (true) {
+        switch ( true ) {
           case $wallEditor.isPointsNeighboors( self.wall.v1, item.v1, 1 ) :
             arr = 'v1_neighbors';
             arg1 = 'v1';
             arg2 = 'v1';
             opposite_point = 'v2';
             item.node1.id = self.wall.node1.id;
+            item.node11.id = $wallEditor.isPointsNeighboors( self.wall.v12, item.v11, 1 ) ? self.wall.node12.id : item.node11.id;
+            item.node12.id = $wallEditor.isPointsNeighboors( self.wall.v11, item.v12, 1 ) ? self.wall.node11.id : item.node12.id;
             break;
           case $wallEditor.isPointsNeighboors( self.wall.v1, item.v2, 1  ):
             arr = 'v1_neighbors';
@@ -6406,6 +6856,9 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             arg2 = 'v2';
             opposite_point = 'v1';
             item.node2.id = self.wall.node1.id;
+            item.node21.id = $wallEditor.isPointsNeighboors( self.wall.v11, item.v21, 1 ) ? self.wall.node11.id : item.node21.id;
+            item.node22.id = $wallEditor.isPointsNeighboors( self.wall.v12, item.v22, 1 ) ? self.wall.node12.id : item.node22.id;
+
             break;
           case $wallEditor.isPointsNeighboors( self.wall.v2, item.v1, 1  ):
             arr = 'v2_neighbors';
@@ -6413,6 +6866,8 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             arg2 = 'v1';
             opposite_point = 'v2';
             item.node1.id = self.wall.node2.id;
+            item.node11.id = $wallEditor.isPointsNeighboors( self.wall.v21, item.v11, 1 ) ? self.wall.node21.id : item.node11.id;
+            item.node12.id = $wallEditor.isPointsNeighboors( self.wall.v22, item.v12, 1 ) ? self.wall.node22.id : item.node12.id;
             break;
           case $wallEditor.isPointsNeighboors( self.wall.v2, item.v2, 1  ):
             arr = 'v2_neighbors';
@@ -6420,6 +6875,8 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             arg2 = 'v2';
             opposite_point = 'v1';
             item.node2.id = self.wall.node2.id;
+            item.node21.id = $wallEditor.isPointsNeighboors( self.wall.v22, item.v21, 1 ) ? self.wall.node22.id : item.node21.id;
+            item.node22.id = $wallEditor.isPointsNeighboors( self.wall.v21, item.v22, 1 ) ? self.wall.node21.id : item.node22.id;
             break;
         }
 
@@ -8834,3 +9291,6 @@ SelectControls = function ( _objects, _camera, _domElement ){
 }
 SelectControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 SelectControls.prototype.constructor = SelectControls;
+
+
+

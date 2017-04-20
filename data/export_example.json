@@ -1,25 +1,7 @@
 {
   "floors": [
     {
-      "rooms": [
-        {
-          "id": null,
-          "furniture": [],
-          "closedRoom": true,
-          "roomID": "",
-          "room_type": "undefined",
-          "room_name": "",
-          "room_number": "",
-          "room_zone": "",
-          "room_area": "",
-          "area_coords": {
-            "x": 0,
-            "y": 0
-          },
-          "walls": [],
-          "elements": []
-        }
-      ],
+      "rooms": [],
       "routes": [],
       "furniture": [],
       "floorData": {
