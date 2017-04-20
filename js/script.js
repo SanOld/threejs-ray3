@@ -155,7 +155,7 @@ var loader = new THREE.TextureLoader();
 // load a resource
 loader.load(
 	// resource URL
-  '/img/DrawA4_2.jpg',
+  '/img/Planirovka.jpg',
 	// Function when resource is loaded
 	function ( floorTexture ) {
 		// do something with the texture 
