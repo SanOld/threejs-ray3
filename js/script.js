@@ -26,14 +26,14 @@
 
         $(window).on("message onmessage", listener);
 		
-		parent.window.postMessage({message: {cmd: 'ready', data: {} }}, parentURL);
+        parent.window.postMessage({message: {cmd: 'ready', data: {} }}, parentURL);
 
         function listener(event) {
-            var mess = event.originalEvent.data.message;
+          var mess = event.originalEvent.data.message;
 
-            if (mess && mess.cmd == 'put_data') {
-				parentURL = event.originalEvent.origin;
-            }
+          if (mess && mess.cmd == 'put_data') {
+            parentURL = event.originalEvent.origin;
+          }
         }
 
     });

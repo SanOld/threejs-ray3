@@ -1140,13 +1140,25 @@ $('.footer').on('click','[action = mode]',function(){
   }
 
 });
-$('.footer').on('change','[action = floorHeight]',function(){
-  var elem = $(this);
-  $wallEditor.walls.forEach(function( wall ){
-    wall.height =  + elem.val();
-    wall.update();
-  });
+$('.footer').on('keydown','[action = floorHeight]',function(event){
+
+  if(event.keyCode == 13){
+
+    var elem = $(this);
+    $wallEditor.walls.forEach(function( wall ){
+      wall.height =  + elem.val();
+      wall.update();
+    });
+
+    $(this).trigger( "blur" );
+
+  }
+
 });
+$('.footer').on('click','[action = floorHeight]',function(){
+  $(this).focus();
+});
+
 
 
 
@@ -2343,18 +2355,21 @@ function initProjection(obj){
     })
 
   })
-  $('.footer').on('click','[action = modeC]',function(){
+  $('.footer').on('click','[action = modeC]',function(event){
 
+    event.preventDefault();
     obj.toggleModeIn2D('creation');
 
   });
-  $('.footer').on('click','[action = modeE]',function(){
+  $('.footer').on('click','[action = modeE]',function(event){
 
+    event.preventDefault();
     obj.toggleModeIn2D('edition');
 
   });
-  $('.footer').on('click','[action = modeD]',function(){
+  $('.footer').on('click','[action = modeD]',function(event){
 
+    event.preventDefault();
     obj.toggleModeIn2D('dimension');
 
   })

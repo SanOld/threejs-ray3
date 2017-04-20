@@ -54,7 +54,7 @@
             <div class="col-lg-4">
               <div class="input-group">
                 <span class="input-group-addon" >Высота стен:</span>
-                <input type="text" class="form-control floorHeight" action="floorHeight">
+                <input type="dim" class="form-control floorHeight" pattern="^[0-9]+$" action="floorHeight">
                 <span class="input-group-addon measure_unit" >мм</span>
               </div>
             </div><!-- /.col-lg-1 -->
