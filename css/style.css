@@ -20,3 +20,7 @@ html, body{
     background-color: #317BB2;
     border-color: #adadad;
 }
+
+.no-close .ui-dialog-titlebar-close {
+  display: none;
+}

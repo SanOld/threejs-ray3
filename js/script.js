@@ -243,7 +243,7 @@ function animate()
 
 function update()
 {
-  updateCameraRay();
+//  updateCameraRay();
 //  rendererStats.update(renderer);
 }
 

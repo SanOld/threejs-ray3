@@ -116,4 +116,7 @@
   <button type="button" class="btn btn-default dim-arrow right" style=" display: none;"><span class="fa fa-hand-o-right" aria-hidden="true"></span></button>
 </div>
 
+<div id="dimToolTip" title="Внимание" style="display: none;">
+  <p>Выберите направление изменения длины стены</p>
+</div>
 </html>
