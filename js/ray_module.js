@@ -4269,7 +4269,6 @@ function initWallEditor( obj ){
                                       }
                                       );
     notification.position.copy( area_coord );
-    notification.position.setY( 3000 );
     Areas.add( notification );
     
   };
@@ -5641,15 +5640,16 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.node2.position.x = this.v2.x;
     this.node2.position.y = this.v2.z;
 
-    this.node11.position.copy(this.v11);
-    this.node12.position.copy(this.v12);
-    this.node21.position.copy(this.v21);
-    this.node22.position.copy(this.v22);
-
+    
     this.v11.copy( this.v1.clone().add( this.direction90.clone().multiplyScalar(this.width/2) ) );
     this.v12.copy( this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );
     this.v21.copy( this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) ) );
     this.v22.copy( this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );
+
+    this.node11.position.copy(this.v11);
+    this.node12.position.copy(this.v12);
+    this.node21.position.copy(this.v21);
+    this.node22.position.copy(this.v22);
 
   },
 
