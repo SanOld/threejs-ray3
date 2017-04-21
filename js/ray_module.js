@@ -33,53 +33,7 @@ var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
 
 
 
-// FUNCTIONS
-function toggleMode( mode ){
 
-  switch ( mode ) {
-    case '2D':
-
-      if( ! $projection.enabled){
-
-        $projection.on('top');
-//        $projection.toggleModeIn2D('edition');
-
-        $('.mode2D').show();
-        $('.footer').find('[action = mode]').text('3D');
-
-      }
-
-      break;
-    case '3D':
-
-      if($projection.enabled){
-
-        $projection.off();
-
-        $('.mode2D').hide();
-        $('.footer').find('[action = mode]').text('2D');
-
-      }
-
-      break;
-  }
-}
-/**
- *
- * @param {type} vector3
- * @param {type} camera
- * @returns {getScreenCoord.vector2}
- */
-function getScreenCoord( vector3, camera ) {
-        var p = vector3;
-        var vector = p.project(camera);
-
-        vector.x = (vector.x + 1) / 2 * window.innerWidth;
-        vector.y = -(vector.y - 1) / 2 * window.innerHeight;
-
-        return vector;
-    }
-//============================
 
 //Редактор
 function Editor(obj){
@@ -8264,7 +8218,57 @@ SelectControls = function ( _objects, _camera, _domElement ){
 
 
 }
+SelectControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+SelectControls.prototype.constructor = SelectControls;
 
+
+// FUNCTIONS
+function toggleMode( mode ){
+
+  switch ( mode ) {
+    case '2D':
+
+      if( ! $projection.enabled){
+
+        $projection.on('top');
+//        $projection.toggleModeIn2D('edition');
+
+        $('.mode2D').show();
+        $('.footer').find('[action = mode]').text('3D');
+
+      }
+
+      break;
+    case '3D':
+
+      if($projection.enabled){
+
+        $projection.off();
+
+        $('.mode2D').hide();
+        $('.footer').find('[action = mode]').text('2D');
+
+      }
+
+      break;
+  }
+}
+/**
+ *
+ * @param {type} vector3
+ * @param {type} camera
+ * @returns {getScreenCoord.vector2}
+ */
+function getScreenCoord( vector3, camera ) {
+        var p = vector3;
+        var vector = p.project(camera);
+
+        vector.x = (vector.x + 1) / 2 * window.innerWidth;
+        vector.y = -(vector.y - 1) / 2 * window.innerHeight;
+
+        return vector;
+    }
+//============================
 function setFloorPlan(form) {
 	var thisObj = this;
 	var send = new FormData(form);
@@ -8308,7 +8312,6 @@ function setFloorPlan(form) {
 	});
 	return false;
 }
-
 function setFloorTexture(filename) {
 	// instantiate a loader
 	var loader = new THREE.TextureLoader();
@@ -8336,14 +8339,12 @@ function setFloorTexture(filename) {
 		}
 	);
 }
-
 $('input[name="image_file"]').change(function() {
 	$('form[name="floor_plan_form"]').submit();
 });
 
 
-SelectControls.prototype = Object.create( THREE.EventDispatcher.prototype );
-SelectControls.prototype.constructor = SelectControls;
+
 
 
 
