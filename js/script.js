@@ -91,7 +91,7 @@ var area_accuracy_measurements = 2;
 var floorScale = 1;
 var floorLength = 20000;
 var floorWidth = 12000;
-
+var floor = undefined;
 
 init();
 animate();
@@ -159,13 +159,14 @@ var loader = new THREE.TextureLoader();
 // load a resource
 loader.load(
 	// resource URL
-  '/img/plan3.jpg',	// Function when resource is loaded
+  'img/plan3.jpg',
+	// Function when resource is loaded
 	function ( floorTexture ) {
 		// do something with the texture 
       floorTexture.repeat.set( 1, 1 );
       var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
       var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
-      var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+      floor = new THREE.Mesh(floorGeometry, floorMaterial);
       floor.name = 'floor'
       floor.position.y = -1;
       floor.rotation.x = -Math.PI / 2;

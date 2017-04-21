@@ -7,7 +7,6 @@
 <body id="bd">
   
   
-</body>
 <nav class="navbar navbar-default navbar-fixed-bottom footer" role="navigation">
   <div class="container-fluid">
       <div class="row">
@@ -47,9 +46,11 @@
 
         <div class="col-lg-6">
           <div class="row">
+	  <form name="floor_plan_form" onsubmit="return setFloorPlan(this);">
             <div class="col-lg-2">
                 <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
-                <input type ="file" class = "floorLoader" style="display: none">
+	        <input type ="file" name="image_file" class = "floorLoader" style="display: none">
+		<input type="hidden" name="user_id" value="userID">
                 <img class = "localImage" style="display: none">
             </div><!-- /.col-lg-2 -->
             <div class="col-lg-4">
@@ -69,6 +70,7 @@
 
   </div>
 </nav>
+</body>
 
 <div class="ActiveElementMenu" style="top: 187px; left: 500px; display: none;">
   <a target="_blank" class="ActiveElementMenuAnimated" style="left: 0px; top: 0px; background-position: left -520px; opacity: 0; width: 0px; height: 0px;" action="info">

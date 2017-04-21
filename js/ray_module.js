@@ -1979,8 +1979,8 @@ function initProjection(obj){
   obj.plane = null;
 
   obj.walls = [];//массив установленных стен TODO - заполнить при инициализации редактора
-  obj.projectionWallMaterial
-  obj.acsWallMaterial
+  //obj.projectionWallMaterial
+  //obj.acsWallMaterial
 
   obj.projectionWallMaterial = new THREE.MeshBasicMaterial({
       wireframe: false,
@@ -2294,13 +2294,16 @@ function initProjection(obj){
 
 	})
   $('.footer').on('click','[action = loadFloor]',function(){
-    
-    $(this).parent().find('.floorLoader').trigger('click');
-//    $(this).parent().find('.floorLoader').off('change');
-    $(this).parent().find('.floorLoader').on('change', function(){
 
-        
-        renderImage(this.files[0], function(src){
+    $(this).parent().find('.floorLoader').trigger('click');
+    //$(this).parent().find('.floorLoader').off('change');
+
+    $(this).parent().find('.floorLoader1').on('change', function(){
+		//setFloorPlan($('.floorLoader'));
+		setFloorPlan($('[name=floor_plan_form]')[0]);
+		return;	
+        /*
+		renderImage(this.files[0], function(src){
 
           var image = $('.localImage')
           image[0].src = src;
@@ -2311,6 +2314,7 @@ function initProjection(obj){
           scene.getObjectByName('floor').material.map = texture;
 
         })
+		*/
 
       });
 
@@ -2335,7 +2339,7 @@ function initProjection(obj){
     
     $wallEditor.getJSON(function(result){
       //window.console.log( result );
-      post_ok(result);
+	  post_ok(result);
     }) ;
 
     $wallEditor.off();
@@ -2386,14 +2390,14 @@ function initDimensionEditorMode(obj){
 
   obj.enabled = false;
   
-  obj.planeMousePoint; //точка пересечения луча с плоскостью
+  //obj.planeMousePoint; //точка пересечения луча с плоскостью
   obj.currentEdge = {};
   obj.currentEdge.material = {};
   obj.currentPoint = {}
   obj.currentPoint.material = {};
   obj.selected1 = null;
   obj.selected2 = null;
-  obj.currentDimension;
+  //obj.currentDimension;
   obj.dimensionMenu = [];
   
   obj.on = function(){
@@ -3838,7 +3842,7 @@ function initWallEditor( obj ){
 
   obj.getJSON = function(callback){
     var export_data;
-    $.getJSON("../data/export_example.json", function(data) {
+    $.getJSON("data/export_example.json", function(data) {
 
                 export_data = data;
 
@@ -4072,13 +4076,13 @@ function initWallEditor( obj ){
                     id: item.uuid + '_11',
                     wall_uuid:item.uuid,
                     source: { id: item.node11.id },
-                    target: { id: item.node21.id },
+                    target: { id: item.node21.id }
                   });
       pathes.push({
                     id: item.uuid + '_12',
                     wall_uuid:item.uuid,
                     source: { id: item.node12.id },
-                    target: { id: item.node22.id },
+                    target: { id: item.node22.id }
                   });
       //из исключения толстая тонкая
       if(item._e_path11){
@@ -4108,7 +4112,7 @@ function initWallEditor( obj ){
                     id: item.uuid + '_01',
                     wall_uuid:item.uuid,
                     source: { id: item.node11.id },
-                    target: { id: item.node12.id },
+                    target: { id: item.node12.id }
                   });
       }
 
@@ -4117,7 +4121,7 @@ function initWallEditor( obj ){
                     id: item.uuid + '_02',
                     wall_uuid:item.uuid,
                     source: { id: item.node21.id },
-                    target: { id: item.node22.id },
+                    target: { id: item.node22.id }
                   });
       }
 
@@ -4171,7 +4175,8 @@ function initWallEditor( obj ){
       var wall = scene.getObjectByProperty ( 'uuid', wall_uuid );
       
       if( wall ){
-        obj.isWallInRoom(nodes, wall, item) ? delete chains[index] : ''
+        if (obj.isWallInRoom(nodes, wall, item)) 
+			delete chains[index];
       }
     });
 
@@ -4499,7 +4504,7 @@ function Dimension( param1, param2, plane, parameters ){
   this.lkmMenu = '';
   this.rkmMenu = '.DimensionMenu';
 
-  this.planeNormal;
+  //this.planeNormal;
 
   this.point1 = null;
   this.point2 = null;
@@ -4535,7 +4540,7 @@ function Dimension( param1, param2, plane, parameters ){
   this.defineDimType();
   this.setPlaneNormal();
   this.definePoints();
-  if(this.enabled);
+  //if(this.enabled);
   this.projectOnPlane();
 
   //события
@@ -5154,7 +5159,41 @@ function Wall(vertices, parameters){
   this.controlPoint2 = new WallControlPoint( this, 'v2' );
   scene.add( this.controlPoint1, this.controlPoint2 );
 
-  //Ноды
+  //хелпер примечание id
+//  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
+
+  //хелпер осей
+//  var axisHelper = new THREE.AxisHelper( 50 );
+//  this.add( axisHelper );
+  this.setDefaultNode = function(){
+
+    this.node1 = {
+      id: this.uuid + '_1',
+      position: {x:this.v1.x, y: this.v1.z }
+    }
+    this.node2 = {
+      id: this.uuid + '_2',
+      position: {x:this.v2.x, y: this.v2.z }
+    }
+
+    this.node11 = {
+      id: this.uuid + '_11',
+      position: this.v11.clone()
+    }
+    this.node12 = {
+      id: this.uuid + '_12',
+      position: this.v12.clone()
+    }
+    this.node21 = {
+      id: this.uuid + '_21',
+      position: this.v21.clone()
+    }
+    this.node22 = {
+      id: this.uuid + '_22',
+      position: this.v22.clone()
+    }
+  },
+          //Ноды
   this.setDefaultNode();
 
   this.changeDim =       function ( event ) {
@@ -5258,33 +5297,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.rotation.x = Math.PI/2;
     this.position.set( 0, this.height, 0 );
   },
-  setDefaultNode: function(){
-    this.node1 = {
-      id: this.uuid + '_1',
-      position: {x:this.v1.x, y: this.v1.z }
-    }
-    this.node2 = {
-      id: this.uuid + '_2',
-      position: {x:this.v2.x, y: this.v2.z }
-    }
-
-    this.node11 = {
-      id: this.uuid + '_11',
-      position: this.v11.clone()
-    }
-    this.node12 = {
-      id: this.uuid + '_12',
-      position: this.v12.clone()
-    }
-    this.node21 = {
-      id: this.uuid + '_21',
-      position: this.v21.clone()
-    }
-    this.node22 = {
-      id: this.uuid + '_22',
-      position: this.v22.clone()
-    }
-  },
   getV22: function (walls){
     var result_point =  new THREE.Vector3();
     var walls = walls || [];
@@ -5361,7 +5373,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                   id: self.uuid + '_e22',
                   wall_uuid: self.uuid,
                   source: { id: self.node22.id },
-                  target: { id: target_foundation.node_id },
+                  target: { id: target_foundation.node_id }
                 };
     }
 
@@ -5445,7 +5457,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                   id: self.uuid + '_e21',
                   wall_uuid: self.uuid,
                   source: { id: self.node21.id },
-                  target: { id: target_foundation.node_id },
+                  target: { id: target_foundation.node_id }
                 };
     }
 
@@ -5527,7 +5539,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                     id: self.uuid + '_e12',
                     wall_uuid: self.uuid,
                     source: { id: self.node12.id },
-                    target: { id: target_foundation.node_id },
+                    target: { id: target_foundation.node_id }
                   };
       }
 
@@ -5613,7 +5625,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                     id: self.uuid + '_e11',
                     wall_uuid: self.uuid,
                     source: { id: self.node11.id },
-                    target: { id: target_foundation.node_id },
+                    target: { id: target_foundation.node_id }
                   };
       }
 
@@ -5674,10 +5686,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       this.setDefaultNode();
       
-      if( this.mover ){
-        this.mover.wall = this;
-        this.mover.update();
-      }
+      if( this.mover )
+      this.mover.wall = this;
+      this.mover.update();
 
       this.controlPoint1.update();
       this.controlPoint2.update();
@@ -5799,8 +5810,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     } else if( type == 'windowblock' ){
       var obj = new WindowBlock(this, { elevation: 800, width: 1450, height: 1450 } );
     } else if( type == 'niche' ){
+		type = 'niche';
 //      var obj = new Doorblock(this);
     } else if( type == 'arch' ){
+		type = 'arch';
 //      var obj = new Doorblock(this);
     }
 
@@ -6901,7 +6914,7 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
               line_segment: {
                 start: item[arg1].clone().add( item.direction.clone().negate().multiplyScalar(100000) ),
                 end: item[arg1].clone().add( item.direction.clone().multiplyScalar(100000) )
-              },
+              }
   //            angle: angle
             })
         }
@@ -7179,7 +7192,7 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
       this.dragControls = null;
     }
 
-	},
+	}
 
 });
 
@@ -7702,7 +7715,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.dimensions.forEach(function( item, index ){
       scene.remove( item );
     })
-  },
+  }
 
 });
 //Дверной блок
@@ -8065,7 +8078,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
       Doorway.prototype.remove.call(this);
 
     }
-  },
+  }
   
 });
 //Окно
@@ -9301,6 +9314,88 @@ SelectControls = function ( _objects, _camera, _domElement ){
 
 
 }
+
+function setFloorPlan(form) {
+	var thisObj = this;
+	var send = new FormData(form);
+	
+	// через прокси апи не получится так просто послать файл...
+	//var send_url = "proxy_api.php" + "?url=http://local.online.cableproject.net:8083/" + "&route=/drawing/php/req_controller.php";
+	// сделаем через .htaccess и кросс доменность
+	//var send_url = "http://local.online.cableproject.net:8083/drawing/php/req_controller.php";
+	var send_url = "http://online.cad5d.com/test_cad/php/req_controller.php";
+	$.ajax({
+		url: send_url,
+		type: "POST",
+		data: send,
+		processData: false,
+		contentType: false,
+		dataType: "json",
+		success: function success(data, textStatus, jqXHR) {
+			$('input[name="image_file"]').val('');
+			console.log(data);
+			if (data.pages && data.pages > 1) {
+				if (!data.error) {
+					if (data.uploadall) {
+						//setFloorTexture('http://local.online.cableproject.net:8083/drawing/user_images/' + data.uploadall + '-0.jpg');
+						setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.uploadall + '-0.jpg');
+					}
+				}
+			} else 
+			{
+				if (!data.error) {
+					if (data.upload) {
+						//setFloorTexture('http://local.online.cableproject.net:8083/drawing/user_images/' + data.upload);
+						setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.upload);
+					}
+				}
+			}
+		},
+		error: function error(jqXHR, textStatus, errorThrown) {
+			$('input[name="image_file"]').val('');
+			alert('File to big');
+		}
+	});
+	return false;
+}
+
+function setFloorTexture(filename) {
+	floor.remove();
+	// instantiate a loader
+	var loader = new THREE.TextureLoader();
+	loader.setCrossOrigin('');
+	// load a resource
+	loader.load(
+		// resource URL
+		filename,
+		// Function when resource is loaded
+		function ( floorTexture ) {
+			// do something with the texture 
+		  floorTexture.repeat.set( 1, 1 );
+		  var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
+		  var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
+		  floor = new THREE.Mesh(floorGeometry, floorMaterial);
+		  floor.name = 'floor'
+		  floor.position.y = -1;
+		  floor.rotation.x = -Math.PI / 2;
+		  scene.add(floor);
+		},
+		// Function called when download progresses
+		function ( xhr ) {
+			console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+		},
+		// Function called when download errors
+		function ( xhr ) {
+			console.log( 'An error happened' );
+		}
+	);
+}
+
+$('input[name="image_file"]').change(function() {
+	$('form[name="floor_plan_form"]').submit();
+});
+
+
 SelectControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 SelectControls.prototype.constructor = SelectControls;
 
