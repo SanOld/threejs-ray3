@@ -69,7 +69,6 @@ var isMoveCamera = false; // перестраивание луча и "комн�
 //=== to addCameraRay
 
 
-
 // FUNCTIONS
 function test_cams() {
 //	  var geometry = new THREE.SphereGeometry( 5, 32, 32 );
@@ -99,13 +98,10 @@ function test_cams() {
 //
 //  }
 }
-
 function getFocusCoord(videocamera){
   return  videocamera.getObjectByName('focus').position;
 }
-
-function getRay2d(videocamera)
-{
+function getRay2d(videocamera){
   var videocamera = videocamera;
   var direction = videocamera.getWorldDirection ()
   direction.normalize ();
@@ -204,9 +200,7 @@ function getRay2d(videocamera)
 
   return contour.vertices;
 }
-
-function arrowHelperAdd(obj, dir, hex, length)
-{
+function arrowHelperAdd(obj, dir, hex, length){
   var dir = dir || new THREE.Vector3( 0, 0, 1 );
   var hex = hex || 0xffff00;
   dir.normalize();
@@ -215,7 +209,6 @@ function arrowHelperAdd(obj, dir, hex, length)
   var arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
   obj.add( arrowHelper );
 }
-
 function cameraWrapper(videocamera_one){
     //камера
     var camera_g = new THREE.Group();
@@ -254,154 +247,7 @@ function cameraWrapper(videocamera_one){
 
     return camera_g;
 }
-
-function addCameraRay(scene)
-{
-  var roomHeight = 2700; //высота комнаты ????????
-  var floor_scale = 40;
-  var near = 1; //начало видимой области
-  var far = 10000;//окончание видимой области
-  var angle = THREE.Math.degToRad(30);//угол обзора камеры
-//  var ray_axis_x; // доп ось камеры
-//  var ray_axis_y; // доп ось камеры
-  var allCamArr = [];
-
-  //глобальный объект-хранилище размеров
-  scene.add(Dimensions);
-  //глобальный объект-хранилище размеров площадей комнат
-  scene.add(Areas);
-  //глобальный объект-хранилище размеров контуров комнат
-  scene.add(AreaCounturs);
-
-  scene.children.forEach(function(videocamera_one, idx) {
-      if(videocamera_one.userData.is_camera == true && videocamera_one.parent.name != 'ray_axis_x')
-		allCamArr.push(videocamera_one);
-  });
-
-  allCamArr.forEach(function(videocamera_one, idx)
-		{
-      //камера
-	    var videocamera = cameraWrapper(videocamera_one);
-
-      scene.add( videocamera );
-
-  	  videocamera.name = videocameraName;
-      videocameraArr.push(videocamera);
-
-      videocamera.roomHeight = roomHeight;
-      videocamera.near = near;
-      videocamera.far = far;
-      videocamera.angle = angle;
-	  videocamera.floor_scale = floor_scale;
-
-      if (videocamera.userData.camera_props)
-        videocamera.roomHeight = videocamera.userData.camera_props.roomHeight;
-      if (videocamera.userData.camera_props)
-        videocamera.far = videocamera.userData.camera_props.far;
-      if (videocamera.userData.camera_props)
-        videocamera.angle = THREE.Math.degToRad(videocamera.userData.camera_props.angle);
-	  if (videocamera.userData.camera_props && videocamera.userData.camera_props.floor_scale)
-        videocamera.floor_scale = videocamera.userData.camera_props.floor_scale;
-
-      //луч
-      {
-       var radiusB = Math.tan(videocamera.angle/2) * videocamera.far / Math.sin(THREE.Math.degToRad(45)); //большее основание пирамиды
-       var geometry = new THREE.CylinderGeometry( 1, radiusB+1, videocamera.far, 4 ); //геометрия луча
-       var rayMesh = new THREE.Mesh( geometry );
-
-       var radiusB2 = Math.tan(videocamera.angle/2) * videocamera.far/3*2 / Math.sin(THREE.Math.degToRad(45))*1.01; //большее основание пирамиды
-       var geometry2 = new THREE.CylinderGeometry( 1, radiusB2+1, videocamera.far/3*2, 4 ); //геометрия луча
-       var rayMesh2 = new THREE.Mesh( geometry2);
-
-       var radiusB3 = Math.tan(videocamera.angle/2) * videocamera.far/3 / Math.sin(THREE.Math.degToRad(45))*1.02; //большее основание пирамиды
-       var geometry3 = new THREE.CylinderGeometry( 1, radiusB3+1, videocamera.far/3, 4 ); //геометрия луча
-       var rayMesh3 = new THREE.Mesh( geometry3);
-
-       rayMesh.rotation.x = rayMesh2.rotation.x = rayMesh3.rotation.x = -Math.PI/2;
-       rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = Math.PI/4;
-
-       rayMesh.translateY(-videocamera.far/2);
-       rayMesh.visible = false;
-       rayMesh.name = 'rayMesh1';
-
-       rayMesh2.translateY(-videocamera.far/2/3*2);
-       rayMesh2.visible = false;
-       rayMesh2.name = 'rayMesh2';
-
-       rayMesh3.translateY(-videocamera.far/2/3);
-       rayMesh3.visible = false;
-       rayMesh3.name = 'rayMesh3';
-      }
-      //хелпер фокуса
-        {
-      var geometry = new THREE.SphereGeometry( 100, 32, 32 );
-      var material = new THREE.MeshBasicMaterial( {color: 0xff00ff} );
-      var focus = new THREE.Mesh( geometry, material );
-      focus.name = 'focus';
-      focus.position.z = videocamera.far + 5;
-      focus.visible = false;
-      }
-      //ось вращения1
-      var ray_axis_x = new THREE.Object3D();
-      ray_axis_x.name = 'ray_axis_x';
-      ray_axis_x.rotateX( THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
-
-      //ось вращения2
-      var ray_axis_y = new THREE.Object3D();
-      ray_axis_y.name = 'ray_axis_y';
-
-      ray_axis_y.position.copy(videocamera.getWorldPosition());
-      ray_axis_y.rotation.copy(videocamera.getWorldRotation());
-
-      videocamera.position.set(0,0,0);
-      videocamera.rotation.set(0,0,0);
-
-      scene.add( ray_axis_y );
-
-      ray_axis_y.add(ray_axis_x);
-      ray_axis_x.add(videocamera);
-      videocamera.add( focus );
-      videocamera.add(rayMesh);
-      videocamera.add(rayMesh2);
-      videocamera.add(rayMesh3);
-
-      //ось z - хелпер
-      arrowHelperAdd( videocamera, null, 'red', 350 );
-//      arrowHelperAdd( ray_axis_x, null, 'blue', 30 );
-//      arrowHelperAdd( ray_axis_x, ray_axis_x.up, 'blue', 30 );
-//      arrowHelperAdd( ray_axis_y, null, 'green', 25);
-//      arrowHelperAdd( ray_axis_y, ray_axis_y.up, 'green', 25);
-      //ось z - хелпер
-
-	  //Дополнительный функционал для камеры
-      cameraDecorator(videocamera);
-
-	});
-
-
-  //Отобразить все лучи
-  setTimeout(raysShowAll, 500);
-
-  document.addEventListener( 'keydown', onKeyDownCam, false );
-  document.addEventListener( 'keyup', onKeyUpCam, false );
-  document.addEventListener( 'mousedown', onDocumentMouseDownCam, false );
-//  document.addEventListener( 'mousemove', onDocumentMouseMoveCam, false );
-//  document.addEventListener( 'wheel', onDocumentMouseWheelCam, false );
-
-var ray = new THREE.Raycaster(new THREE.Vector3(0,0,0), new THREE.Vector3(0,1,0), 0 , 100000);
-var geometry = new THREE.Geometry();
-geometry.vertices.push(
-	new THREE.Vector3( 1, 5, 0 ),
-	new THREE.Vector3( 10, 5, 0 )
-);
-
-//var line = new THREE.Line( geometry );
-
-
-}
-
-function cameraDecorator(camera)
-{
+function cameraDecorator(camera){
 
     camera.updateDimesions = function()
     {
@@ -466,8 +312,7 @@ function cameraDecorator(camera)
     }
 
 }
-function raysShowAll()
-{
+function raysShowAll(){
 
   for(var key in videocameraArr){
 
@@ -483,8 +328,7 @@ function raysShowAll()
 
 }
 
-function drawRay(videocamera, index)
-{
+function drawRay(videocamera, index){
   var rayBSP;
   var roomBSP;
   var newBSP;
@@ -551,8 +395,7 @@ function drawRay(videocamera, index)
   }
 
 }
-function roomCalculate(scene, videocamera)
-{
+function roomCalculate(scene, videocamera){
   if (!videocamera)
 	return;
   var direction = new THREE.Vector3( -1, 0, 0 );
@@ -665,9 +508,7 @@ function roomCalculate(scene, videocamera)
   //====================
 
 }
-
-function updateCameraRay()
-{
+function updateCameraRay(){
 
   if (isMoveCamera && active_camera){
 	  roomCalculate(scene, active_camera);
@@ -691,9 +532,7 @@ function updateCameraRay()
   }
 
 }
-
-function showRay()
-{
+function showRay(){
  //рендерим луч
 	  isMoveCamera = true;
 	  isMoveRay = true;
@@ -703,17 +542,15 @@ function showRay()
 		isMoveRay = false;
 	  },500);
 }
-
-function showFocus()
-{
+function showFocus(){
 	if(active_camera){
 	  scene.remove( scene.getObjectByName(active_camera.id + "_focus") );
 	  var focus =  active_camera.getObjectByName('focus');
     focus.visible = true;
   }
 }
-function onKeyUpCam ( event )
-{
+
+function onKeyUpCam ( event ){
 
   if (window.FirstPersonView) {
 	  if (!event.altKey)
@@ -774,8 +611,7 @@ function onKeyUpCam ( event )
       break;
   }
 }
-function onKeyDownCam ( event )
-{
+function onKeyDownCam ( event ){
 //  alert(event.keyCode)
   if (window.FirstPersonView) {
 	  if (!event.altKey)
@@ -824,9 +660,7 @@ function onKeyDownCam ( event )
 //      }
       break;
     case 57: /*9*/
-      if(event.altKey){
-        $projection.off();
-      }
+
       break;
     case 82: /*r*/
       if(active_camera){
@@ -920,8 +754,7 @@ function onKeyDownCam ( event )
       break;
   }
 }
-function onDocumentMouseDownCam( event )
-{
+function onDocumentMouseDownCam( event ){
   //event.preventDefault();
 
   document.addEventListener( 'mousemove', onDocumentMouseMoveCam, false );
@@ -1081,50 +914,156 @@ function onDocumentMouseDownCam( event )
   }
   //фокус активной камеры
 }
-function onDocumentMouseMoveCam( event )
-{
+function onDocumentMouseMoveCam( event ){
 //  var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
 //  var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 //
 //  lon -= movementX * 0.1;
 //  lat += movementY * 0.1;
 }
-function onDocumentMouseUpCam( event )
-{
+function onDocumentMouseUpCam( event ){
   document.removeEventListener( 'mousemove', onDocumentMouseMoveCam );
   document.removeEventListener( 'mouseup', onDocumentMouseUpCam );
 //  showFocus();
 }
 
-function toggleMode( mode ){
+function addCameraRay(scene){
+  var roomHeight = 2700; //высота комнаты ????????
+  var floor_scale = 40;
+  var near = 1; //начало видимой области
+  var far = 10000;//окончание видимой области
+  var angle = THREE.Math.degToRad(30);//угол обзора камеры
+//  var ray_axis_x; // доп ось камеры
+//  var ray_axis_y; // доп ось камеры
+  var allCamArr = [];
 
-  switch ( mode ) {
-    case '2D':
 
-      if( ! $projection.enabled){
 
-        $projection.on('top');
-//        $projection.toggleModeIn2D('edition');
+  scene.children.forEach(function(videocamera_one, idx) {
+      if(videocamera_one.userData.is_camera == true && videocamera_one.parent.name != 'ray_axis_x')
+		allCamArr.push(videocamera_one);
+  });
 
-        $('.mode2D').show();
-        $('.footer').find('[action = mode]').text('3D');
+  allCamArr.forEach(function(videocamera_one, idx)
+		{
+      //камера
+	    var videocamera = cameraWrapper(videocamera_one);
 
+      scene.add( videocamera );
+
+  	  videocamera.name = videocameraName;
+      videocameraArr.push(videocamera);
+
+      videocamera.roomHeight = roomHeight;
+      videocamera.near = near;
+      videocamera.far = far;
+      videocamera.angle = angle;
+	  videocamera.floor_scale = floor_scale;
+
+      if (videocamera.userData.camera_props)
+        videocamera.roomHeight = videocamera.userData.camera_props.roomHeight;
+      if (videocamera.userData.camera_props)
+        videocamera.far = videocamera.userData.camera_props.far;
+      if (videocamera.userData.camera_props)
+        videocamera.angle = THREE.Math.degToRad(videocamera.userData.camera_props.angle);
+	  if (videocamera.userData.camera_props && videocamera.userData.camera_props.floor_scale)
+        videocamera.floor_scale = videocamera.userData.camera_props.floor_scale;
+
+      //луч
+      {
+       var radiusB = Math.tan(videocamera.angle/2) * videocamera.far / Math.sin(THREE.Math.degToRad(45)); //большее основание пирамиды
+       var geometry = new THREE.CylinderGeometry( 1, radiusB+1, videocamera.far, 4 ); //геометрия луча
+       var rayMesh = new THREE.Mesh( geometry );
+
+       var radiusB2 = Math.tan(videocamera.angle/2) * videocamera.far/3*2 / Math.sin(THREE.Math.degToRad(45))*1.01; //большее основание пирамиды
+       var geometry2 = new THREE.CylinderGeometry( 1, radiusB2+1, videocamera.far/3*2, 4 ); //геометрия луча
+       var rayMesh2 = new THREE.Mesh( geometry2);
+
+       var radiusB3 = Math.tan(videocamera.angle/2) * videocamera.far/3 / Math.sin(THREE.Math.degToRad(45))*1.02; //большее основание пирамиды
+       var geometry3 = new THREE.CylinderGeometry( 1, radiusB3+1, videocamera.far/3, 4 ); //геометрия луча
+       var rayMesh3 = new THREE.Mesh( geometry3);
+
+       rayMesh.rotation.x = rayMesh2.rotation.x = rayMesh3.rotation.x = -Math.PI/2;
+       rayMesh.rotation.y = rayMesh2.rotation.y = rayMesh3.rotation.y = Math.PI/4;
+
+       rayMesh.translateY(-videocamera.far/2);
+       rayMesh.visible = false;
+       rayMesh.name = 'rayMesh1';
+
+       rayMesh2.translateY(-videocamera.far/2/3*2);
+       rayMesh2.visible = false;
+       rayMesh2.name = 'rayMesh2';
+
+       rayMesh3.translateY(-videocamera.far/2/3);
+       rayMesh3.visible = false;
+       rayMesh3.name = 'rayMesh3';
       }
-
-      break;
-    case '3D':
-
-      if($projection.enabled){
-
-        $projection.off();
-
-        $('.mode2D').hide();
-        $('.footer').find('[action = mode]').text('2D');
-
+      //хелпер фокуса
+        {
+      var geometry = new THREE.SphereGeometry( 100, 32, 32 );
+      var material = new THREE.MeshBasicMaterial( {color: 0xff00ff} );
+      var focus = new THREE.Mesh( geometry, material );
+      focus.name = 'focus';
+      focus.position.z = videocamera.far + 5;
+      focus.visible = false;
       }
+      //ось вращения1
+      var ray_axis_x = new THREE.Object3D();
+      ray_axis_x.name = 'ray_axis_x';
+      ray_axis_x.rotateX( THREE.Math.degToRad(videocamera.userData.camera_props.camera_start_angle) );
 
-      break;
-  }
+      //ось вращения2
+      var ray_axis_y = new THREE.Object3D();
+      ray_axis_y.name = 'ray_axis_y';
+
+      ray_axis_y.position.copy(videocamera.getWorldPosition());
+      ray_axis_y.rotation.copy(videocamera.getWorldRotation());
+
+      videocamera.position.set(0,0,0);
+      videocamera.rotation.set(0,0,0);
+
+      scene.add( ray_axis_y );
+
+      ray_axis_y.add(ray_axis_x);
+      ray_axis_x.add(videocamera);
+      videocamera.add( focus );
+      videocamera.add(rayMesh);
+      videocamera.add(rayMesh2);
+      videocamera.add(rayMesh3);
+
+      //ось z - хелпер
+      arrowHelperAdd( videocamera, null, 'red', 350 );
+//      arrowHelperAdd( ray_axis_x, null, 'blue', 30 );
+//      arrowHelperAdd( ray_axis_x, ray_axis_x.up, 'blue', 30 );
+//      arrowHelperAdd( ray_axis_y, null, 'green', 25);
+//      arrowHelperAdd( ray_axis_y, ray_axis_y.up, 'green', 25);
+      //ось z - хелпер
+
+	  //Дополнительный функционал для камеры
+      cameraDecorator(videocamera);
+
+	});
+
+
+  //Отобразить все лучи
+  setTimeout(raysShowAll, 500);
+
+  document.addEventListener( 'keydown', onKeyDownCam, false );
+  document.addEventListener( 'keyup', onKeyUpCam, false );
+  document.addEventListener( 'mousedown', onDocumentMouseDownCam, false );
+//  document.addEventListener( 'mousemove', onDocumentMouseMoveCam, false );
+//  document.addEventListener( 'wheel', onDocumentMouseWheelCam, false );
+
+var ray = new THREE.Raycaster(new THREE.Vector3(0,0,0), new THREE.Vector3(0,1,0), 0 , 100000);
+var geometry = new THREE.Geometry();
+geometry.vertices.push(
+	new THREE.Vector3( 1, 5, 0 ),
+	new THREE.Vector3( 10, 5, 0 )
+);
+
+//var line = new THREE.Line( geometry );
+
+
 }
 
 $('.footer').on('click','[action = mode]',function(){
@@ -1160,8 +1099,153 @@ $('.footer').on('click','[action = floorHeight]',function(){
 });
 
 
+function Editor(obj){
+  
+  obj.on = function(){
+
+    obj.activate();
+    //глобальный объект-хранилище размеров
+    scene.add(Dimensions);
+    //глобальный объект-хранилище размеров площадей комнат
+    scene.add(Areas);
+    //глобальный объект-хранилище размеров контуров комнат
+    scene.add(AreaCounturs);
+    //режим чертежа
+    if( ! $projection.enabled){
+      toggleMode('2D');
+      $projection.toggleModeIn2D('creation');
+    }
+  };
+
+  obj.off = function(){
+    obj.deactivate();
+  }
 
 
+  obj.activate = function(){
+    document.addEventListener( 'keydown', onKeyDownEditor, false );
+  //  document.addEventListener( 'keyup', onKeyUpEditor, false );
+  //  document.addEventListener( 'mousedown', onDocumentMouseDownEditor, false );
+  //  document.addEventListener( 'mousemove', onDocumentMouseMoveEditor, false );
+  //  document.addEventListener( 'wheel', onDocumentMouseWheelEditor, false );
+  };
+  obj.deactivate = function(){
+    document.removeEventListener( 'keydown', onKeyDownEditor, false );
+  //  document.removeEventListener( 'keyup', onKeyUpEditor, false );
+  //  document.removeEventListener( 'mousedown', onDocumentMouseDownEditor, false );
+  //  document.removeEventListener( 'mousemove', onDocumentMouseMoveEditor, false );
+  //  document.removeEventListener( 'wheel', onDocumentMouseWheelEditor, false );
+  }
+
+  function onKeyDownEditor ( event ){
+//  alert(event.keyCode)
+  if (window.FirstPersonView) {
+	  if (!event.altKey)
+	  {
+	  	event.preventDefault();
+	  	return;
+	  }
+  }
+  switch( event.keyCode ) {
+    case 81: /*q*/
+
+      break;
+    case 49: /*1*/
+      if(event.altKey){
+        if($projection.enabled){
+          toggleMode('3D');
+        } else {
+          toggleMode('2D');
+        }
+      }
+      break;
+    case 50: /*2*/
+//      if(event.altKey){
+//        if($projection.enabled){
+//          $projection.off();
+//        } else {
+//          $projection.on('left');
+//        }
+//      }
+      break;
+    case 51: /*3*/
+//      if(event.altKey){
+//        if($projection.enabled){
+//          $projection.off();
+//        } else {
+//          $projection.on('right');
+//        }
+//      }
+      break;
+    case 57: /*9*/
+
+      break;
+    case 82: /*r*/
+
+      break;
+    case 87:/*w*/
+
+      break;
+    case 83:/*s*/
+
+      break;
+    case 65:/*a*/
+
+      break;
+    case 68:/*d*/
+
+      break;
+    case 37:/*left*/
+
+      break;
+    case 38:/*up*/
+
+      break;
+    case 39:/*right*/
+
+      break;
+    case 40:/*down*/
+
+      break;
+  }
+}
+
+
+}
+var $Editor = {};
+Editor($Editor);
+
+
+function toggleMode( mode ){
+
+  switch ( mode ) {
+    case '2D':
+
+      if( ! $projection.enabled){
+
+        $projection.on('top');
+//        $projection.toggleModeIn2D('edition');
+
+        $('.mode2D').show();
+        $('.footer').find('[action = mode]').text('3D');
+
+      }
+
+      break;
+    case '3D':
+
+      if($projection.enabled){
+
+        $projection.off();
+
+        $('.mode2D').hide();
+        $('.footer').find('[action = mode]').text('2D');
+
+      }
+
+      break;
+  }
+}
 /**
  *
  * @param {type} vector3
@@ -5140,9 +5224,9 @@ function Wall(vertices, parameters){
   
   this.geometry = this.buildGeometry();
 
-//    this.material = $projection.projectionWallMaterial
-  this.material.transparent = true;
-  this.material.opacity = 0.8;
+  this.material = $projection.projectionWallMaterial;
+//  this.material.transparent = true;
+//  this.material.opacity = 0.8;
 
 //  this.rotation.x = Math.PI/2;
 //  this.position.set( 0, self.height, 0 );
@@ -5634,12 +5718,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.direction = this.axisLine.delta().normalize();
     this.direction90 = new THREE.Vector3( this.direction.z, 0 , -this.direction.x );
     this.axisLength = this.axisLine.distance();
-
-    this.node1.position.x = this.v1.x;
-    this.node1.position.y = this.v1.z;
-    this.node2.position.x = this.v2.x;
-    this.node2.position.y = this.v2.z;
-
     
     this.v11.copy( this.v1.clone().add( this.direction90.clone().multiplyScalar(this.width/2) ) );
     this.v12.copy( this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );

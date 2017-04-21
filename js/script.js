@@ -153,34 +153,43 @@ function initMain()
 
 	// FLOOR
 
-  // instantiate a loader
-var loader = new THREE.TextureLoader();
+  var floorMaterial = new THREE.MeshBasicMaterial( { color: 'white' } );
+  var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
+  floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.name = 'floor'
+  floor.position.y = -1;
+  floor.rotation.x = -Math.PI / 2;
+  scene.add(floor);
 
-// load a resource
-loader.load(
-	// resource URL
-  'img/plan3.jpg',
-	// Function when resource is loaded
-	function ( floorTexture ) {
-		// do something with the texture 
-      floorTexture.repeat.set( 1, 1 );
-      var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
-      var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
-      floor = new THREE.Mesh(floorGeometry, floorMaterial);
-      floor.name = 'floor'
-      floor.position.y = -1;
-      floor.rotation.x = -Math.PI / 2;
-      scene.add(floor);
-	},
-	// Function called when download progresses
-	function ( xhr ) {
-//		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-	},
-	// Function called when download errors
-	function ( xhr ) {
-//		console.log( 'An error happened' );
-	}
-);
+
+//  // instantiate a loader
+//var loader = new THREE.TextureLoader();
+//
+//// load a resource
+//loader.load(
+//	// resource URL
+//  'img/plan3.jpg',
+//	// Function when resource is loaded
+//	function ( floorTexture ) {
+//		// do something with the texture 
+//      floorTexture.repeat.set( 1, 1 );
+//      var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
+//      var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
+//      floor = new THREE.Mesh(floorGeometry, floorMaterial);
+//      floor.name = 'floor'
+//      floor.position.y = -1;
+//      floor.rotation.x = -Math.PI / 2;
+//      scene.add(floor);
+//	},
+//	// Function called when download progresses
+//	function ( xhr ) {
+////		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+//	},
+//	// Function called when download errors
+//	function ( xhr ) {
+////		console.log( 'An error happened' );
+//	}
+//);
 
 	// SKYBOX/FOG
 	var skyBoxGeometry = new THREE.BoxGeometry( 1000000, 1000000, 1000000 );
@@ -205,40 +214,23 @@ function init()
 //	// CUSTOM //
 //	////////////
 
-//
-//var axisHelper = new THREE.AxisHelper( 300 );
-//scene.add( axisHelper );
-//
-
-
 //$wallCreator.addWall([ new THREE.Vector3(-2000,0,-2000), new THREE.Vector3(2000,0,-2000) ]);
 //$wallCreator.addWall([ new THREE.Vector3(2000,0,-2000), new THREE.Vector3(2000,0,2000) ]);
 //$wallCreator.addWall([ new THREE.Vector3(2000,0,2000), new THREE.Vector3(-2000,0,2000) ]);
 //$wallCreator.addWall([ new THREE.Vector3(-2000,0,2000), new THREE.Vector3(-2000,0,-2000) ]);
-
-
-
-//$wallCreator.addWall([ new THREE.Vector3(-2000,0,-2000), new THREE.Vector3(2000,0,-2000) ]);
-//$wallCreator.addWall([ new THREE.Vector3(2000,0,-2000), new THREE.Vector3(2000,0,2000) ]);
-//$wallCreator.addWall([ new THREE.Vector3(2000,0,2000), new THREE.Vector3(-2000,0,2000) ]);
-//$wallCreator.addWall([ new THREE.Vector3(-2000,0,2000), new THREE.Vector3(-2000,0,-2000) ]);
-
 
 
 //loadScene();
 //loadCamera();
-
 //loadJSON('sc/door.json', 'door');
-
 //loadJSON('sc/window.json');
- 
 //setTimeout( transformationLoaded, 1000 );
-
-
 //инициализация возможности отрисовки луча
-setTimeout(addCameraRay,1000,scene);
 
+//setTimeout(addCameraRay,1000,scene);
 //$arcWall.add( scene, wall );
+$Editor.on();
+
 
 }
 
