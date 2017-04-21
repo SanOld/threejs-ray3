@@ -7,6 +7,7 @@
 <body id="bd">
   
   
+</body>
 <nav class="navbar navbar-default navbar-fixed-bottom footer" role="navigation">
   <div class="container-fluid">
       <div class="row">
@@ -68,7 +69,6 @@
 
   </div>
 </nav>
-</body>
 
 <div class="ActiveElementMenu" style="top: 187px; left: 500px; display: none;">
   <a target="_blank" class="ActiveElementMenuAnimated" style="left: 0px; top: 0px; background-position: left -520px; opacity: 0; width: 0px; height: 0px;" action="info">
