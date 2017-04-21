@@ -5162,38 +5162,8 @@ function Wall(vertices, parameters){
   //хелпер примечание id
 //  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
 
-  //хелпер осей
-//  var axisHelper = new THREE.AxisHelper( 50 );
-//  this.add( axisHelper );
-  this.setDefaultNode = function(){
 
-    this.node1 = {
-      id: this.uuid + '_1',
-      position: {x:this.v1.x, y: this.v1.z }
-    }
-    this.node2 = {
-      id: this.uuid + '_2',
-      position: {x:this.v2.x, y: this.v2.z }
-    }
-
-    this.node11 = {
-      id: this.uuid + '_11',
-      position: this.v11.clone()
-    }
-    this.node12 = {
-      id: this.uuid + '_12',
-      position: this.v12.clone()
-    }
-    this.node21 = {
-      id: this.uuid + '_21',
-      position: this.v21.clone()
-    }
-    this.node22 = {
-      id: this.uuid + '_22',
-      position: this.v22.clone()
-    }
-  },
-          //Ноды
+  //Ноды
   this.setDefaultNode();
 
   this.changeDim =       function ( event ) {
@@ -5296,6 +5266,33 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   setDefaultPosition: function(){
     this.rotation.x = Math.PI/2;
     this.position.set( 0, this.height, 0 );
+  },
+  setDefaultNode: function(){
+    this.node1 = {
+      id: this.uuid + '_1',
+      position: {x:this.v1.x, y: this.v1.z }
+    }
+    this.node2 = {
+      id: this.uuid + '_2',
+      position: {x:this.v2.x, y: this.v2.z }
+    }
+
+    this.node11 = {
+      id: this.uuid + '_11',
+      position: this.v11.clone()
+    }
+    this.node12 = {
+      id: this.uuid + '_12',
+      position: this.v12.clone()
+    }
+    this.node21 = {
+      id: this.uuid + '_21',
+      position: this.v21.clone()
+    }
+    this.node22 = {
+      id: this.uuid + '_22',
+      position: this.v22.clone()
+    }
   },
   getV22: function (walls){
     var result_point =  new THREE.Vector3();
