@@ -2035,6 +2035,9 @@ function initWallEditor( obj ){
   }
   obj.select = function(event){
 
+    if(obj.selected && obj.selected != event.object && ('unselect' in obj.selected)){
+      obj.selected.unselect(event);
+    }
 //    obj.hideAllMenu();
     if( 'select' in event.object )
     event.object.select(event);
@@ -2065,7 +2068,7 @@ function initWallEditor( obj ){
     if( 'hoveroff' in event.object )
     event.object.hoveroff(event);
   }
-  
+
   obj.removeWall = function( wall ){
     $wallCreator.removeWall(wall);
   }
@@ -2224,7 +2227,7 @@ function initWallEditor( obj ){
     var pathes = obj.getPathes();
     var chains = obj.getChains(nodes, pathes);
     obj.ExclusionExternalChain(nodes, chains);
- 
+
 
     //удаление линий контура комнат
     obj.removeCounturLine();
@@ -2239,7 +2242,7 @@ function initWallEditor( obj ){
             //отрисовка контура комнаты
              obj.addCounturLine(chain, nodes);
             //=================
-        
+
           chain.forEach(function(item){
 
             if(countur.length == 0){
@@ -2250,7 +2253,7 @@ function initWallEditor( obj ){
             } else {
               countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
             }
-            
+
             if( walls.indexOf( item.wall_uuid ) == -1 ){
               walls.push( item.wall_uuid );
             }
@@ -2317,7 +2320,7 @@ function initWallEditor( obj ){
 
   };
   obj.getPathes = function(){
-    
+
     var pathes = [];
 
     obj.walls.forEach(function( item ){
@@ -2379,7 +2382,7 @@ function initWallEditor( obj ){
     })
 
     return pathes;
-    
+
   }
   obj.getChains = function( nodes, pathes ){
 
@@ -2423,9 +2426,9 @@ function initWallEditor( obj ){
 
       var wall_uuid = item[0].wall_uuid;
       var wall = scene.getObjectByProperty ( 'uuid', wall_uuid );
-      
+
       if( wall ){
-        if (obj.isWallInRoom(nodes, wall, item)) 
+        if (obj.isWallInRoom(nodes, wall, item))
 			delete chains[index];
       }
     });
@@ -2482,7 +2485,7 @@ function initWallEditor( obj ){
     var area_coord = new THREE.Vector3();
     var max_area = 0;
     var triangles = THREE.ShapeUtils.triangulate( countur );
-    
+
     if(triangles)
     triangles.forEach(function( item2 ){
 
@@ -2492,7 +2495,7 @@ function initWallEditor( obj ){
                                     new THREE.Vector3(item2[2].x, 0, item2[2].y)
                                     )
 
-      
+
       var current_area = triangle.area();
       if( current_area > max_area ){
         max_area = current_area;
@@ -2520,7 +2523,7 @@ function initWallEditor( obj ){
                                       );
     notification.position.copy( area_coord );
     Areas.add( notification );
-    
+
   };
   obj.removeAreaNotifications = function(){
 
@@ -2529,7 +2532,7 @@ function initWallEditor( obj ){
     })
 
     Areas.children.length = 0;
-    
+
   };
   obj.hideAreaNotifications = function(){
     Areas.children.forEach(function(item){
@@ -2576,7 +2579,7 @@ function initWallEditor( obj ){
 
 //    document.removeEventListener( 'wheel', onDocumentMouseWheel, false );
   }
-  
+
   function onDocumentMouseDownWallEditor( event ){
     if (!obj.enabled)
       return false;
@@ -2762,7 +2765,7 @@ function Dimension( param1, param2, plane, parameters ){
   this.type = 'Dimension';
   this._type = '';
   this.isDimension = true;
-  
+
   this.lkmMenu = '';
   this.rkmMenu = '.DimensionMenu';
 
@@ -2798,7 +2801,7 @@ function Dimension( param1, param2, plane, parameters ){
   this.note.name = 'dimensionBoundingSphere';
   this.noteState == 'show' ? this.note.visible = true : this.note.visible = false;
 
- 
+
   this.defineDimType();
   this.setPlaneNormal();
   this.definePoints();
@@ -2846,15 +2849,17 @@ function Dimension( param1, param2, plane, parameters ){
 
     self.showMenuLKM(event.screenCoord);
     self.edit( {object: self.note} );
+    self.note.visible = false;
 
   };
   this.unselect = this.note.unselect =           function ( event ) {
 
+    self.noteState == 'show' ? self.note.visible = true : self.note.visible = false;
 
     $( '.EditableField' ).offset( {left: 0 , top: 0} );
     $( '.EditableField' ).css('display', 'none');
     if(event)
-    self.hideMenuLKM( event.screenCoord );
+    self.hideMenuLKM
     
   };
   this.select_contextmenu = function ( event ) {
@@ -8293,7 +8298,7 @@ SelectControls = function ( _objects, _camera, _domElement ){
 
 		if ( intersects.length > 0 ) {
 
-			_selected = intersects[ 0 ].object;
+      _selected = intersects[ 0 ].object;
 
 //			_domElement.style.cursor = 'move';
       _coord = {x:event.clientX, y:event.clientY};
