@@ -5675,13 +5675,18 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.position.copy( this.getCalculatePosition() );
 
     //поворот по стене
-    var cross = this.localToWorld ( new THREE.Vector3(1,0,0) ).cross ( this.wall.direction.clone() );
-    var angle = this.localToWorld ( new THREE.Vector3(1,0,0) ).angleTo ( this.wall.direction.clone() );
+
+//    var cross = this.localToWorld ( new THREE.Vector3(1,0,0) ).cross ( this.wall.direction.clone() );
+//    var angle = this.localToWorld ( new THREE.Vector3(1,0,0) ).angleTo ( this.wall.direction.clone() );
+
+    var cross =  ( new THREE.Vector3(1,0,0) ).cross ( this.wall.direction.clone() );
+    var angle = ( new THREE.Vector3(1,0,0) ).angleTo ( this.wall.direction.clone() );
 
     if( cross.y > 0 ){
       angle *= -1;
     }
 
+    this.rotateZ ( this.rotation.z * (-1) );
     this.rotateZ ( angle );
 
   },
@@ -5738,7 +5743,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     
     this.rebuildGeometry();
 
-    this.position.copy( this.getCalculatePosition() );
+    this.setStartPosition();
     
     this.setDoorwayBodyPosition();
 
