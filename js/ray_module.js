@@ -1848,6 +1848,7 @@ function initWallEditor( obj ){
   obj.doorblockSwitcherCoord = [];
   obj.windowblockSwitcherCoord = [];
   obj.doorwayMenu = [];
+  obj.ControlPointMenu = [];
 
   obj.raycaster = new THREE.Raycaster();
 
@@ -1917,6 +1918,19 @@ function initWallEditor( obj ){
     }
 
   }
+  obj.getControlPointMenu = function(){
+    var elements =  $('.ControlPointMenu').find('.ActiveElementMenuAnimated');
+
+    //считываем координаты для восстановления
+    if(elements){
+      elements.each( function( i, item ){
+        obj.ControlPointMenu[i] = ( {left: item.style.left, top: item.style.top} );
+        item.style.left = 0;
+        item.style.top = 0;
+      });
+    }
+
+  }
 
   obj.activateWallMover = function(){
     obj.walls.forEach(function(item){
@@ -1980,6 +1994,9 @@ function initWallEditor( obj ){
           objects = objects.concat(dim.note)
         })
       })
+
+      //добавление контрольных точек
+      objects.push(wall.controlPoint1, wall.controlPoint2);
     });
 
     if(obj.selectControls){
@@ -2633,6 +2650,7 @@ function initWallEditor( obj ){
   obj.getSwitcherCoord('FourStateSwitcher', obj.doorblockSwitcherCoord);
   obj.getSwitcherCoord('TwoStateSwitcher', obj.windowblockSwitcherCoord);
   obj.getDoorwayMenu();
+  obj.getControlPointMenu();
 
   /**
 	 * удаление стены
@@ -2691,6 +2709,15 @@ function initWallEditor( obj ){
 	});
 
   $('.DoorwayMenu').on('click', '[action = remove]', function(){
+
+    obj.deactivateSelectControls();
+
+		obj.selected.remove();
+
+    obj.activateSelectControls();
+
+	})
+  $('.ControlPointMenu').on('click', '[action = remove]', function(){
 
     obj.deactivateSelectControls();
 
@@ -5337,6 +5364,9 @@ function WallControlPoint( wall, point ){
   
   this.wall = wall;
 
+  this.lkmMenu = '';
+  this.rkmMenu = '.ControlPointMenu';
+
   this.referencePoint = point;
 
   this.radius = 45;
@@ -5401,6 +5431,15 @@ function WallControlPoint( wall, point ){
 
   };
 
+  this.select_contextmenu = function ( event ) {
+    self.showMenu(event.screenCoord);
+  };
+  this.unselect =           function ( event ) {
+
+    self.hideMenu();
+
+  };
+
   this.activate();
   
 }
@@ -5423,6 +5462,38 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
     this.visible = true;
   },
 
+  hideMenu: function() {
+    $(this.rkmMenu).css('display','none');
+  },
+  showMenu: function(center){
+    var self = this;
+
+    var elements =  $( this.rkmMenu ).find('.ActiveElementMenuAnimated');
+
+    //сбрасываем в ноль координаты для анимации
+    elements.each( function( i, item ){
+      item.style.left = 0;
+      item.style.top = 0;
+    })
+
+    //отображаем меню
+    $( self.rkmMenu ).css('display','block');
+    $( self.rkmMenu ).offset({top:center.y, left:center.x});
+
+    //отображаем пункты меню
+    setTimeout(function(){
+      elements.each( function( i, item ){
+        item.style.left = $wallEditor.ControlPointMenu[i].left;
+        item.style.top = $wallEditor.ControlPointMenu[i].top;
+      })
+
+    }, 50);
+
+  },
+
+  remove: function(){
+    alert('TODO');
+  },
 
   activate:   function() {
 
