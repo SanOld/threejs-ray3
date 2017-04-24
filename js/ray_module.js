@@ -5492,7 +5492,58 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
   },
 
   remove: function(){
-    alert('TODO');
+
+    this.hideMenu();
+
+    var worldPosition = this.position.clone().multiply( new THREE.Vector3(1,0,1) );
+
+    //по точке v1
+    if(worldPosition.equals(this.wall.v1) && this.wall.mover.v1_neighbors.length == 1){
+
+      var dot = this.wall.direction.clone().dot ( this.wall.mover.v1_neighbors[0].wall.direction.clone() );
+
+      if(Math.abs(dot) == 1){
+
+        var vertices = [this.wall.v2, this.wall.mover.v1_neighbors[0].opposite_point];
+
+        $wallCreator.addWall( vertices,
+                          {
+                            width: this.wall.width,
+                            auto_building: true
+                          });
+
+        $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
+
+      }
+
+      this.wall.mover.v1_neighbors[0].wall.remove();
+      this.wall.remove();
+    }
+
+    //по точке v2
+    if(worldPosition.equals(this.wall.v2) && this.wall.mover.v2_neighbors.length == 1){
+
+      var dot = this.wall.direction.clone().dot ( this.wall.mover.v2_neighbors[0].wall.direction.clone() );
+
+      if(Math.abs(dot) == 1){
+
+        var vertices = [this.wall.v1, this.wall.mover.v2_neighbors[0].opposite_point];
+
+        $wallCreator.addWall( vertices,
+                          {
+                            width: this.wall.width,
+                            auto_building: true
+                          });
+
+        $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
+
+        this.wall.mover.v2_neighbors[0].wall.remove();
+        this.wall.remove();
+      }
+    }
+
+    
+    
   },
 
   activate:   function() {
