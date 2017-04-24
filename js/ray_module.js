@@ -5500,9 +5500,9 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
     //по точке v1
     if(worldPosition.equals(this.wall.v1) && this.wall.mover.v1_neighbors.length == 1){
 
-      var dot = this.wall.direction.clone().dot ( this.wall.mover.v1_neighbors[0].wall.direction.clone() );
+//      var dot = this.wall.direction.clone().dot ( this.wall.mover.v1_neighbors[0].wall.direction.clone() );
 
-      if(Math.abs(dot) == 1){
+//      if(Math.abs(dot) == 1){
 
         var vertices = [this.wall.v2, this.wall.mover.v1_neighbors[0].opposite_point];
 
@@ -5514,7 +5514,7 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
 
         $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
 
-      }
+//      }
 
       this.wall.mover.v1_neighbors[0].wall.remove();
       this.wall.remove();
@@ -5523,9 +5523,9 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
     //по точке v2
     if(worldPosition.equals(this.wall.v2) && this.wall.mover.v2_neighbors.length == 1){
 
-      var dot = this.wall.direction.clone().dot ( this.wall.mover.v2_neighbors[0].wall.direction.clone() );
+//      var dot = this.wall.direction.clone().dot ( this.wall.mover.v2_neighbors[0].wall.direction.clone() );
 
-      if(Math.abs(dot) == 1){
+//      if(Math.abs(dot) == 1){
 
         var vertices = [this.wall.v1, this.wall.mover.v2_neighbors[0].opposite_point];
 
@@ -5539,7 +5539,7 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
 
         this.wall.mover.v2_neighbors[0].wall.remove();
         this.wall.remove();
-      }
+//      }
     }
 
     
