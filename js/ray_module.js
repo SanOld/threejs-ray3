@@ -31,10 +31,6 @@ var transparentMaterial = new THREE.MeshBasicMaterial( { transparent: true, opac
 var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
 
 
-
-
-
-
 //Редактор
 function Editor(obj){
 
@@ -162,8 +158,6 @@ function Editor(obj){
       }
     });
   });
-
-   
 
   $('.footer').on('click','[action = mode]',function(){
 
@@ -1860,7 +1854,7 @@ function initWallEditor( obj ){
   obj.on = function(){
     
     obj.enabled = true;
-//    obj.activate();
+    obj.activate();
     
     obj.activateWallMover();
     obj.activateDoorway();
@@ -1879,7 +1873,8 @@ function initWallEditor( obj ){
     obj.deactivateControlPoint();
     
     obj.deactivateSelectControls();
-//    obj.deactivate();
+
+    obj.deactivate();
 
   }
 
@@ -2038,10 +2033,12 @@ function initWallEditor( obj ){
 
   }
   obj.unselect = function( event ){
+    
     obj.hideAllMenu();
     if( obj.selected && ('unselect' in obj.selected) )
     obj.selected.unselect(event);
     obj.selected = null;
+
   }
   obj.hoveron = function( event ){
     if( 'hoveron' in event.object )
@@ -2551,14 +2548,14 @@ function initWallEditor( obj ){
   obj.activate = function(){
 //    document.addEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
 //    document.addEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
-//    document.addEventListener( 'keydown', onKeyDownWallEditor, false );
+    document.addEventListener( 'keydown', onKeyDownWallEditor, false );
 
 //    document.addEventListener( 'wheel', onDocumentMouseWheel, false );
   };
   obj.deactivate = function(){
 //    document.removeEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
 //    document.removeEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
-//    document.removeEventListener( 'keydown', onKeyDownWallEditor, false );
+    document.removeEventListener( 'keydown', onKeyDownWallEditor, false );
 
 //    document.removeEventListener( 'wheel', onDocumentMouseWheel, false );
   }
@@ -2603,6 +2600,7 @@ function initWallEditor( obj ){
 
   }
   function onKeyDownWallEditor ( event ){
+
     if (!obj.enabled)
       return false;
 //    event.preventDefault();
@@ -2610,7 +2608,7 @@ function initWallEditor( obj ){
     switch( event.keyCode ) {
       case 46: /*del*/
       case 27: /*esc*/
-
+        obj.unselect();
         break;
     }
   }
@@ -2661,7 +2659,9 @@ function initWallEditor( obj ){
 		obj.selected.addDoorway('niche');
 	});
   $('.ActiveElementMenu').on('click', '[action = scaleFloor]', function(event){
+    
 		obj.selected.setFloorScale(event);
+
 	});
 
   $('.FourStateSwitcher').on('click', '[action = location_1]', function(){
@@ -2836,13 +2836,14 @@ function Dimension( param1, param2, plane, parameters ){
 
   this.edit =             function ( event ) {
 
-    var element = self.editableFieldWrapper;
-
     var obj = event.object;
+
+
+    var element = self.editableFieldWrapper;
+    var coord = getScreenCoord(obj.position.clone(), camera);
 
     element.css('left', 0);
     element.css('top', 0);
-    var coord = getScreenCoord(obj.position.clone(), camera);
     element.offset({left: coord.x - self.editableField.width()/2 , top: coord.y - self.editableField.height()/2 });
     element.css('display', 'block');
 
@@ -2912,10 +2913,13 @@ function Dimension( param1, param2, plane, parameters ){
       $( this ).toggleClass( "active" );
       self.leftArrowActivated = !self.leftArrowActivated;
 
-      if( self.leftArrowActivated && self.rightArrowActivated ){
-        self.rightArrow.toggleClass( "active" );
-        self.rightArrowActivated = !self.rightArrowActivated;
-      }
+//      if( self.leftArrowActivated && self.rightArrowActivated ){
+//        self.rightArrow.toggleClass( "active" );
+//        self.rightArrowActivated = !self.rightArrowActivated;
+//      }
+
+      self.editableField.trigger('change');
+      self.unselect();
 
     });
     self.rightArrow.off('click');
@@ -2924,11 +2928,13 @@ function Dimension( param1, param2, plane, parameters ){
       $( this ).toggleClass( "active" );
       self.rightArrowActivated = !self.rightArrowActivated;
 
-      if( self.leftArrowActivated && self.rightArrowActivated ){
-        self.leftArrow.toggleClass( "active" );
-        self.leftArrowActivated = !self.leftArrowActivated;
-      }
+//      if( self.leftArrowActivated && self.rightArrowActivated ){
+//        self.leftArrow.toggleClass( "active" );
+//        self.leftArrowActivated = !self.leftArrowActivated;
+//      }
 
+      self.editableField.trigger('change');
+      self.unselect();
 
     });
     
@@ -3407,7 +3413,6 @@ function Wall(vertices, parameters){
 
   this.changeDim =       function ( event ) {
 
-isScale
     var isScale = event.hasOwnProperty("isScale") ? event["isScale"] : false;
     var offset = 0;
     var left_point;
@@ -3418,8 +3423,6 @@ isScale
     //расчитываем смещение
     dimension = self.dimensions[index];
 
-    //скрываем примечание
-//    dimension.note.visible = false;
 
     offset = event.value - self.dimension_lines[index].distance();
 //    offset = offset / Math.abs(offset);
@@ -4441,10 +4444,12 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     var self = this
 
     var element = this.editableFieldWrapper;
+    element.find('button').hide();
     element.css('left', 0);
     element.css('top', 0);
-    var coord = { x: event.screenX, y: event.screenY };
-    element.offset({left: coord.x - this.editableField.width() / 2 , top: coord.y - this.editableField.height() / 2 });
+    var menuEl = $('.ActiveElementMenu');
+    var coord = menuEl.position();
+    element.offset({left: coord.left - element.width()/2 , top: coord.top  });
     element.css('display', 'block');
 
     this.editableField.val( ( current_unit.c * this.axisLength ).toFixed( accuracy_measurements ) );
@@ -4491,7 +4496,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           return;
         }
 
-      })
+      });
+
+
+      self.hideMenu();
 
     });
 
