@@ -22,12 +22,12 @@
 
             <div class="col-lg-3  mode2D">
                 <div class="btn-group dropup wall_dim_type">
-                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
+				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
                   <ul class="dropdown-menu">
-                    <li class="without" data-type = "without"><a href="#">Стена: размер скрыть</a></li>
-                    <li class="center" data-type = "center"><a href="#">Стена: размер по осевой</a></li>
-                    <li class="inner" data-type = "inner"><a href="#">Стена: размер внутри</a></li>
-                    <li class="outer" data-type = "outer"><a href="#">Стена: размер снаружи</a></li>
+                    <li class="without" data-type = "without"><a>Стена: размер скрыть</a></li>
+                    <li class="center" data-type = "center"><a>Стена: размер по осевой</a></li>
+                    <li class="inner" data-type = "inner"><a>Стена: размер внутри</a></li>
+                    <li class="outer" data-type = "outer"><a>Стена: размер снаружи</a></li>
                   </ul>
                 </div><!-- /btn-group -->
             </div><!-- /.col-lg-3 -->
@@ -45,13 +45,14 @@
 
         <div class="col-lg-6">
           <div class="row">
-	  <form name="floor_plan_form" onsubmit="return setFloorPlan(this);">
+	       <form name="floor_plan_form" onsubmit="return setFloorPlan(this);">
             <div class="col-lg-2">
                 <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
-	        <input type ="file" name="image_file" class = "floorLoader" style="display: none">
-		<input type="hidden" name="user_id" value="userID">
+				<input type ="file" name="image_file" class = "floorLoader" style="display: none">
+				<input type="hidden" name="user_id" value="userID">
                 <img class = "localImage" style="display: none">
             </div><!-- /.col-lg-2 -->
+	       </form>
             <div class="col-lg-4">
               <div class="input-group">
                 <span class="input-group-addon" >Высота стен:</span>

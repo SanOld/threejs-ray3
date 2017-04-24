@@ -2033,7 +2033,7 @@ function initWallEditor( obj ){
 
   }
   obj.unselect = function( event ){
-    
+
     obj.hideAllMenu();
     if( obj.selected && ('unselect' in obj.selected) )
     obj.selected.unselect(event);
@@ -2659,7 +2659,7 @@ function initWallEditor( obj ){
 		obj.selected.addDoorway('niche');
 	});
   $('.ActiveElementMenu').on('click', '[action = scaleFloor]', function(event){
-    
+
 		obj.selected.setFloorScale(event);
 
 	});
