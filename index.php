@@ -116,9 +116,9 @@
 </div>
 
 <div class="EditableField btn-group" oncontextmenu="return false;" style=" display: none;">
-  <button type="button" class="btn btn-default dim-arrow left" style=" display: none;"><span class="fa fa-hand-o-left" aria-hidden="true"></span></button>
+  <button type="button" class="btn btn-default dim-arrow left" style=" display: none;"><span class="fa fa-arrow-left" aria-hidden="true"></span></button>
   <input type="text" class="btn btn-default" name="dimfield" value ="" >
-  <button type="button" class="btn btn-default dim-arrow right" style=" display: none;"><span class="fa fa-hand-o-right" aria-hidden="true"></span></button>
+  <button type="button" class="btn btn-default dim-arrow right" style=" display: none;"><span class="fa fa-arrow-right" aria-hidden="true"></span></button>
 </div>
 
 <div id="dimToolTip" title="Внимание" style="display: none;">

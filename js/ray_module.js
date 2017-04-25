@@ -60,10 +60,60 @@ var area_accuracy_measurements = 2;
 //Редактор
 function Editor(obj){
 
+  obj.timerId = undefined; //id интервала сохранения
+
   obj.on = function(){
 
+    //загрузка из localStorage
+    if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
+      
+      try{
+
+        var json = localStorage.getItem("cad5");
+        if (json) {
+            var cad5 = JSON.parse(json);
+            var loader = new THREE.ObjectLoader();
+
+//            var loadedScene = loader.parse( JSON.parse(cad5.scene) );
+//            scene = loadedScene;
+
+            cad5.objects.forEach(function(item){
+              scene.add(loader.parse( JSON.parse(item) ));
+            })
+        }
 
 
+
+//          var loader = new THREE.ObjectLoader();
+//          scene = loader.parse( window.localStorage.getItem( 'cad5' ), function(el){
+//             scene = el;
+
+
+//             scene.children.forEach(function(item, i) {
+//
+//                if (item.type.toLowerCase() == 'mesh' || item.type.toLowerCase() == 'object3d') {
+//
+//                  var cl = item.clone();
+//
+//                  scene.add(cl);
+//
+//                }
+//
+//              });
+
+
+//           });
+
+      } catch(e){
+        window.localStorage.removeItem( 'cad5');
+      }
+
+    }
+
+    //сохранение в ls
+      obj.localSavingOn();
+
+    //активация
     obj.activate();
 
     obj.addFloor();
@@ -82,9 +132,11 @@ function Editor(obj){
       toggleMode('2D');
       $projection.toggleModeIn2D('creation');
     }
+    
   };
   obj.off = function(){
     obj.deactivate();
+    obj.localSavingOff();
   }
 
   obj.activate = function(){
@@ -101,6 +153,43 @@ function Editor(obj){
   //  document.removeEventListener( 'mousemove', onDocumentMouseMoveEditor, false );
   //  document.removeEventListener( 'wheel', onDocumentMouseWheelEditor, false );
   }
+
+  obj.localSavingOn = function(){
+
+      obj.timerId = setInterval(function() {
+
+//        var exporter = new THREE.OBJExporter();
+//        var sceneJson = JSON.stringify(exporter.parse(scene));
+        var cad5 = {};
+        cad5.scene = JSON.stringify(scene)
+        cad5.objects = []
+        scene.traverse(function( item ){
+          cad5.objects.push( JSON.stringify( item ) )
+        })
+
+
+        window.localStorage.setItem( 'cad5', JSON.stringify(cad5) );
+        
+      }, 5000);
+      
+  }
+  obj.localSavingOff = function(){
+    if( obj.timerId ){
+      clearTimeout( obj.timerId );
+    }
+  }
+  obj.storageAvailable = function(type) {
+      try {
+        var storage = window[type],
+          x = '__storage_test__';
+        storage.setItem(x, x);
+        storage.removeItem(x);
+        return true;
+      }
+      catch(e) {
+        return false;
+      }
+    }
 
   obj.addFloor = function(){
 
@@ -2940,13 +3029,13 @@ function Dimension( param1, param2, plane, parameters ){
 
       if(self.point1.x == self.point2.x){
 
-        self.leftArrow.find('.fa-hand-o-left').removeClass('fa-hand-o-left').addClass('fa-hand-o-up');
-        self.rightArrow.find('.fa-hand-o-right').removeClass('fa-hand-o-right').addClass('fa-hand-o-down');
+        self.leftArrow.find('.fa-arrow-left').removeClass('fa-arrow-left').addClass('fa-arrow-up');
+        self.rightArrow.find('.fa-arrow-right').removeClass('fa-arrow-right').addClass('fa-arrow-down');
 
       } else {
 
-        self.leftArrow.find('.fa-hand-o-up').removeClass('fa-hand-o-up').addClass('fa-hand-o-left');
-        self.rightArrow.find('.fa-hand-o-down').removeClass('fa-hand-o-down').addClass('fa-hand-o-right');
+        self.leftArrow.find('.fa-arrow-up').removeClass('fa-arrow-up').addClass('fa-arrow-left');
+        self.rightArrow.find('.fa-arrow-down').removeClass('fa-arrow-down').addClass('fa-arrow-right');
        
       }
       

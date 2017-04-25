@@ -13,6 +13,8 @@ $(document).ready(function() {
 
   include("js/lib/three-master/examples/js/loaders/OBJLoader.js");
   include("js/lib/three-master/examples/js/controls/DragControls.js");
+  include("js/lib/three-master/examples/js/exporters/OBJExporter.js");
+  
   
 //  include ("js/lib/three-master/examples/js/pmrem/PMREMGenerator.js");
 //  include ("js/lib/three-master/examples/js/pmrem/PMREMCubeUVPacker.js");

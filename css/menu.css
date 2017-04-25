@@ -49,13 +49,19 @@
 	transition: top 0.15s ease-out, left 0.15s ease-out, opacity 0.2s ease-out;
 }
 
+.EditableField > button{
+  padding: 0px 6px;
+  font-size: 12px;
+}
+
 .EditableField > input {
+    padding: 2px 0px;
     position: absolute;
     display: block;
     width: 65px;
-    height: 16px;
-    line-height: 16px;
-    font-size: 12px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 14px;
     text-indent: 0;
     text-align: center;
     z-index: 90;
