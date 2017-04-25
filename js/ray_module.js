@@ -62,8 +62,11 @@ function Editor(obj){
 
   obj.timerId = undefined; //id интервала сохранения
 
+  obj.storageEnabled = false;
+
   obj.on = function(){
 
+    if(obj.storageEnabled){
     //загрузка из localStorage
     if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
 //      window.localStorage.removeItem( 'cad5');
@@ -120,6 +123,9 @@ function Editor(obj){
 
     //сохранение в ls
       obj.localSavingOn();
+    }
+
+
 
     //активация
     obj.activate();
@@ -3534,7 +3540,7 @@ function Wall(vertices, parameters){
   if ( parameters === undefined ) parameters = {};
 
 //  this.uid = THREE.Math.generateUUID();
-//  this.type = 'Wall';
+  this.type = 'Wall';
   this.name = 'wall';
   this._wall = null; // объект стены с проемами
   this.index = '';//присваивается в редакторе
