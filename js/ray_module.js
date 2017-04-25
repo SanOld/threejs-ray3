@@ -66,43 +66,51 @@ function Editor(obj){
 
     //загрузка из localStorage
     if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
-      
+//      window.localStorage.removeItem( 'cad5');
       try{
 
         var json = localStorage.getItem("cad5");
         if (json) {
+
             var cad5 = JSON.parse(json);
             var loader = new THREE.ObjectLoader();
+            window.console.log(cad5.scene);
+//            var loadedScene = loader.parse( JSON.parse(cad5.scene)) ;
 
-//            var loadedScene = loader.parse( JSON.parse(cad5.scene) );
+//            window.console.log(loadedScene);
 //            scene = loadedScene;
 
             cad5.objects.forEach(function(item){
+              window.console.log( JSON.parse(item) );
               scene.add(loader.parse( JSON.parse(item) ));
+              window.console.log( loader.parse( JSON.parse(item) ) );
             })
-        }
 
+        
 
-
-//          var loader = new THREE.ObjectLoader();
-//          scene = loader.parse( window.localStorage.getItem( 'cad5' ), function(el){
-//             scene = el;
-
-
-//             scene.children.forEach(function(item, i) {
+            if ( loadedScene instanceof THREE.Scene ) {
 //
-//                if (item.type.toLowerCase() == 'mesh' || item.type.toLowerCase() == 'object3d') {
-//
-//                  var cl = item.clone();
-//
-//                  scene.add(cl);
-//
-//                }
-//
-//              });
+              loadedScene.children.forEach(function(item, i) {
+
+                window.console.log(item.type.toLowerCase());
+
+                if ( item.type.toLowerCase() == 'mesh' || item.type.toLowerCase() == 'object3d' ) {
+
+ //                 if (item.name == 'wall' ){
+
+                  var cl = item.clone();
+
+                  scene.add(cl);
+
+                }
+
+              });
+
+             }
 
 
-//           });
+          }
+
 
       } catch(e){
         window.localStorage.removeItem( 'cad5');
@@ -159,16 +167,27 @@ function Editor(obj){
       obj.timerId = setInterval(function() {
 
 //        var exporter = new THREE.OBJExporter();
-//        var sceneJson = JSON.stringify(exporter.parse(scene));
         var cad5 = {};
-        cad5.scene = JSON.stringify(scene)
-        cad5.objects = []
-        scene.traverse(function( item ){
-          cad5.objects.push( JSON.stringify( item ) )
+//        cad5.scene = JSON.stringify( exporter.parse(scene) );
+        
+        cad5.scene = JSON.stringify( scene );
+
+        
+
+        cad5.objects = [];
+
+        scene.children.forEach(function(el){
+          cad5.objects.push(JSON.stringify( el ))
         })
 
 
-        window.localStorage.setItem( 'cad5', JSON.stringify(cad5) );
+
+//        window.console.log(cad5.scene);
+//        window.localStorage.setItem( 'cad5', JSON.stringify( cad5) );
+
+        cad5.scene = JSON.stringify( scene );
+        window.localStorage.setItem( 'cad5',  JSON.stringify( cad5) );
+
         
       }, 5000);
       
@@ -3515,7 +3534,7 @@ function Wall(vertices, parameters){
   if ( parameters === undefined ) parameters = {};
 
 //  this.uid = THREE.Math.generateUUID();
-  this.type = 'Wall';
+//  this.type = 'Wall';
   this.name = 'wall';
   this._wall = null; // объект стены с проемами
   this.index = '';//присваивается в редакторе
@@ -3989,10 +4008,11 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     var segment_end = new THREE.Vector3();
     
     var target = null;
-    var target_foundation = null;;
+    var target_foundation = null;
     var self = this;
 
     walls.forEach(function(item, i){
+      
       if(self.index != i){
         if($wallEditor.isPointsNeighboors( self.v1, item.v2 ) ){
 
