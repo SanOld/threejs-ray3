@@ -1272,8 +1272,6 @@ function initWallCreator(obj){
 
     },100)
 
-    
-
     return wall;
 
   }
@@ -2781,11 +2779,7 @@ function initWallEditor( obj ){
 	})
   $('.ControlPointMenu').on('click', '[action = remove]', function(){
 
-    obj.deactivateSelectControls();
-
 		obj.selected.remove();
-
-    obj.activateSelectControls();
 
 	})
 
@@ -3438,6 +3432,7 @@ function Wall(vertices, parameters){
   this.index = '';//присваивается в редакторе
   this.walls = []//заполнение при обновлении
   this.doors = [];
+  this.dimensions = []; //массив хранения объектов размеров стены
   var self = this;
 
   this.editableFieldWrapper =  $( '.EditableField' );
@@ -3463,7 +3458,7 @@ function Wall(vertices, parameters){
     self.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : new THREE.Vector3(response.v21.x, response.v21.y, response.v21.z);
     self.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : new THREE.Vector3(response.v22.x, response.v22.y, response.v22.z);
     
-    self.dimensions = []; //массив хранения объектов размеров стены
+    
     self.p1 = new THREE.Vector3();
     self.p2 = new THREE.Vector3();
     self.p11 = new THREE.Vector3();
@@ -5568,6 +5563,8 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
 
   remove: function(){
 
+    var self = this;
+
     this.hideMenu();
 
     var worldPosition = this.position.clone().multiply( new THREE.Vector3(1,0,1) );
@@ -5579,20 +5576,25 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
 
 //      if(Math.abs(dot) == 1){
 
-        var vertices = [this.wall.v2, this.wall.mover.v1_neighbors[0].opposite_point];
+        var vertices = [this.wall.v2.clone(), this.wall.mover.v1_neighbors[0].opposite_point.clone()];
 
-        $wallCreator.addWall( vertices,
+        var wall = $wallCreator.addWall( vertices,
                           {
                             width: this.wall.width,
                             auto_building: true
                           });
 
-        $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
+        
 
 //      }
+      setTimeout(function(){
+        wall.mover.activate();
+        self.wall.mover.v1_neighbors[0].wall.remove();
+        self.wall.remove();
+      })
 
-      this.wall.mover.v1_neighbors[0].wall.remove();
-      this.wall.remove();
+      
+      
     }
 
     //по точке v2
@@ -5602,18 +5604,27 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
 
 //      if(Math.abs(dot) == 1){
 
-        var vertices = [this.wall.v1, this.wall.mover.v2_neighbors[0].opposite_point];
+        var vertices = [this.wall.v1.clone(), this.wall.mover.v2_neighbors[0].opposite_point.clone()];
 
-        $wallCreator.addWall( vertices,
+        var wall = $wallCreator.addWall( vertices,
                           {
                             width: this.wall.width,
                             auto_building: true
                           });
 
-        $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
+        
 
-        this.wall.mover.v2_neighbors[0].wall.remove();
-        this.wall.remove();
+
+
+        setTimeout(function(){
+          
+          wall.mover.activate();
+          self.wall.mover.v2_neighbors[0].wall.remove();
+          self.wall.remove();
+          
+        }, 500)
+
+        
 //      }
     }
 
