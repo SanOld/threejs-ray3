@@ -3600,6 +3600,7 @@ function Wall(vertices, parameters){
 
     self.mover = new WallMover( self );
     scene.add( self.mover );
+    self.mover.activate();
 
     self.controlPoint1 = new WallControlPoint( self, 'v1' );
     self.controlPoint2 = new WallControlPoint( self, 'v2' );
@@ -5494,7 +5495,7 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
                             width: width,
                             auto_building: true
                           });
-    $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
+//    $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
 
     return wall;
   },
@@ -5699,7 +5700,7 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
                             auto_building: true
                           });
 
-        
+//        $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
 
 //      }
       setTimeout(function(){
@@ -5727,7 +5728,11 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
                             auto_building: true
                           });
 
+<<<<<<< .mine
+//        $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
+=======
         
+>>>>>>> .theirs
 
 
 
