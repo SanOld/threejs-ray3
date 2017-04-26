@@ -5728,17 +5728,14 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
                             auto_building: true
                           });
 
-<<<<<<< .mine
+
 //        $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
-=======
-        
->>>>>>> .theirs
+
 
 
 
         setTimeout(function(){
           
-          wall.mover.activate();
           self.wall.mover.v2_neighbors[0].wall.remove();
           self.wall.remove();
           
