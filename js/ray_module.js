@@ -191,7 +191,27 @@ function Editor(obj){
   $(this).focus();
 });
 
-
+  obj.getAdditionalPoints = function(data, callback){
+    $.get( "../classes/additionalPoints.php", {data: JSON.stringify(data)} )
+    .done(function( response ) {
+      var response = JSON.parse(response);
+      callback( response );
+    });
+  }
+  obj.getMagnitVerticies = function(data, callback){
+    $.get( "../classes/getMagnitVerticies.php", {data: JSON.stringify(data)} )
+    .done(function( response ) {
+      var response = JSON.parse(response);
+      callback( response );
+    });
+  }
+  obj.getPointerHelperPosition = function(data, callback){
+    $.get( "../classes/getPointerHelperPosition.php", {data: JSON.stringify(data)} )
+    .done(function( response ) {
+      var response = JSON.parse(response);
+      callback( response );
+    });
+  }
 
 }
 var $Editor = {};
@@ -1140,6 +1160,7 @@ function initWallCreator(obj){
   obj.calculateRooms = function(){
     obj.rooms = $wallEditor.getRooms();
   }
+
   obj.removeWall = function(wall){
 
       if(wall.parent){
@@ -1159,13 +1180,6 @@ function initWallCreator(obj){
 
       obj.hideAllMenu();
   }
-
-  /*
-   *
-   * @param {Array} [Vector3, Vector3] vertices
-   * @param {Object} params
-   * @returns {type Mesh}
-   */
   obj.addWall = function( vertices, params ){
     var vertices = vertices;
     var params = params || {width: obj.wall_width};
@@ -1193,10 +1207,13 @@ function initWallCreator(obj){
     setTimeout(function(){
       obj.updateWalls();           //Обновляем состояние стен
       obj.magnitVerticiesCreate(); //пересоздание магнитных точек
+
+      $wallEditor.deactivateSelectControls();
+      $wallEditor.activateSelectControls();
+
     },100)
 
-    $wallEditor.deactivateSelectControls();
-    $wallEditor.activateSelectControls();
+    
 
     return wall;
 
@@ -1311,35 +1328,46 @@ function initWallCreator(obj){
   obj.lineHelperPointAdd = function( isMove ) {
     var isMove = isMove || false;//false при клике мыши; true - при движении курсора
     var isClick = !isMove;
-    var point = obj.pointerHelper.position.clone();
 
-    //текущая стена при совпадении с одной из крайних точек
-//    if( currentWall && (currentWall.v1.equals(obj.pointerHelper.position) || currentWall.v2.equals(obj.pointerHelper.position)) ){
-//      currentWall = null;
-//    }
+    var point = obj.pointerHelper.position.clone();
+    
 
     switch (obj.lineHelperGeometry.vertices.length) {
       case 0:
         if(isClick){
-          obj.lineHelperGeometry.vertices[0] = point;
-          intersectWalls[0] = {wall:currentWall, point:point};
-          obj.magnitVerticies.push(point);//для примагничивания
+
+          $Editor.getPointerHelperPosition(obj.pointerHelper.position, function(p){
+
+            var point = new THREE.Vector3(p.x, p.y, p.z);
+
+            obj.lineHelperGeometry.vertices[0] = point;
+            intersectWalls[0] = {wall:currentWall, point:point};
+            obj.magnitVerticies.push(point);//для примагничивания
+
+          });
+
         }
         break;
       case 1:
-        obj.lineHelperGeometry.vertices.push(point);
-        if(currentWall !== intersectWalls[0].wall)
-        intersectWalls.push({wall:currentWall, point:point});
+        
+          obj.lineHelperGeometry.vertices.push(point);
+          if(currentWall !== intersectWalls[0].wall)
+          intersectWalls.push({wall:currentWall, point:point});
+
         break;
       case 2:
         if(isMove){
+
           obj.lineHelperGeometry.vertices[1] = point;
+
         } else {
+
           obj.lineHelperGeometry.vertices = [];
           obj.lineHelperGeometry.vertices.push(point);
 
           intersectWalls = [];
           intersectWalls.push({wall:currentWall, point:point});
+
         }
         break;
     }
@@ -1445,32 +1473,18 @@ function initWallCreator(obj){
 
     //очистка
     obj.magnitVerticies = [];
-//    obj.magnitVerticiesSphere.forEach(function(item){
-//      scene.remove(item);
-//    })
 
     //наполнение массива точек
     scene.children.forEach(function(item, idx) {
-//      if(item.name == 'wall'){
-//
-//        item.geometry.vertices.forEach(function(item2, idx) {
-//          obj.magnitVerticies.push(item2.clone().applyMatrix4(item.matrixWorld).projectOnPlane ( new THREE.Vector3(0,1,0) ));
-//        })
-//
-//      }
 
-//      if(item.type == 'Wall'){
-//
-//        item.geometry.vertices.forEach(function(item2, idx) {
-//           obj.magnitVerticies.push(item2.clone().applyMatrix4(item.matrixWorld).projectOnPlane ( new THREE.Vector3(0,1,0) ));
-//        })
-//
-//      }
+      if(item.name == 'wall'){
 
-      if(item.type == 'Wall'){
-
-        obj.magnitVerticies.push(item.v1.clone().projectOnPlane ( new THREE.Vector3(0,1,0) ));
-        obj.magnitVerticies.push(item.v2.clone().projectOnPlane ( new THREE.Vector3(0,1,0) ));
+        $Editor.getMagnitVerticies({ v1: item.v1, v2: item.v2 }, function(response){
+          if(response){
+            obj.magnitVerticies.push(response[0]);
+            obj.magnitVerticies.push(response[1]);
+          }
+        });
 
       }
     })
@@ -1484,20 +1498,6 @@ function initWallCreator(obj){
         }
         return true;
       });
-
-    //красная сфера для наглядности
-//    obj.magnitVerticies.forEach(function(item, idx) {
-//      var geometry = new THREE.SphereBufferGeometry( 30, 32, 32 );
-//      var mesh = new THREE.Mesh( geometry, wallPointHelper_material );
-//      mesh.position.x = item.x;
-//      mesh.position.z = item.z;
-//      obj.magnitVerticiesSphere.push(mesh);
-//      scene.add(mesh);
-//
-//      obj.pointerHelpersArray.push( mesh );
-//
-//    })
-
 
   }
   //получение объекта с коорд примагничивания
@@ -3397,119 +3397,125 @@ function Wall(vertices, parameters){
   this.direction90 = new THREE.Vector3( this.direction.z, 0 , -this.direction.x );
   this.axisLength = this.axisLine.distance();
 
-  this.v11 = parameters.hasOwnProperty("v11") ? parameters["v11"] : this.v1.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
-  this.v12 = parameters.hasOwnProperty("v12") ? parameters["v12"] : this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
-  this.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) );
-  this.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) );
+  $Editor.getAdditionalPoints({v1: this.v1, v2: this.v2, width: this.width, direction90: this.direction90 }, function( response ){
 
-  
-  this.dimensions = []; //массив хранения объектов размеров стены
-  this.p1 = new THREE.Vector3();
-  this.p2 = new THREE.Vector3();
-  this.p11 = new THREE.Vector3();
-  this.p21 = new THREE.Vector3();
-  this.p12 = new THREE.Vector3();
-  this.p22 = new THREE.Vector3();
-  this.dimension_lines = [
-    new THREE.Line3(this.p11, this.p21),
-    new THREE.Line3(this.p12, this.p22),
-    new THREE.Line3(this.p1, this.p2)
-  ]
-  
-  this.geometry = this.buildGeometry();
+    self.v11 = parameters.hasOwnProperty("v11") ? parameters["v11"] : new THREE.Vector3(response.v11.x, response.v11.y, response.v11.z);
+    self.v12 = parameters.hasOwnProperty("v12") ? parameters["v12"] : new THREE.Vector3(response.v12.x, response.v12.y, response.v12.z);
+    self.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : new THREE.Vector3(response.v21.x, response.v21.y, response.v21.z);
+    self.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : new THREE.Vector3(response.v22.x, response.v22.y, response.v22.z);
+    
+    self.dimensions = []; //массив хранения объектов размеров стены
+    self.p1 = new THREE.Vector3();
+    self.p2 = new THREE.Vector3();
+    self.p11 = new THREE.Vector3();
+    self.p21 = new THREE.Vector3();
+    self.p12 = new THREE.Vector3();
+    self.p22 = new THREE.Vector3();
+    self.dimension_lines = [
+      new THREE.Line3(self.p11, self.p21),
+      new THREE.Line3(self.p12, self.p22),
+      new THREE.Line3(self.p1, self.p2)
+    ]
 
-  this.material = $projection.projectionWallMaterial;
-//  this.material.transparent = true;
-//  this.material.opacity = 0.8;
+    self.geometry = self.buildGeometry();
 
-//  this.rotation.x = Math.PI/2;
-//  this.position.set( 0, self.height, 0 );
-  this.setDefaultPosition();
+    self.material = $projection.projectionWallMaterial;
+  //  this.material.transparent = true;
+  //  this.material.opacity = 0.8;
 
-  if(this.geometry)
-  this.geometry.verticesNeedUpdate = true;
+  //  this.rotation.x = Math.PI/2;
+  //  this.position.set( 0, self.height, 0 );
+    self.setDefaultPosition();
 
-  this.mover = new WallMover( this );
-  scene.add( this.mover );
+    if(self.geometry)
+    self.geometry.verticesNeedUpdate = true;
 
-  this.controlPoint1 = new WallControlPoint( this, 'v1' );
-  this.controlPoint2 = new WallControlPoint( this, 'v2' );
-  scene.add( this.controlPoint1, this.controlPoint2 );
+    self.mover = new WallMover( self );
+    scene.add( self.mover );
 
-  //хелпер примечание id
-//  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
+    self.controlPoint1 = new WallControlPoint( self, 'v1' );
+    self.controlPoint2 = new WallControlPoint( self, 'v2' );
+    scene.add( self.controlPoint1, self.controlPoint2 );
+
+    //хелпер примечание id
+  //  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
 
 
-  //Ноды
-  this.setDefaultNode();
+    //Ноды
+    self.setDefaultNode();
+
+ 
+    setTimeout(function(){
+      self.calcDimensionsPoints();
+      self.createDimensions();
+      self.updateDimensions();
+  //    self.showDimensions();
+    });
+
+
+  })
 
   this.changeDim =       function ( event ) {
 
-    var isScale = event.hasOwnProperty("isScale") ? event["isScale"] : false;
-    var offset = 0;
-    var left_point;
-    var right_point;
-    var dimension = null;
-    var index = self.dimensions.indexOf( event.target )
+      var isScale = event.hasOwnProperty("isScale") ? event["isScale"] : false;
+      var offset = 0;
+      var left_point;
+      var right_point;
+      var dimension = null;
+      var index = self.dimensions.indexOf( event.target )
 
-    //расчитываем смещение
-    dimension = self.dimensions[index];
-
-
-    offset = event.value - self.dimension_lines[index].distance();
-//    offset = offset / Math.abs(offset);
+      //расчитываем смещение
+      dimension = self.dimensions[index];
 
 
-    //точка сдвига
-    if( self.v1.x < self.v2.x ){
-      left_point = "v1";
-      right_point = "v2";
-    } else if( self.v2.x < self.v1.x ){
-      left_point = "v2";
-      right_point = "v1";
-    } else if( self.v1.x == self.v2.x && self.v1.z < self.v2.z ){
-      left_point = "v1";
-      right_point = "v2";
-    } else if( self.v1.x == self.v2.x && self.v2.z < self.v1.z ){
-      left_point = "v2";
-      right_point = "v1";
-    }
+      offset = event.value - self.dimension_lines[index].distance();
+  //    offset = offset / Math.abs(offset);
 
-    if( dimension.leftArrowActivated ){
-      self.movePoint( left_point, offset, dimension.dim_type == 'center' );
-    }
-    if( dimension.rightArrowActivated ){
-      self.movePoint( right_point, offset, dimension.dim_type == 'center' );
-    }
-    if( !dimension.leftArrowActivated && !dimension.rightArrowActivated && isScale ){
 
-      self.movePoint( right_point, offset/2, dimension.dim_type == 'center' );
-      self.movePoint( left_point, offset/2, dimension.dim_type == 'center' );
-      
-    } else if( !dimension.leftArrowActivated && !dimension.rightArrowActivated ){
-      //Подсказка
-      $( "#dimToolTip" ).dialog( "open" );
+      //точка сдвига
+      if( self.v1.x < self.v2.x ){
+        left_point = "v1";
+        right_point = "v2";
+      } else if( self.v2.x < self.v1.x ){
+        left_point = "v2";
+        right_point = "v1";
+      } else if( self.v1.x == self.v2.x && self.v1.z < self.v2.z ){
+        left_point = "v1";
+        right_point = "v2";
+      } else if( self.v1.x == self.v2.x && self.v2.z < self.v1.z ){
+        left_point = "v2";
+        right_point = "v1";
+      }
 
-      setTimeout(function(){
-        $( "#dimToolTip" ).dialog( "close" );
-      }, 2000)
+      if( dimension.leftArrowActivated ){
+        self.movePoint( left_point, offset, dimension.dim_type == 'center' );
+      }
+      if( dimension.rightArrowActivated ){
+        self.movePoint( right_point, offset, dimension.dim_type == 'center' );
+      }
+      if( !dimension.leftArrowActivated && !dimension.rightArrowActivated && isScale ){
 
-    }
-    
+        self.movePoint( right_point, offset/2, dimension.dim_type == 'center' );
+        self.movePoint( left_point, offset/2, dimension.dim_type == 'center' );
 
-//    self.update();
-  
-    $wallCreator.updateWalls();
-    $wallCreator.updateWalls();
-    
-  };
+      } else if( !dimension.leftArrowActivated && !dimension.rightArrowActivated ){
+        //Подсказка
+        $( "#dimToolTip" ).dialog( "open" );
 
-  setTimeout(function(){
-    self.calcDimensionsPoints();
-    self.createDimensions();
-    self.updateDimensions();
-//    self.showDimensions();
-  });
+        setTimeout(function(){
+          $( "#dimToolTip" ).dialog( "close" );
+        }, 2000)
+
+      }
+
+
+  //    self.update();
+
+      $wallCreator.updateWalls();
+      $wallCreator.updateWalls();
+
+    };
+
 
 }
 Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
@@ -3924,10 +3930,15 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.direction = this.axisLine.delta().normalize();
     this.direction90 = new THREE.Vector3( this.direction.z, 0 , -this.direction.x );
     this.axisLength = this.axisLine.distance();
-    
+
+ 
+    if(! this.v11.equals( this.v12 ) )
     this.v11.copy( this.v1.clone().add( this.direction90.clone().multiplyScalar(this.width/2) ) );
+    if(! this.v12.equals( this.v21 ) )
     this.v12.copy( this.v1.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );
+    if(! this.v21.equals( this.v22 ) )
     this.v21.copy( this.v2.clone().add( this.direction90.clone().multiplyScalar(this.width/2) ) );
+    if(! this.v22.equals( this.v11 ) )
     this.v22.copy( this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );
 
     this.node11.position.copy(this.v11);
@@ -8482,6 +8493,7 @@ function setFloorTexture(filename) {
 $('input[name="image_file"]').change(function() {
 	$('form[name="floor_plan_form"]').submit();
 });
+
 
 
 

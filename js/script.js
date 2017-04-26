@@ -162,35 +162,6 @@ function initMain()
   scene.add(floor);
 
 
-//  // instantiate a loader
-//var loader = new THREE.TextureLoader();
-//
-//// load a resource
-//loader.load(
-//	// resource URL
-//  'img/plan3.jpg',
-//	// Function when resource is loaded
-//	function ( floorTexture ) {
-//		// do something with the texture 
-//      floorTexture.repeat.set( 1, 1 );
-//      var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
-//      var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
-//      floor = new THREE.Mesh(floorGeometry, floorMaterial);
-//      floor.name = 'floor'
-//      floor.position.y = -1;
-//      floor.rotation.x = -Math.PI / 2;
-//      scene.add(floor);
-//	},
-//	// Function called when download progresses
-//	function ( xhr ) {
-////		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-//	},
-//	// Function called when download errors
-//	function ( xhr ) {
-////		console.log( 'An error happened' );
-//	}
-//);
-
 	// SKYBOX/FOG
 	var skyBoxGeometry = new THREE.BoxGeometry( 1000000, 1000000, 1000000 );
 	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
