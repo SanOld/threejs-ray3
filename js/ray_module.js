@@ -7,7 +7,13 @@ var AreaCounturs = new THREE.Object3D(0,1,0); //объект хранилище 
 
 var floorHeight = 3000;
 
+var floorScale = 1;
+var floorLength = 20000;
+var floorWidth = 12000;
+var floor = undefined;
+
 //Материалы
+var floorMaterial = new THREE.MeshBasicMaterial( { color: 'white' } );
 var wallControlPointMaterial = new THREE.MeshBasicMaterial({
   wireframe: false,
   opacity: 0.3,
@@ -28,7 +34,27 @@ var LineBasicMaterialRed = new THREE.LineBasicMaterial( {color: 'red'} );
 var dimensionMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff } );
 var transparentMaterial = new THREE.MeshBasicMaterial( { transparent: true, opacity: 0} );
 
+
 var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
+var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
+
+
+var measure_unit = {
+  'm':  {full_name: 'метр',       short_name: 'м',  c: 0.001 },
+  'm2': {full_name: 'квадратный метр',short_name: 'м2',  c: 0.000001 },
+  'cm': {full_name: 'сантиметр',  short_name: 'см', c: 0.1 },
+  'mm': {full_name: 'миллиметр',  short_name: 'мм', c: 1 },
+  'ft': {full_name: 'фут',        short_name: 'ft', c: 0.003281 },
+  'in': {full_name: 'дюйм',       short_name: 'in', c: 0.03937 },
+}
+var current_unit = measure_unit.mm;
+var accuracy_measurements = 0;
+
+var area_unit = measure_unit.m2;
+var area_accuracy_measurements = 2;
+
+
+
 
 
 //Редактор
@@ -36,7 +62,15 @@ function Editor(obj){
 
   obj.on = function(){
 
+
+
     obj.activate();
+
+    obj.addFloor();
+    controls.target.set( floor.position.x, floor.position.y, floor.position.z );
+    camera.lookAt(floor.position.clone());
+    controls.update();
+    
     //глобальный объект-хранилище размеров
     scene.add(Dimensions);
     //глобальный объект-хранилище размеров площадей комнат
@@ -49,11 +83,9 @@ function Editor(obj){
       $projection.toggleModeIn2D('creation');
     }
   };
-
   obj.off = function(){
     obj.deactivate();
   }
-
 
   obj.activate = function(){
     document.addEventListener( 'keydown', onKeyDownEditor, false );
@@ -68,6 +100,24 @@ function Editor(obj){
   //  document.removeEventListener( 'mousedown', onDocumentMouseDownEditor, false );
   //  document.removeEventListener( 'mousemove', onDocumentMouseMoveEditor, false );
   //  document.removeEventListener( 'wheel', onDocumentMouseWheelEditor, false );
+  }
+
+  obj.addFloor = function(){
+
+    floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.name = 'floor';
+    scene.add(floor);
+
+    obj.setFloorLocation();
+    
+  }
+
+  obj.setFloorLocation = function(){
+    floor.position.x = floorLength * floorScale/2;
+    floor.position.z = floorWidth * floorScale/2;
+    floor.position.y = -1;
+    floor.rotation.x = -Math.PI / 2;
+    
   }
 
   function onKeyDownEditor ( event ){
@@ -142,7 +192,6 @@ function Editor(obj){
       break;
   }
 }
-
 
   $( function() {
     $( "#dimToolTip" ).dialog({
@@ -255,10 +304,13 @@ function initProjection(obj){
     obj.enabled = !obj.enabled;
     currentCamera = camera.clone();
     obj.type = type || 'top';
+
     obj.cameraAdd();
-    controls = new THREE.OrbitControls( camera, renderer.domElement );
-    controls.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: THREE.MOUSE.MIDDLE, PAN: THREE.MOUSE.LEFT };
-    controls.enableRotate = false;
+    
+
+    controls.object = camera
+    controls.enableRotate = false;    
+    controls.update();
 
     obj.planeHelperAdd();
 
@@ -277,6 +329,9 @@ function initProjection(obj){
     obj.enabled = !obj.enabled;
     camera = currentCamera.clone();
     controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.target.set( floor.position.x, floor.position.y, floor.position.z );
+    camera.lookAt(floor.position.clone());
+    controls.update()
     currentCamera = null;
 
     scene.remove( obj.plane );
@@ -296,7 +351,7 @@ function initProjection(obj){
 
   }
   obj.cameraAdd = function(){
-    camera = new THREE.OrthographicCamera(
+     camera = new THREE.OrthographicCamera(
                                           frustumSize * ASPECT / - 2,
                                           frustumSize * ASPECT / 2,
                                           frustumSize / 2,
@@ -304,20 +359,24 @@ function initProjection(obj){
                                           1,
                                           50000
                                         );
+               
+
+    camera.position.copy( floor.position.clone() );
+
 
     switch (obj.type) {
       case 'top':
-        camera.position.set(0, 30000, 0);
+        camera.position.add( new THREE.Vector3(0, 30000, 0) );
         break;
       case 'left':
-        camera.position.set(-30000, 0, 0);
+//        camera.position.set(-30000, 0, 0);
         break;
       case 'right':
-        camera.position.set(30000, 0, 0);
+//        camera.position.set(30000, 0, 0);
         break;
     }
 
-    camera.lookAt(new THREE.Vector3(0,0,0));
+    camera.lookAt( floor.position.clone() );
 
 
 
