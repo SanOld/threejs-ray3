@@ -2635,9 +2635,7 @@ function initWallEditor( obj ){
     chain.forEach(function(item){
 
       var geometry = new THREE.Geometry();
-      if(!nodes[item.source.id] || !nodes[item.target.id]){
-        debugger
-      }
+
       geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
 //      var material = new THREE.LineBasicMaterial({
 //        color: 'red'
@@ -3071,12 +3069,17 @@ function Dimension( param1, param2, plane, parameters ){
 
     if( self.arrow ){
 
-      if( Math.abs(self.point1.x - self.point2.x) < 0.01 ){
+      if( Math.abs(self.point1.x - self.point2.x) < 0.01 && self.point1.z > self.point2.z){
 
         self.leftArrow.find('.fa-arrow-left').removeClass('fa-arrow-left').addClass('fa-arrow-up');
         self.rightArrow.find('.fa-arrow-right').removeClass('fa-arrow-right').addClass('fa-arrow-down');
 
-      } else {
+      } else if( Math.abs(self.point1.x - self.point2.x) < 0.01 && self.point1.z < self.point2.z ){
+
+        self.leftArrow.find('.fa-arrow-left').removeClass('fa-arrow-left').addClass('fa-arrow-down');
+        self.rightArrow.find('.fa-arrow-right').removeClass('fa-arrow-right').addClass('fa-arrow-up');
+
+      }else {
 
         self.leftArrow.find('.fa-arrow-up').removeClass('fa-arrow-up').addClass('fa-arrow-left');
         self.rightArrow.find('.fa-arrow-down').removeClass('fa-arrow-down').addClass('fa-arrow-right');
@@ -3128,13 +3131,9 @@ function Dimension( param1, param2, plane, parameters ){
     self.leftArrow.off('click');
     self.leftArrow.on('click', function(){
 
-      $( this ).toggleClass( "active" );
-      self.leftArrowActivated = !self.leftArrowActivated;
 
-//      if( self.leftArrowActivated && self.rightArrowActivated ){
-//        self.rightArrow.toggleClass( "active" );
-//        self.rightArrowActivated = !self.rightArrowActivated;
-//      }
+      self.leftArrowActivated = true;
+      self.rightArrowActivated = false;
 
       self.editableField.trigger('change');
       self.unselect();
@@ -3143,13 +3142,8 @@ function Dimension( param1, param2, plane, parameters ){
     self.rightArrow.off('click');
     self.rightArrow.on('click', function(){
 
-      $( this ).toggleClass( "active" );
-      self.rightArrowActivated = !self.rightArrowActivated;
-
-//      if( self.leftArrowActivated && self.rightArrowActivated ){
-//        self.leftArrow.toggleClass( "active" );
-//        self.leftArrowActivated = !self.leftArrowActivated;
-//      }
+      self.leftArrowActivated = false;
+      self.rightArrowActivated = true;
 
       self.editableField.trigger('change');
       self.unselect();
@@ -3666,11 +3660,11 @@ function Wall(vertices, parameters){
         left_point = "v2";
         right_point = "v1";
       } else if( self.v1.x == self.v2.x && self.v1.z < self.v2.z ){
-        left_point = "v1";
-        right_point = "v2";
-      } else if( self.v1.x == self.v2.x && self.v2.z < self.v1.z ){
         left_point = "v2";
         right_point = "v1";
+      } else if( self.v1.x == self.v2.x && self.v2.z < self.v1.z ){
+        left_point = "v1";
+        right_point = "v2";
       }
 
       if( dimension.leftArrowActivated ){
