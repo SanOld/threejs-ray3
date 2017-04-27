@@ -354,12 +354,26 @@ function Editor(obj){
   $(this).focus();
 });
 
-  obj.getAdditionalPoints = function(data, callback){
-    $.get( "../classes/additionalPoints.php", {data: JSON.stringify(data)} )
-    .done(function( response ) {
-      var response = JSON.parse(response);
-      callback( response );
+  obj.getAdditionalPoints = function(data){
+
+    var response;
+    
+    $.ajax({
+      url: "../classes/additionalPoints.php",
+      type: "GET",
+      data: {data: JSON.stringify(data)},
+      async:false,
+      dataType: "json",
+      success: function success(res, textStatus, jqXHR) {
+        response = res;
+      },
+      error: function error(jqXHR, textStatus, errorThrown) {
+
+      }
     });
+
+  return response;
+
   }
   obj.getMagnitVerticies = function(data, callback){
     $.get( "../classes/getMagnitVerticies.php", {data: JSON.stringify(data)} )
@@ -1359,38 +1373,37 @@ function initWallCreator(obj){
 
     if( !params.auto_building )
     //проверка doubleclck и расстояние меньше половины ширины стены
-    if(vertices && vertices[0].equals(vertices[1]) || vertices[0].distanceTo(vertices[1]) < params.width/2){
+    if( vertices && vertices[0].equals( vertices[1] ) || vertices[0].distanceTo( vertices[1]) < params.width/2 ){
       window.console.warn("Неверные параметры для создания стены!");
       return false;
     }
 
-    var wall = new Wall(vertices, params);
-    if(wall){
+    var wall = new Wall( vertices, params );
+    if( wall ){
 
-      obj.walls.push(wall);
+      obj.walls.push( wall );
       wall.index = obj.walls.length - 1;
 
-      scene.add(wall);     
+      scene.add( wall );
 
     } else {
+
       window.console.warn("Ошибка при создании стены!");
       return false;
+
     }
     
-    setTimeout(function(){
       obj.updateWalls();           //Обновляем состояние стен
       obj.magnitVerticiesCreate(); //пересоздание магнитных точек
 
       $wallEditor.deactivateSelectControls();
       $wallEditor.activateSelectControls();
 
-    },100)
-
     return wall;
 
   }
 
-  function isBelongToLine(point, line){
+  function isBelongToLine( point, line ){
 
     ray.origin = line.start;
     ray.direction = line.delta().normalize();
@@ -1403,7 +1416,7 @@ function initWallCreator(obj){
     return !(param1 + param2);
 
   }
-  function isIntersectCollinear(newWallVertices){
+  function isIntersectCollinear( newWallVertices ){
     var result = false;
 
     var result1 = 0;
@@ -2014,7 +2027,7 @@ function initWallEditor( obj ){
   obj.currentWall = null;
   obj.selected = null;
 
-  obj.maxNeighboorsDistance = 0.5;
+  obj.maxNeighboorsDistance = 0,5;
   obj.wallMenuCoord = [];
   obj.doorblockSwitcherCoord = [];
   obj.windowblockSwitcherCoord = [];
@@ -3565,64 +3578,62 @@ function Wall(vertices, parameters){
   this.direction90 = new THREE.Vector3( this.direction.z, 0 , -this.direction.x );
   this.axisLength = this.axisLine.distance();
 
-  $Editor.getAdditionalPoints({v1: this.v1, v2: this.v2, width: this.width, direction90: this.direction90 }, function( response ){
+  var response = $Editor.getAdditionalPoints({v1: this.v1, v2: this.v2, width: this.width, direction90: this.direction90 })
 
-    self.v11 = parameters.hasOwnProperty("v11") ? parameters["v11"] : new THREE.Vector3(response.v11.x, response.v11.y, response.v11.z);
-    self.v12 = parameters.hasOwnProperty("v12") ? parameters["v12"] : new THREE.Vector3(response.v12.x, response.v12.y, response.v12.z);
-    self.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : new THREE.Vector3(response.v21.x, response.v21.y, response.v21.z);
-    self.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : new THREE.Vector3(response.v22.x, response.v22.y, response.v22.z);
-    
-    
-    self.p1 = new THREE.Vector3();
-    self.p2 = new THREE.Vector3();
-    self.p11 = new THREE.Vector3();
-    self.p21 = new THREE.Vector3();
-    self.p12 = new THREE.Vector3();
-    self.p22 = new THREE.Vector3();
-    self.dimension_lines = [
-      new THREE.Line3(self.p11, self.p21),
-      new THREE.Line3(self.p12, self.p22),
-      new THREE.Line3(self.p1, self.p2)
-    ]
-
-    self.geometry = self.buildGeometry();
-
-    self.material = $projection.projectionWallMaterial;
-  //  this.material.transparent = true;
-  //  this.material.opacity = 0.8;
-
-  //  this.rotation.x = Math.PI/2;
-  //  this.position.set( 0, self.height, 0 );
-    self.setDefaultPosition();
-
-    if(self.geometry)
-    self.geometry.verticesNeedUpdate = true;
-
-    self.mover = new WallMover( self );
-    scene.add( self.mover );
-    self.mover.activate();
-
-    self.controlPoint1 = new WallControlPoint( self, 'v1' );
-    self.controlPoint2 = new WallControlPoint( self, 'v2' );
-    scene.add( self.controlPoint1, self.controlPoint2 );
-
-    //хелпер примечание id
-  //  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
+  self.v11 = parameters.hasOwnProperty("v11") ? parameters["v11"] : new THREE.Vector3(response.v11.x, response.v11.y, response.v11.z);
+  self.v12 = parameters.hasOwnProperty("v12") ? parameters["v12"] : new THREE.Vector3(response.v12.x, response.v12.y, response.v12.z);
+  self.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : new THREE.Vector3(response.v21.x, response.v21.y, response.v21.z);
+  self.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : new THREE.Vector3(response.v22.x, response.v22.y, response.v22.z);
 
 
-    //Ноды
-    self.setDefaultNode();
+  self.p1 = new THREE.Vector3();
+  self.p2 = new THREE.Vector3();
+  self.p11 = new THREE.Vector3();
+  self.p21 = new THREE.Vector3();
+  self.p12 = new THREE.Vector3();
+  self.p22 = new THREE.Vector3();
+  self.dimension_lines = [
+    new THREE.Line3(self.p11, self.p21),
+    new THREE.Line3(self.p12, self.p22),
+    new THREE.Line3(self.p1, self.p2)
+  ]
+
+  self.geometry = self.buildGeometry();
+
+  self.material = $projection.projectionWallMaterial;
+//  this.material.transparent = true;
+//  this.material.opacity = 0.8;
+
+  self.setDefaultPosition();
+
+  if(self.geometry)
+  self.geometry.verticesNeedUpdate = true;
+
+  self.mover = new WallMover( self );
+  scene.add( self.mover );
+  self.mover.activate();
+
+  self.controlPoint1 = new WallControlPoint( self, 'v1' );
+  self.controlPoint2 = new WallControlPoint( self, 'v2' );
+  scene.add( self.controlPoint1, self.controlPoint2 );
+
+  //хелпер примечание id
+//  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
+
+
+  //Ноды
+  self.setDefaultNode();
+
+
+  setTimeout(function(){
+    self.calcDimensionsPoints();
+    self.createDimensions();
+    self.updateDimensions();
+//    self.showDimensions();
+  });
+
 
  
-    setTimeout(function(){
-      self.calcDimensionsPoints();
-      self.createDimensions();
-      self.updateDimensions();
-  //    self.showDimensions();
-    });
-
-
-  })
 
   this.changeDim =       function ( event ) {
 
@@ -4148,9 +4159,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       this.setDefaultNode();
       
-      if( this.mover )
-      this.mover.wall = this;
-      this.mover.update();
+      if( this.mover ){
+        this.mover.wall = this;
+        this.mover.update();
+      }
 
       this.controlPoint1.update();
       this.controlPoint2.update();
@@ -4782,11 +4794,9 @@ function WallMover( wall ){
    */
   this.checkNeighborsLength = function(){
     var result = false;
-    var v1_offset = Infinity;
-    var v2_offset = Infinity;
-    var v1_dir = null;
-    var v2_dir = null;
-    var v1_item, v2_item;
+    var v1_offset, v2_offset = Infinity;
+    var v1_dir, v2_dir = null;
+    var v1_item, v2_item = null;
     var v1_index, v2_index;
 
     //вычисляем направление и необходимое смещение
@@ -4794,12 +4804,15 @@ function WallMover( wall ){
 
 //      var dot = self.wall.direction.clone().dot(item.wall.direction);
 
-      if( item.wall.axisLength < item.wall.width  ){
-        v1_dir = item.opposite_point.clone().sub( item.point ).normalize();
-        v1_offset = v1_dir.clone().multiplyScalar ( item.wall.axisLength );
-        v1_item = item;
-        v1_index = i;
-        return;
+      if( item.wall.axisLength < item.wall.width/100 && !v1_item ){
+        
+
+          v1_dir = item.opposite_point.clone().sub( item.point ).normalize();
+          v1_offset = v1_dir.clone().multiplyScalar ( item.wall.axisLength );
+          v1_item = item;
+          v1_index = i;
+
+//        return;
       }
 
     });
@@ -4807,12 +4820,15 @@ function WallMover( wall ){
 
 //      var dot = self.wall.direction.clone().dot( item.wall.direction );
 
-      if( item.wall.axisLength < item.wall.width  ){
-        v2_dir = item.opposite_point.clone().sub( item.point ).normalize();
-        v2_offset = v2_dir.clone().multiplyScalar ( item.wall.axisLength );
-        v2_item = item;
-        v2_index = i;
-        return;
+      if( item.wall.axisLength < item.wall.width/100 && !v2_item ){
+        
+
+          v2_dir = item.opposite_point.clone().sub( item.point ).normalize();
+          v2_offset = v2_dir.clone().multiplyScalar ( item.wall.axisLength );
+          v2_item = item;
+          v2_index = i;
+
+//        return;
       }
 
     });
@@ -4899,7 +4915,7 @@ function WallMover( wall ){
     var v1_end_segment, v2_end_segment;
     var point_intersect = new THREE.Vector3();
 
-    if(self.wall.axisLength < 5 ){
+    if(self.wall.axisLength < 50 ){
 
       switch (true) {
         case (self.v1_neighbors.length == 1 && self.v2_neighbors.length == 1):
@@ -5006,18 +5022,18 @@ function WallMover( wall ){
 
     //удаляем стену с мин длиной
 //    if( self.checkNeighborsLength() ){
-//
+
 //      newCoord = {v1: self.wall.v1, v2: self.wall.v2};
 //      enabled = false;
-//
+
 //    }
 
     //удаляем активную стену при достижении min длины
     if( checkSelfLength() ){
       self.needRemove = true;
       self.hoveroff();
-      self.deactivate();
       self.dragend();
+      self.deactivate();
       return;
     }
 
@@ -5040,11 +5056,7 @@ function WallMover( wall ){
 
     }
 
-
-
-
-
-    }
+  }
       
     
 
