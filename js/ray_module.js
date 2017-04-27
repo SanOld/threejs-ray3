@@ -437,7 +437,8 @@ function initProjection(obj){
     
 
     controls.object = camera
-    controls.enableRotate = false;    
+    controls.enableRotate = false;
+    controls.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: THREE.MOUSE.MIDDLE, PAN: THREE.MOUSE.LEFT };
     controls.update();
 
     obj.planeHelperAdd();
@@ -2316,24 +2317,24 @@ function initWallEditor( obj ){
                   //координаты
                   if ( item.v11.distanceTo( item.v21 ) < item.v12.distanceTo( item.v22 ) ){
 
-                    var inner = {start: {x: item.v11.x, y: item.v11.z }, end: {x: item.v21.x, y: item.v21.z } };
-                    var outer = {start: {x: item.v12.x, y: item.v12.z }, end: {x: item.v22.x, y: item.v22.z } };
+                    var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+                    var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
 
                   } else {
 
-                    var inner = {start: {x: item.v12.x, y: item.v12.z }, end: {x: item.v22.x, y: item.v22.z } };
-                    var outer = {start: {x: item.v11.x, y: item.v11.z }, end: {x: item.v21.x, y: item.v21.z } };
+                    var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+                    var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
 
                   }
 
-                  var center = {start: {x: item.v1.x, y: item.v1.z }, end: {x: item.v2.x, y: item.v2.z } };
+                  var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
 
                   //проемы
                   var openings = [];
                   item.doors.forEach(function(doorway){
 
-                    var doorway_inner = {start: {x: doorway.p_11.x, y: doorway.p_11.z }, end: {x: doorway.p_21.x, y: doorway.p_21.z } };
-                    var doorway_outer = {start: {x: doorway.p_12.x, y: doorway.p_12.z }, end: {x: doorway.p_22.x, y: doorway.p_22.z } };
+                    var doorway_inner = {start: {x: +doorway.p_11.x.toFixed(2), y: +doorway.p_11.z.toFixed(2) }, end: {x: +doorway.p_21.x.toFixed(2), y: +doorway.p_21.z.toFixed(2) } };
+                    var doorway_outer = {start: {x: +doorway.p_12.x.toFixed(2), y: +doorway.p_12.z.toFixed(2) }, end: {x: +doorway.p_22.x.toFixed(2), y: +doorway.p_22.z.toFixed(2) } };
                     var cellAngle = 0;
                     if(doorway.location){
                       switch (doorway.location) {
@@ -2381,13 +2382,13 @@ function initWallEditor( obj ){
                                           center: center,
                                           arcPath: null,
                                           mount_type: "",
-                                          wall_length_mm: item.getCurrentDimValue(),
+                                          wall_length_mm: +item.getCurrentDimValue().toFixed(2),
                                           width_px: item.width,
-                                          width_units: item.width * current_unit.c,
+                                          width_units: +(item.width * current_unit.c).toFixed(2),
                                           type: "bearing_wall",
                                           height: {
-                                            start: item.height,
-                                            end: item.height
+                                            start: +item.height.toFixed(2),
+                                            end: +item.height.toFixed(2)
                                           },
                                           openings: openings,
                                           external_wall: false,
@@ -3070,7 +3071,7 @@ function Dimension( param1, param2, plane, parameters ){
 
     if( self.arrow ){
 
-      if(self.point1.x == self.point2.x){
+      if( Math.abs(self.point1.x - self.point2.x) < 0.01 ){
 
         self.leftArrow.find('.fa-arrow-left').removeClass('fa-arrow-left').addClass('fa-arrow-up');
         self.rightArrow.find('.fa-arrow-right').removeClass('fa-arrow-right').addClass('fa-arrow-down');
@@ -3673,12 +3674,14 @@ function Wall(vertices, parameters){
       }
 
       if( dimension.leftArrowActivated ){
+
         self.movePoint( left_point, offset, dimension.dim_type == 'center' );
-      }
-      if( dimension.rightArrowActivated ){
+
+      } else if( dimension.rightArrowActivated ){
+
         self.movePoint( right_point, offset, dimension.dim_type == 'center' );
-      }
-      if( !dimension.leftArrowActivated && !dimension.rightArrowActivated && isScale ){
+        
+      } else if( !dimension.leftArrowActivated && !dimension.rightArrowActivated && isScale ){
 
         self.movePoint( right_point, offset/2, dimension.dim_type == 'center' );
         self.movePoint( left_point, offset/2, dimension.dim_type == 'center' );
@@ -4551,7 +4554,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.mover.v1_neighbors[0].wall.mover.drag({object: this.mover.v1_neighbors[0].wall.mover});
         this.mover.v1_neighbors[0].wall.mover.dragend({object: this.mover.v1_neighbors[0].wall.mover});
 
-      } else if ( this.mover.v1_neighbors.length == 0 || ( this.mover.v1_neighbors.length > 1 && center_line ) ){
+      }
+      else if ( this.mover.v1_neighbors.length == 0 || ( this.mover.v1_neighbors.length > 1 && center_line ) ){
 
         this.v1.copy( this.v2.clone().add(this.direction.clone().negate().multiplyScalar(this.v1.distanceTo( this.v2 ) + offset)) );
 
@@ -4559,7 +4563,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           item.point.copy( self.v1.clone() ) ;
         })
 
-      } else if( this.mover.v1_neighbors.length > 1 ){
+      }
+      else if( this.mover.v1_neighbors.length > 1 ){
 
         var walls = [];
         var position = new THREE.Vector3(self.mover.position.x, self.mover.position.y, self.mover.position.z)
@@ -4569,29 +4574,46 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
           if ( Math.abs( arr[i].wall.mover && item.wall.direction.clone().dot ( self.direction.clone() ) ) < 0.001 ){
 
-            walls.push( arr[i].wall.id );
+            walls.push( arr[i].wall.uuid);
 
           }
 
         })
 
-        walls.forEach(function(item2, i){
+        var enabled = true; //false при достижении одной из перемещаемых стен значения mover.enabled == false
+        var i = walls.length;
+        while(i--){
 
-          var item = scene.getObjectById(item2);
-          if( ! item ){return;}
+          var item = scene.getObjectByProperty('uuid', walls[i]);
 
-            item.mover.position.copy(position.clone().add(direction.clone().negate().multiplyScalar( offset )))
+          if( ! item ||  ! enabled){return;}
+
             item.mover.dragstart({object: item.mover});
-            item.mover.drag({object: item.mover, intersect_disable: true});
-            item.mover.dragend({object: item.mover});
+            while(offset > item.width/2 && item.mover.enabled == true){
 
-        })
+              item.mover.position.copy(position.clone().add(direction.clone().negate().multiplyScalar( item.width/2 )))
+              item.mover.drag({object: item.mover, intersect_disable: true});
+
+              offset -= item.width/2;
+            }
+
+              enabled = item.mover.enabled;
+
+              if( enabled ){
+                item.mover.position.copy(position.clone().add(direction.clone().negate().multiplyScalar( offset)));
+                item.mover.drag({object: item.mover, intersect_disable: true});
+              }
+
+              item.mover.dragend({object: item.mover});
+              return;
+
+        }
 
       }
 
       
     }
-    if(point == 'v2'){
+    if( point == 'v2'){
 
       if(this.mover.v2_neighbors.length == 1){
 
@@ -4600,7 +4622,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.mover.v2_neighbors[0].wall.mover.drag({object: this.mover.v2_neighbors[0].wall.mover});
         this.mover.v2_neighbors[0].wall.mover.dragend({object: this.mover.v2_neighbors[0].wall.mover});
 
-      } else if ( this.mover.v2_neighbors.length == 0 || ( this.mover.v2_neighbors.length > 1 && center_line ) ){
+      }
+      else if ( this.mover.v2_neighbors.length == 0 || ( this.mover.v2_neighbors.length > 1 && center_line ) ){
 
         this.v2.copy( this.v1.clone().add(this.direction.clone().multiplyScalar(this.v1.distanceTo( this.v2 ) + offset)) );
 
@@ -4608,7 +4631,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           item.point.copy( self.v2.clone() ) ;
         })
 
-      } else if( this.mover.v2_neighbors.length > 1 ){
+      }
+      else if( this.mover.v2_neighbors.length > 1 ){
 
         var walls = [];
         var position = new THREE.Vector3(self.mover.position.x, self.mover.position.y, self.mover.position.z)
@@ -4619,28 +4643,41 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
           if ( Math.abs( arr[i].wall.mover && item.wall.direction.clone().dot ( self.direction.clone() ) ) < 0.001 ){
 
-            walls.push( arr[i].wall.id );
-
-//            arr[i].wall.mover.position.copy(position.clone().add(direction.clone().multiplyScalar( offset )))
-//            arr[i].wall.mover.dragstart({object: arr[i].wall.mover});
-//            arr[i].wall.mover.drag({object: arr[i].wall.mover, intersect_disable: true});
-//            arr[i].wall.mover.dragend({object: arr[i].wall.mover});
+            walls.push( arr[i].wall.uuid );
 
           }
 
         })
 
-        walls.forEach(function(item2, i){
 
-          var item = scene.getObjectById(item2);
-          if( ! item ){return;}
+        var enabled2 = true;//false при достижении одной из перемещаемых стен значения mover.enabled == false
+        var i = walls.length;
+        while(i--){
 
-            item.mover.position.copy(position.clone().add(direction.clone().multiplyScalar( offset )))
+          var item = scene.getObjectByProperty('uuid', walls[i]);
+          if( ! item || ! enabled2){return;}
+
             item.mover.dragstart({object: item.mover});
-            item.mover.drag({object: item.mover , intersect_disable: true});
-            item.mover.dragend({object: item.mover});
+            while(offset > item.width/2 && item.mover.enabled == true){
 
-        })
+                item.mover.position.copy(position.clone().add(direction.clone().multiplyScalar( item.width/2 )))
+                item.mover.drag({object: item.mover, intersect_disable: true});
+
+                offset -= item.width/2;
+              }
+
+            enabled2 = item.mover.enabled;
+
+            if( enabled2 ){
+              item.mover.position.copy(position.clone().add(direction.clone().multiplyScalar( offset )));
+              item.mover.drag({object: item.mover , intersect_disable: true});
+            }
+
+            item.mover.dragend({object: item.mover});
+            return;
+
+
+        }
 
       }
 
@@ -4766,8 +4803,8 @@ function WallMover( wall ){
   var self = this;
 
   var _ray = new THREE.Ray();
-  var enabled = true;
-  
+
+  this.enabled = true;
   this.raycaster = new THREE.Raycaster();
   this.wall = wall;
   this.height = 1;
@@ -4818,7 +4855,7 @@ function WallMover( wall ){
 
 //      var dot = self.wall.direction.clone().dot(item.wall.direction);
 
-      if( item.wall.axisLength < item.wall.width/3 && !v1_item ){
+      if( item.wall.axisLength < item.wall.width * 0.9 && !v1_item ){
         
 
           var _v1_dir = item.opposite_point.clone().sub( item.point ).normalize();
@@ -4840,7 +4877,7 @@ function WallMover( wall ){
 
 //      var dot = self.wall.direction.clone().dot( item.wall.direction );
 
-      if( item.wall.axisLength < item.wall.width/3 && !v2_item ){
+      if( item.wall.axisLength < item.wall.width * 0.9 && !v2_item ){
         
 
           var _v2_dir = item.opposite_point.clone().sub( item.point ).normalize();
@@ -5026,7 +5063,7 @@ function WallMover( wall ){
 
     controls.enabled = false;
 
-    enabled = true;
+    self.enabled = true;
     self.updateNeighbors();
     self.neighborsNeedUpdate = false;
 
@@ -5040,20 +5077,20 @@ function WallMover( wall ){
     var v2_exception1 = false;
     var newCoord = newCoord || null;
 
-    if(!enabled) return;
+    if(!self.enabled) return;
 
     //предупреждаем возникновение ошибки
     if(self.geometry.vertices.length == 0){
       self.hoveroff();
       self.dragend();
-      enabled = false;
+      self.enabled = false;
     };
 
     //удаляем стену с мин длиной
     if( self.checkNeighborsLength() ){
 
       newCoord = {v1: self.wall.v1, v2: self.wall.v2};
-      enabled = false;
+      self.enabled = false;
 
     }
 
@@ -5067,7 +5104,7 @@ function WallMover( wall ){
     }
 
 
-  if( enabled ){
+  if( self.enabled ){
     //проекция вектора движения
       var y = event.object.position.y;
       event.object.position.projectOnVector ( event.object.wall.direction90.clone() );
@@ -5249,7 +5286,7 @@ function WallMover( wall ){
 
     }
 
-    if( ! enabled){
+    if( ! self.enabled){
       self.hoveroff();
       self.dragend();
     } else {
