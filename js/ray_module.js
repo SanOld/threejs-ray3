@@ -2974,8 +2974,6 @@ function Dimension( param1, param2, plane, parameters ){
   this.editableField = self.editableFieldWrapper.find('input');
   this.leftArrow = self.editableFieldWrapper.find('.dim-arrow.left');
   this.rightArrow = self.editableFieldWrapper.find('.dim-arrow.right');
-  this.downArrow = self.editableFieldWrapper.find('.dim-arrow.down');
-  this.upArrow = self.editableFieldWrapper.find('.dim-arrow.up');
 
   //примечание (текст размера)
 //  var geometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
@@ -3054,7 +3052,6 @@ function Dimension( param1, param2, plane, parameters ){
 
     var obj = event.object;
 
-
     var element = self.editableFieldWrapper;
     var coord = getScreenCoord(obj.position.clone(), camera);
 
@@ -3071,14 +3068,15 @@ function Dimension( param1, param2, plane, parameters ){
 
       if( Math.abs(self.point1.x - self.point2.x) < 0.01 && self.point1.z > self.point2.z){
 
-        self.leftArrow.find('.fa-arrow-left').removeClass('fa-arrow-left').addClass('fa-arrow-up');
-        self.rightArrow.find('.fa-arrow-right').removeClass('fa-arrow-right').addClass('fa-arrow-down');
-
-      } else if( Math.abs(self.point1.x - self.point2.x) < 0.01 && self.point1.z < self.point2.z ){
 
         self.leftArrow.find('.fa-arrow-left').removeClass('fa-arrow-left').addClass('fa-arrow-down');
         self.rightArrow.find('.fa-arrow-right').removeClass('fa-arrow-right').addClass('fa-arrow-up');
 
+      } else if( Math.abs(self.point1.x - self.point2.x) < 0.01 && self.point1.z < self.point2.z ){
+
+        self.leftArrow.find('.fa-arrow-left').removeClass('fa-arrow-left').addClass('fa-arrow-up');
+        self.rightArrow.find('.fa-arrow-right').removeClass('fa-arrow-right').addClass('fa-arrow-down');
+        
       }else {
 
         self.leftArrow.find('.fa-arrow-up').removeClass('fa-arrow-up').addClass('fa-arrow-left');
@@ -3209,7 +3207,7 @@ function Dimension( param1, param2, plane, parameters ){
         this.selectControls = new SelectControls( [this.note], camera, renderer.domElement );
       }
       
-      this.selectControls.addEventListener( 'select', this.edit );
+//      this.selectControls.addEventListener( 'select', this.edit );
       
     }
     
@@ -3660,11 +3658,11 @@ function Wall(vertices, parameters){
         left_point = "v2";
         right_point = "v1";
       } else if( self.v1.x == self.v2.x && self.v1.z < self.v2.z ){
-        left_point = "v2";
-        right_point = "v1";
-      } else if( self.v1.x == self.v2.x && self.v2.z < self.v1.z ){
         left_point = "v1";
         right_point = "v2";
+      } else if( self.v1.x == self.v2.x && self.v2.z < self.v1.z ){
+        left_point = "v2";
+        right_point = "v1";
       }
 
       if( dimension.leftArrowActivated ){
@@ -4480,13 +4478,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     })
 
-
-//    this.dimensions.forEach(function(item, i, arr){
-//
-//      if( ! arr[i].hasEventListener ( 'edit', self.changeDim ))
-//      arr[i].addEventListener( 'edit', self.changeDim );
-//
-//    })
     
 
   },
