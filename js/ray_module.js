@@ -1275,8 +1275,6 @@ function initWallCreator(obj){
     delete obj.plane;
     delete obj.pointerHelper;
 
-    //удаление временных красных сфер
-//    pointerHelpersRemove();
 
     scene.remove(obj.lineHelper);
     obj.lineHelper = null;
@@ -1459,8 +1457,8 @@ function initWallCreator(obj){
       if(item.wall && item.wall.v1.distanceTo( item.point ) > item.wall.width/2 &&
          item.wall.v2.distanceTo(item.point) > item.wall.width/2) {
 
-          var vertices1 = [ item.wall.v1, item.point ];
-          var vertices2 = [ item.point, item.wall.v2 ];
+          var vertices1 = [ item.wall.v1.clone(), item.point.clone() ];
+          var vertices2 = [ item.point.clone(), item.wall.v2.clone() ];
           var params = { width: item.wall.width, height: item.wall.height };
 
           item.wall.remove();
@@ -4169,6 +4167,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     } else {
 
       if(this.mover){
+        this.mover.dragend();//включит контрол
         this.mover.deactivate();
         this.mover.parent.remove( this.mover );
         this.mover = null;
