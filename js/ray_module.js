@@ -3066,21 +3066,15 @@ function Dimension( param1, param2, plane, parameters ){
 
     if( self.arrow ){
 
-      if( Math.abs(self.point1.x - self.point2.x) < 0.01 && self.point1.z > self.point2.z){
+      if( Math.abs(self.point1.x - self.point2.x) < 0.01 ){
 
+        self.leftArrow.find('span').removeClass().addClass('fa fa-arrow-up');
+        self.rightArrow.find('span').removeClass().addClass('fa fa-arrow-down');
 
-        self.leftArrow.find('.fa-arrow-left').removeClass('fa-arrow-left').addClass('fa-arrow-down');
-        self.rightArrow.find('.fa-arrow-right').removeClass('fa-arrow-right').addClass('fa-arrow-up');
+      } else {
 
-      } else if( Math.abs(self.point1.x - self.point2.x) < 0.01 && self.point1.z < self.point2.z ){
-
-        self.leftArrow.find('.fa-arrow-left').removeClass('fa-arrow-left').addClass('fa-arrow-up');
-        self.rightArrow.find('.fa-arrow-right').removeClass('fa-arrow-right').addClass('fa-arrow-down');
-        
-      }else {
-
-        self.leftArrow.find('.fa-arrow-up').removeClass('fa-arrow-up').addClass('fa-arrow-left');
-        self.rightArrow.find('.fa-arrow-down').removeClass('fa-arrow-down').addClass('fa-arrow-right');
+       self.leftArrow.find('span').removeClass().addClass('fa fa-arrow-left');
+       self.rightArrow.find('span').removeClass().addClass('fa fa-arrow-right');
        
       }
       
@@ -3651,16 +3645,17 @@ function Wall(vertices, parameters){
 
 
       //точка сдвига
-      if( self.v1.x < self.v2.x ){
+      if( (self.v2.x - self.v1.x) > 0.01 ){
         left_point = "v1";
         right_point = "v2";
-      } else if( self.v2.x < self.v1.x ){
+      } else if( (self.v1.x - self.v2.x) > 0.01 ){
         left_point = "v2";
         right_point = "v1";
-      } else if( self.v1.x == self.v2.x && self.v1.z < self.v2.z ){
+      } else if( Math.abs(self.v2.x - self.v1.x) < 0.01 && self.v1.z < self.v2.z ){
+
         left_point = "v1";
         right_point = "v2";
-      } else if( self.v1.x == self.v2.x && self.v2.z < self.v1.z ){
+      } else if( Math.abs(self.v2.x - self.v1.x) < 0.01 && self.v2.z < self.v1.z ){
         left_point = "v2";
         right_point = "v1";
       }
@@ -4477,6 +4472,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       }
 
     })
+
+    //    this.dimensions.forEach(function(item, i, arr){
+//
+//      if( ! arr[i].hasEventListener ( 'edit', self.changeDim ))
+//      arr[i].addEventListener( 'edit', self.changeDim );
+//
+//    })
 
     
 
