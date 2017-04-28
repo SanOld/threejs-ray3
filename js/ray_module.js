@@ -1257,8 +1257,9 @@ function initWallCreator(obj){
       obj.walls = obj.getWalls();
     }
 
-    pointerHelperAdd();
+    if( ! obj.pointerHelper ) pointerHelperAdd();
 
+   
     obj.magnitVerticiesCreate();
 
     document.addEventListener( 'mousedown', onDocumentMouseDownWallCreator, false );
@@ -6410,15 +6411,11 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     })
   },
   showDimensions: function(){
+    var self = this;
     this.dimensions.forEach(function(item){
       item.show();
+      item.addEventListener( 'edit', self.changeDoorwayDim );
     })
-
-    this.dimensions[0].addEventListener( 'edit', this.changeDoorwayDim );
-    this.dimensions[1].addEventListener( 'edit', this.changeDoorwayDim );
-    this.dimensions[2].addEventListener( 'edit', this.changeDoorwayDim );
-    this.dimensions[3].addEventListener( 'edit', this.changeDoorwayDim );
-    this.dimensions[4].addEventListener( 'edit', this.changeDoorwayDim );
 
   },
   hideDimensions: function(){
@@ -6426,14 +6423,10 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
       item.hide();
     })
 
-    this.dimensions[0].removeEventListener( 'edit', this.changeDoorwayDim );
-    this.dimensions[1].removeEventListener( 'edit', this.changeDoorwayDim );
-    this.dimensions[2].removeEventListener( 'edit', this.changeDoorwayDim );
-    this.dimensions[3].removeEventListener( 'edit', this.changeDoorwayDim );
-    this.dimensions[4].removeEventListener( 'edit', this.changeDoorwayDim );
   },
   removeDimensions: function(){
     this.dimensions.forEach(function( item, index ){
+      item.removeEventListener( 'edit', self.changeDoorwayDim );
       scene.remove( item );
     })
   }
