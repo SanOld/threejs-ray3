@@ -1387,6 +1387,12 @@ function initWallCreator(obj){
 
       scene.add( wall );
 
+      obj.updateWalls();           //Обновляем состояние стен
+      obj.magnitVerticiesCreate(); //пересоздание магнитных точек
+
+      $wallEditor.deactivateSelectControls();
+      $wallEditor.activateSelectControls();
+
     } else {
 
       window.console.warn("Ошибка при создании стены!");
@@ -1394,11 +1400,7 @@ function initWallCreator(obj){
 
     }
     
-      obj.updateWalls();           //Обновляем состояние стен
-      obj.magnitVerticiesCreate(); //пересоздание магнитных точек
-
-      $wallEditor.deactivateSelectControls();
-      $wallEditor.activateSelectControls();
+      
 
     return wall;
 
@@ -1406,27 +1408,16 @@ function initWallCreator(obj){
 
   function isBelongToLine( point, line ){
 
-    ray.origin = line.start;
-    ray.direction = line.delta().normalize();
-    var param1 = Math.round(ray.distanceToPoint (point) * 1000)/1000;
-
-    ray.origin = line.end;
-    ray.direction = ray.direction.negate();
-    var param2 = Math.round(ray.distanceToPoint (point) * 1000)/1000;
-
-    return !(param1 + param2);
+    var dist1 = point.distanceTo(line.start);
+    var dist2 = point.distanceTo(line.end);
+    return Math.abs( dist1 + dist2 - line.distance() ) < 0.01;
 
   }
   function isIntersectCollinear( newWallVertices ){
+    
     var result = false;
 
-    var result1 = 0;
-    var result2 = 0;
-    var result3 = 0;
-    var result4 = 0;
-    var result5 = 0;
-    var result6 = 0;
-    var result7 = 0;
+    var result1, result2, result3, result4, result5, result6, result7 = 0;
 
     obj.walls.forEach(function( item, i ){
 
@@ -1434,8 +1425,8 @@ function initWallCreator(obj){
       result1 = isBelongToLine(newWallVertices[0], new THREE.Line3(item.v1, item.v2));
       result2 = isBelongToLine(newWallVertices[1], new THREE.Line3(item.v1, item.v2));
       //совпадение с точками прямой
-      result3 = newWallVertices[0].equals(item.v1) || newWallVertices[0].equals(item.v2);
-      result4 = newWallVertices[1].equals(item.v1) || newWallVertices[1].equals(item.v2);
+      result3 = newWallVertices[0].clone().floor().equals(item.v1.clone().floor()) || newWallVertices[0].clone().floor().equals(item.v2.clone().floor());
+      result4 = newWallVertices[1].clone().floor().equals(item.v1.clone().floor()) || newWallVertices[1].clone().floor().equals(item.v2.clone().floor());
 
       var dot = newWallVertices[1].clone().sub(newWallVertices[0]).normalize().dot(item.direction);
       result5 = Math.abs(dot) > 0.999;
@@ -5575,7 +5566,7 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
                             width: width,
                             auto_building: true
                           });
-//    $wallCreator.walls[ $wallCreator.walls.length -1 ].mover.activate();
+//    wall.mover.activate();
 
     return wall;
   },
