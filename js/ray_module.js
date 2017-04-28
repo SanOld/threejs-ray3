@@ -3092,11 +3092,11 @@ function Dimension( param1, param2, plane, parameters ){
       self.rightArrow.css('display', 'none');
     }
 
-    self.editableField.off('change');
+//    self.editableField.off('change');
     self.editableField.on('change', function(){
 
         self.dispatchEvent( { type: 'edit', object: obj, value: + self.editableField.val()/current_unit.c } );
-
+        self.editableField.off('change');
       });
 
     self.editableField.off('keydown');
@@ -3687,7 +3687,7 @@ function Wall(vertices, parameters){
   //    self.update();
 
       $wallCreator.updateWalls();
-      $wallCreator.updateWalls();
+      
 
     };
 
@@ -4203,7 +4203,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       this.dimensions.forEach(function( dim ){
         dim.deactivate();
         scene.remove( dim );
+        dim = null;
       })
+      this.dimensions.length = 0;
 
       //удаление опорных точек
       scene.remove( this.controlPoint1, this.controlPoint2 );
@@ -4570,29 +4572,29 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         var enabled = true; //false при достижении одной из перемещаемых стен значения mover.enabled == false
         var i = walls.length;
         while(i--){
-
+          var current_offset = offset;
           var item = scene.getObjectByProperty('uuid', walls[i]);
 
-          if( ! item ||  ! enabled){return;}
+          if( ! item ||  ! enabled){continue;}
 
             item.mover.dragstart({object: item.mover});
-            while(offset > item.width/2 && item.mover.enabled == true){
+            while(current_offset > item.width/2 && item.mover.enabled == true){
 
               item.mover.position.copy(position.clone().add(direction.clone().negate().multiplyScalar( item.width/2 )))
               item.mover.drag({object: item.mover, intersect_disable: true});
 
-              offset -= item.width/2;
+              current_offset -= item.width/2;
             }
 
               enabled = item.mover.enabled;
 
               if( enabled ){
-                item.mover.position.copy(position.clone().add(direction.clone().negate().multiplyScalar( offset)));
+                item.mover.position.copy(position.clone().add(direction.clone().negate().multiplyScalar( current_offset)));
                 item.mover.drag({object: item.mover, intersect_disable: true});
               }
 
               item.mover.dragend({object: item.mover});
-              return;
+//              return;
 
         }
 
@@ -4641,27 +4643,28 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         var i = walls.length;
         while(i--){
 
+          var current_offset = offset;
           var item = scene.getObjectByProperty('uuid', walls[i]);
-          if( ! item || ! enabled2){return;}
+          if( ! item || ! enabled2){continue;}
 
             item.mover.dragstart({object: item.mover});
-            while(offset > item.width/2 && item.mover.enabled == true){
+            while(current_offset > item.width/2 && item.mover.enabled == true){
 
                 item.mover.position.copy(position.clone().add(direction.clone().multiplyScalar( item.width/2 )))
                 item.mover.drag({object: item.mover, intersect_disable: true});
 
-                offset -= item.width/2;
+                current_offset -= item.width/2;
               }
 
             enabled2 = item.mover.enabled;
 
             if( enabled2 ){
-              item.mover.position.copy(position.clone().add(direction.clone().multiplyScalar( offset )));
+              item.mover.position.copy(position.clone().add(direction.clone().multiplyScalar( current_offset )));
               item.mover.drag({object: item.mover , intersect_disable: true});
             }
 
             item.mover.dragend({object: item.mover});
-            return;
+//            return;
 
 
         }
@@ -4893,6 +4896,8 @@ function WallMover( wall ){
 
           v1_item.wall.remove();
           v2_item.wall.remove();
+          v1_item.wall = null;
+          v2_item.wall = null;
 
           self.v1_neighbors.splice(v1_index, 1);
           self.v2_neighbors.splice(v2_index, 1);
@@ -4907,6 +4912,7 @@ function WallMover( wall ){
           self.wall.v2.add( v1_offset );
 
           v1_item.wall.remove();
+          v1_item.wall = null;
           self.v1_neighbors.splice(v1_index, 1);
           result = true;
 
@@ -4917,6 +4923,7 @@ function WallMover( wall ){
           self.wall.v2.add( v2_offset );
 
           v2_item.wall.remove();
+          v2_item.wall = null;
           self.v2_neighbors.splice(v2_index, 1);
           result = true;
 
@@ -4934,6 +4941,7 @@ function WallMover( wall ){
 
       self.v1_neighbors.splice(v1_index, 1);
       v1_item.wall.remove();
+      v1_item.wall = null;
 
       result = true;
 
@@ -4946,6 +4954,7 @@ function WallMover( wall ){
 
       self.v2_neighbors.splice(v2_index, 1);
       v2_item.wall.remove();
+      v2_item.wall = null;
 
       result = true;
 
@@ -5159,10 +5168,11 @@ function WallMover( wall ){
 
             var v1 = intersected.v1.clone();
             var v2 = intersected.v2.clone();
+            var width = intersected.width;
             intersected.remove();
 
-            var w1 = self.addWall( [v1, newCoord.v1], event.object.wall.width );
-            var w2 = self.addWall( [v2, newCoord.v1], event.object.wall.width );
+            var w1 = self.addWall( [v1, newCoord.v1], width );
+            var w2 = self.addWall( [v2, newCoord.v1], width );
 
             neighborsNeedUpdate = true;
 
@@ -5188,10 +5198,11 @@ function WallMover( wall ){
 
             var v1 = intersected.v1.clone();
             var v2 = intersected.v2.clone();
+            var width = intersected.width;
             intersected.remove();
 
-            var w1 = self.addWall( [v1, newCoord.v2], event.object.wall.width );
-            var w2 = self.addWall( [v2, newCoord.v2], event.object.wall.width );
+            var w1 = self.addWall( [v1, newCoord.v2], width );
+            var w2 = self.addWall( [v2, newCoord.v2], width );
 
             neighborsNeedUpdate = true;
           } else {
