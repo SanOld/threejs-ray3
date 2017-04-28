@@ -1983,13 +1983,14 @@ function initWallCreator(obj){
 
   function onKeydownDim( event ){
 
-    if( !event.ctrlKey && !event.altKey  ){
-
-      document.removeEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
-      obj.lineHelperPointAdd();
-      obj.lineHelperAdd();
+      switch( event.keyCode ) {
+        case 13: /*enter*/
+        document.removeEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
+        obj.lineHelperPointAdd();
+        obj.lineHelperAdd();
+          break;
     }
-    
+
    
   }
   function onEscDim( event ){
@@ -3101,7 +3102,7 @@ function Dimension( param1, param2, plane, parameters ){
         return;
       }
 
-      self.dispatchEvent( { type: 'keydown', object: obj } );
+      self.dispatchEvent( { type: 'keydown', object: obj, keyCode: event.keyCode } );
 
       if( event.keyCode == 13 ){
 
@@ -4172,7 +4173,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     } else {
 
       if(this.mover){
-        this.mover.dragend();//включит контрол
+        controls.enabled = true;
         this.mover.deactivate();
         this.mover.parent.remove( this.mover );
         this.mover = null;
@@ -4573,12 +4574,12 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           if( ! item ||  ! enabled){continue;}
 
             item.mover.dragstart({object: item.mover});
-            while(current_offset > item.width/2 && item.mover.enabled == true){
+            while( Math.abs( current_offset ) > item.width/2 && item.mover.enabled == true){
 
               item.mover.position.copy(position.clone().add(direction.clone().negate().multiplyScalar( item.width/2 )))
               item.mover.drag({object: item.mover, intersect_disable: true});
 
-              current_offset -= item.width/2;
+              current_offset > 0 ? current_offset -= item.width/2 : current_offset += item.width/2;
             }
 
               enabled = item.mover.enabled;
@@ -4643,12 +4644,12 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           if( ! item || ! enabled2){continue;}
 
             item.mover.dragstart({object: item.mover});
-            while(current_offset > item.width/2 && item.mover.enabled == true){
+            while( Math.abs( current_offset ) > item.width/2 && item.mover.enabled == true){
 
                 item.mover.position.copy(position.clone().add(direction.clone().multiplyScalar( item.width/2 )))
                 item.mover.drag({object: item.mover, intersect_disable: true});
 
-                current_offset -= item.width/2;
+                current_offset > 0 ? current_offset -= item.width/2 : current_offset += item.width/2;
               }
 
             enabled2 = item.mover.enabled;
