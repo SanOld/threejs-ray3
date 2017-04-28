@@ -85,6 +85,8 @@
   </div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: -42.2584px; background-position: left -80px; opacity: 1; width: 40px; height: 40px;" action="remove" title="Удалить">
   </div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: 5px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="changeWidth" title="Толщина">
+  </div>
 </div>
 
 <div class="FourStateSwitcher" style=" display: none;">

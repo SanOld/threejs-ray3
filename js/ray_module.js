@@ -2861,6 +2861,11 @@ function initWallEditor( obj ){
 		obj.selected.setFloorScale(event);
 
 	});
+  $('.ActiveElementMenu').on('click', '[action = changeWidth]', function(event){
+
+		obj.selected.changeWidth(event);
+
+	});
 
   $('.FourStateSwitcher').on('click', '[action = location_1]', function(){
     obj.selected.setLocation(1);
@@ -3081,7 +3086,7 @@ function Dimension( param1, param2, plane, parameters ){
       self.rightArrow.css('display', 'none');
     }
 
-//    self.editableField.off('change');
+    self.editableField.off('change');
     self.editableField.on('change', function(){
 
         self.dispatchEvent( { type: 'edit', object: obj, value: + self.editableField.val()/current_unit.c } );
@@ -4768,6 +4773,56 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       }
 
     });
+  },
+  changeWidth: function(event){
+
+    var self = this
+
+    var element = this.editableFieldWrapper;
+    element.find('button').hide();
+    element.css('left', 0);
+    element.css('top', 0);
+    var menuEl = $('.ActiveElementMenu');
+    var coord = menuEl.position();
+    element.offset({left: coord.left - element.width()/2 , top: coord.top  });
+    element.css('display', 'block');
+
+    this.editableField.val( ( current_unit.c * this.width ).toFixed( accuracy_measurements ) );
+    this.editableField.focus();
+    this.editableField.select();
+
+    this.editableField.off('change');
+    this.editableField.on('change', function(){
+
+      var val = +self.editableField.val() / current_unit.c ;
+
+      //TODO value validate
+
+      self.width = val;
+      self.update();
+      $wallCreator.updateWalls();
+
+    });
+
+    this.editableField.off('keydown');
+    this.editableField.on('keydown', function( event ){
+
+      if(event.ctrlKey || event.altKey) {
+        event.preventDefault();
+        return;
+      }
+
+      if( event.keyCode == 13 ){
+
+        element.css('display', 'none');
+
+      } else if( event.keyCode == 27 ){
+
+        element.css('display', 'none');
+      }
+
+    });
+
   }
 
 });
