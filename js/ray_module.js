@@ -2627,12 +2627,12 @@ function initWallEditor( obj ){
 
       var geometry = new THREE.Geometry();
 
-      geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
-//      var material = new THREE.LineBasicMaterial({
-//        color: 'red'
-//      });
-      var line = new THREE.Line(geometry);
-      objects.push( line );
+      if(nodes[item.source.id] && nodes[item.target.id]){
+        geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
+
+        var line = new THREE.Line(geometry);
+        objects.push( line );
+      }
 
     })
 
@@ -2722,11 +2722,13 @@ function initWallEditor( obj ){
     chain.forEach(function(item){
 
       var geometry = new THREE.Geometry();
-      geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
-      var line = new THREE.Line(geometry, LineBasicMaterialRed);
-      line.name = 'room_line';
+      if(nodes[item.source.id] && nodes[item.target.id]){
+        geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
+        var line = new THREE.Line(geometry, LineBasicMaterialRed);
+        line.name = 'room_line';
 
-      AreaCounturs.add( line );
+        AreaCounturs.add( line );
+      }
 
     })
   }
@@ -4803,27 +4805,28 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       self.width = val;
       self.update();
       $wallCreator.updateWalls();
+      element.css('display', 'none');
 
     });
 
-    this.editableField.off('keydown');
-    this.editableField.on('keydown', function( event ){
-
-      if(event.ctrlKey || event.altKey) {
-        event.preventDefault();
-        return;
-      }
-
-      if( event.keyCode == 13 ){
-
-        element.css('display', 'none');
-
-      } else if( event.keyCode == 27 ){
-
-        element.css('display', 'none');
-      }
-
-    });
+//    this.editableField.off('keydown');
+//    this.editableField.on('keydown', function( event ){
+//
+//      if(event.ctrlKey || event.altKey) {
+//        event.preventDefault();
+//        return;
+//      }
+//
+//      if( event.keyCode == 13 ){
+//
+//        element.css('display', 'none');
+//
+//      } else if( event.keyCode == 27 ){
+//
+//        element.css('display', 'none');
+//      }
+//
+//    });
 
   }
 
@@ -6192,6 +6195,8 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   },
 
   update: function(){
+
+    this.thickness = this.wall.width;
     
     this.rebuildGeometry();
 
