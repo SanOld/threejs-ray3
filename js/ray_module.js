@@ -2272,42 +2272,6 @@ function initWallEditor( obj ){
   }
 
 
-  obj.defineExternalWall = function( rooms ){
-
-    var walls = [];
-
-    rooms.forEach(function( room, room_index ){
-
-      room.walls.forEach(function( uuid ){
-
-        walls[uuid] += 1;
-
-      })
-
-    })
-
-
-    rooms.forEach(function( room, room_index ){
-
-      room.walls.forEach(function( uuid ){
-
-        var item = scene.getObjectByProperty( 'uuid', uuid )
-
-        if( walls[uuid] > 1 || (uuid in room.external_walls) ){
-
-          item.external_wall = false;
-
-        } else {
-
-          item.external_wall = true;
-
-        }
-
-      })
-
-    })
-
-  }
 
   obj.getJSON = function(callback){
     var export_data;
@@ -2785,6 +2749,47 @@ function initWallEditor( obj ){
       AreaCounturs.remove(item);
     })
   }
+  obj.defineExternalWall = function( rooms ){
+
+    var walls = [];
+
+    rooms.forEach(function( room, room_index ){
+
+      room.walls.forEach(function( uuid ){
+
+        if( walls[uuid] ){
+          walls[uuid] += 1;
+        } else {
+          walls[uuid] = 1;
+        }
+
+      })
+
+    })
+
+
+    rooms.forEach(function( room, room_index ){
+
+      room.walls.forEach(function( uuid ){
+
+        var item = scene.getObjectByProperty( 'uuid', uuid )
+
+        if( walls[uuid] > 1 || (uuid in room.external_walls) ){
+
+          item.external_wall = false;
+
+        } else {
+
+          item.external_wall = true;
+
+        }
+
+      })
+
+    })
+
+  }
+
   //===========
 
   /*===================*/
