@@ -746,7 +746,7 @@ class Vector3{
 
 		function toArray( $array, $offset ) {
 
-      if ( $array === null ) {$array = [];}
+      if ( $array === null ) {$array = array();}
       if ( $offset === null ) {$offset = 0;}
 
 			$array[ $offset ] = $this->x;
