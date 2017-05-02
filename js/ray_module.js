@@ -40,21 +40,18 @@ var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floo
 
 
 var measure_unit = {
-  'm':  {full_name: 'метр',       short_name: 'м',  c: 0.001 },
-  'm2': {full_name: 'квадратный метр',short_name: 'м2',  c: 0.000001 },
-  'cm': {full_name: 'сантиметр',  short_name: 'см', c: 0.1 },
-  'mm': {full_name: 'миллиметр',  short_name: 'мм', c: 1 },
-  'ft': {full_name: 'фут',        short_name: 'ft', c: 0.003281 },
-  'in': {full_name: 'дюйм',       short_name: 'in', c: 0.03937 }
+  'm':  {full_name: 'метр',           short_name: 'м',  c: 0.001 },
+  'm2': {full_name: 'квадратный метр',short_name: 'м2', c: 0.000001 },
+  'cm': {full_name: 'сантиметр',      short_name: 'см', c: 0.1 },
+  'mm': {full_name: 'миллиметр',      short_name: 'мм', c: 1 },
+  'ft': {full_name: 'фут',            short_name: 'ft', c: 0.003281 },
+  'in': {full_name: 'дюйм',           short_name: 'in', c: 0.03937 }
 }
 var current_unit = measure_unit.mm;
 var accuracy_measurements = 0;
 
 var area_unit = measure_unit.m2;
 var area_accuracy_measurements = 2;
-
-
-
 
 
 //Редактор
@@ -2274,6 +2271,44 @@ function initWallEditor( obj ){
 
   }
 
+
+  obj.defineExternalWall = function( rooms ){
+
+    var walls = [];
+
+    rooms.forEach(function( room, room_index ){
+
+      room.walls.forEach(function( uuid ){
+
+        walls[uuid] += 1;
+
+      })
+
+    })
+
+
+    rooms.forEach(function( room, room_index ){
+
+      room.walls.forEach(function( uuid ){
+
+        var item = scene.getObjectByProperty( 'uuid', uuid )
+
+        if( walls[uuid] > 1 || (uuid in room.external_walls) ){
+
+          item.external_wall = false;
+
+        } else {
+
+          item.external_wall = true;
+
+        }
+
+      })
+
+    })
+
+  }
+
   obj.getJSON = function(callback){
     var export_data;
     $.getJSON("data/export_example.json", function(data) {
@@ -2281,6 +2316,8 @@ function initWallEditor( obj ){
                 export_data = data;
 
                 var rooms = obj.getRooms();
+
+                obj.defineExternalWall(rooms);
 
                 rooms.forEach(function(room, room_index){
 
@@ -2304,7 +2341,7 @@ function initWallEditor( obj ){
 
                   room.walls.forEach(function(uuid){
 
-                  var item = scene.getObjectByProperty('uuid', uuid)
+                  var item = scene.getObjectByProperty( 'uuid', uuid )
                   //координаты
                   if ( item.v11.distanceTo( item.v21 ) < item.v12.distanceTo( item.v22 ) ){
 
@@ -2382,7 +2419,7 @@ function initWallEditor( obj ){
                                             end: +item.height.toFixed(2)
                                           },
                                           openings: openings,
-                                          external_wall: false,
+                                          external_wall: item.external_wall,
                                           room_wall_num: 0,
                                           outer_wall_num: 0
                                         }
@@ -2414,19 +2451,20 @@ function initWallEditor( obj ){
     obj.removeCounturLine();
     //=================
 
-    chains.forEach(function(chain){
+    chains.forEach(function( chain ){
 
       var walls = [];
+      var external_walls = [];
       var countur = [];
 
-      if(chain){
-            //отрисовка контура комнаты
-             obj.addCounturLine(chain, nodes);
-            //=================
+      if( chain ){
+          //отрисовка контура комнаты
+           obj.addCounturLine( chain, nodes );
+          //=================
 
-          chain.forEach(function(item){
+          chain.forEach(function( item ){
 
-            if(countur.length == 0){
+            if( countur.length == 0 ){
               countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
               countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
             } else if(countur[countur.length-1].x == nodes[item.target.id].position.x && countur[countur.length-1].y == nodes[item.target.id].position.z ){
@@ -2437,6 +2475,10 @@ function initWallEditor( obj ){
 
             if( walls.indexOf( item.wall_uuid ) == -1 ){
               walls.push( item.wall_uuid );
+            } else {
+
+              external_walls[ item.wall_uuid ] = false;//в случае внутренней перегородки
+
             }
 
           });
@@ -2447,11 +2489,11 @@ function initWallEditor( obj ){
           rooms.push({
                       id: THREE.Math.generateUUID(),
                       walls: walls,
+                      external_walls: external_walls,
                       area: objArea.area,
                       area_coords: {x: objArea.coord.x, y: objArea.coord.z},
                       area_coords_3D: objArea.coord
                     })
-
 
           if( Areas.children.length < rooms.length && objArea.area){
 
@@ -2743,7 +2785,7 @@ function initWallEditor( obj ){
       AreaCounturs.remove(item);
     })
   }
-  //============
+  //===========
 
   /*===================*/
   obj.activate = function(){
