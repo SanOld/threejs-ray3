@@ -2044,7 +2044,7 @@ function initWallEditor( obj ){
     obj.deactivateSelectControls();
     obj.activateSelectControls();
     
-  }
+  };
   obj.off = function(){
     obj.enabled = false;
     obj.deactivateWallMover();
@@ -2055,7 +2055,7 @@ function initWallEditor( obj ){
 
     obj.deactivate();
 
-  }
+  };
 
   obj.getWallMenuCoord = function(){
     var elements =  $('.ActiveElementMenu').find('.ActiveElementMenuAnimated');
@@ -2069,7 +2069,7 @@ function initWallEditor( obj ){
       });
     }
 
-  }
+  };
   obj.getSwitcherCoord = function(switcher, arr){
     var elements =  $('.' + switcher).find('.ActiveElementMenuAnimated');
 
@@ -2082,7 +2082,7 @@ function initWallEditor( obj ){
       });
     }
 
-  }
+  };
   obj.getDoorwayMenu = function(){
     var elements =  $('.DoorwayMenu').find('.ActiveElementMenuAnimated');
 
@@ -2095,7 +2095,7 @@ function initWallEditor( obj ){
       });
     }
 
-  }
+  };
   obj.getControlPointMenu = function(){
     var elements =  $('.ControlPointMenu').find('.ActiveElementMenuAnimated');
 
@@ -2108,24 +2108,24 @@ function initWallEditor( obj ){
       });
     }
 
-  }
+  };
 
   obj.activateWallMover = function(){
     obj.walls.forEach(function(item){
       item.mover.activate();
     })
-  }
+  };
   obj.deactivateWallMover = function(){
     obj.walls.forEach(function(item){
       item.mover.deactivate();
     })
-  }
+  };
 
   obj.activateWallDimensions = function(){
     obj.walls.forEach(function(item){
       item.activateDimensions();
     })
-  }
+  };
 
 
   obj.activateControlPoint = function(){
@@ -2133,13 +2133,13 @@ function initWallEditor( obj ){
       item.controlPoint1.activate();
       item.controlPoint2.activate();
     })
-  }
+  };
   obj.deactivateControlPoint = function(){
     obj.walls.forEach(function(item){
       item.controlPoint1.deactivate();
       item.controlPoint2.deactivate();
     })
-  }
+  };
 
   obj.activateDoorway = function(){
     obj.walls.forEach(function( item ){
@@ -2147,14 +2147,14 @@ function initWallEditor( obj ){
         item2.activate();
       });
     })
-  }
+  };
   obj.deactivateDoorway = function(){
     obj.walls.forEach(function(item){
       item.doors.forEach(function(item2){
         item2.deactivate();
       });
     })
-  }
+  };
   
   obj.activateSelectControls = function(){
     var objects = [];
@@ -2195,7 +2195,7 @@ function initWallEditor( obj ){
     obj.selectControls.addEventListener( 'hoveron', obj.hoveron );
     obj.selectControls.addEventListener( 'hoveroff', obj.hoveroff );
     obj.selectControls.addEventListener( 'select_contextmenu', obj.select_contextmenu );
-  }
+  };
   obj.deactivateSelectControls = function(){
 
     if(obj.selectControls ){
@@ -2210,7 +2210,7 @@ function initWallEditor( obj ){
       obj.selectControls = null;
     }
 
-  }
+  };
   obj.select = function(event){
 
     if(obj.selected && obj.selected != event.object && ('unselect' in obj.selected)){
@@ -2221,7 +2221,7 @@ function initWallEditor( obj ){
     event.object.select(event);
     obj.selected = event.object;
 
-  }
+  };
   obj.select_contextmenu = function(event){
     obj.hideAllMenu();
     if('select_contextmenu' in event.object){
@@ -2229,7 +2229,7 @@ function initWallEditor( obj ){
     obj.selected = event.object;
     }
 
-  }
+  };
   obj.unselect = function( event ){
 
     obj.hideAllMenu();
@@ -2237,26 +2237,26 @@ function initWallEditor( obj ){
     obj.selected.unselect(event);
     obj.selected = null;
 
-  }
+  };
   obj.hoveron = function( event ){
     if( 'hoveron' in event.object )
     event.object.hoveron( event );
-  }
+  };
   obj.hoveroff = function( event ){
     if( 'hoveroff' in event.object )
     event.object.hoveroff(event);
-  }
+  };
 
   obj.removeWall = function( wall ){
     $wallCreator.removeWall(wall);
-  }
+  };
   obj.showWallDimensions = function(){
 
     obj.walls.forEach(function( item ){
       item.showDimensions();
     })
 
-  }
+  };
   obj.isPointsNeighboors = function( p1, p2, koef ){
 
     var p1 = p1 || new THREE.Vector3();
@@ -2269,7 +2269,7 @@ function initWallEditor( obj ){
 
     return false;
 
-  }
+  };
 
 
 
@@ -2401,7 +2401,7 @@ function initWallEditor( obj ){
                 callback( JSON.stringify(export_data) );
             });
 
-  }
+  };
 
   //комнаты TODO перенести в объект
   obj.getRooms = function(){
@@ -2492,7 +2492,7 @@ function initWallEditor( obj ){
 
     return rooms;
 
-  }
+  };
   obj.getNodes = function(walls){
 
     var nodes = {};
@@ -2581,7 +2581,7 @@ function initWallEditor( obj ){
 
     return pathes;
 
-  }
+  };
   obj.getChains = function( nodes, pathes ){
 
     var result = [];
@@ -2595,7 +2595,7 @@ function initWallEditor( obj ){
 
     return result;
 
-  }
+  };
   obj.getChain = function( pathes, search_id, unit ){
 
     pathes.forEach(function(path, index){
@@ -2615,7 +2615,7 @@ function initWallEditor( obj ){
 
     })
 
-  }
+  };
   obj.ExclusionExternalChain = function(nodes, chains){
 
     var toRemove = [];
@@ -2734,7 +2734,7 @@ function initWallEditor( obj ){
     Areas.children.forEach(function(item){
       item.material.visible = false;
     })
-  }
+  };
   obj.addCounturLine = function(chain, nodes){
     chain.forEach(function(item){
 
@@ -2748,7 +2748,7 @@ function initWallEditor( obj ){
       }
 
     })
-  }
+  };
   obj.removeCounturLine = function(){
     var _lines = [];
     AreaCounturs.children.forEach(function(line){
@@ -2759,7 +2759,7 @@ function initWallEditor( obj ){
     _lines.forEach(function(item){
       AreaCounturs.remove(item);
     })
-  }
+  };
   obj.defineExternalWall = function( rooms ){
 
     var walls = [];
@@ -2799,7 +2799,7 @@ function initWallEditor( obj ){
 
     })
 
-  }
+  };
   obj.setRoomWallNumbers = function(rooms){
 
     rooms.forEach(function( room, room_index ){
@@ -2872,7 +2872,7 @@ function initWallEditor( obj ){
 
 
 
-  }
+  };
   obj.isWallHasDoor = function(wall){
     
     var i = wall.doors.length;
@@ -2887,7 +2887,7 @@ function initWallEditor( obj ){
 
     return false;
 
-  }
+  };
   obj.defineFreeRoom = function(rooms){
 
     var walls = obj.walls.slice();
@@ -2945,12 +2945,12 @@ function initWallEditor( obj ){
 
     })
 
-  }
+  };
   obj.resetOuterWallNumber = function(){
     obj.walls.forEach(function (item, index, arr) {
       item.outer_wall_num = 0;
     })
-  }
+  };
   obj.setOuterWallNumbers = function(rooms){
 
     //step1
@@ -2991,7 +2991,7 @@ function initWallEditor( obj ){
 
     }
 
-  }
+  };
 
   //===========
 
@@ -3009,7 +3009,7 @@ function initWallEditor( obj ){
     document.removeEventListener( 'keydown', onKeyDownWallEditor, false );
 
 //    document.removeEventListener( 'wheel', onDocumentMouseWheel, false );
-  }
+  };
 
   function onDocumentMouseDownWallEditor( event ){
     if (!obj.enabled)
@@ -3037,7 +3037,7 @@ function initWallEditor( obj ){
 
         break;
     }
-  }
+  };
   function onDocumentMouseMoveWallEditor(event){
     obj.currentWall = null;//стена над которой находится поинтер
 
@@ -3049,7 +3049,7 @@ function initWallEditor( obj ){
 		mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
 
-  }
+  };
   function onKeyDownWallEditor ( event ){
 
     if (!obj.enabled)
@@ -3062,10 +3062,9 @@ function initWallEditor( obj ){
         obj.unselect();
         break;
     }
-  }
+  };
 
-  function onDocumentMouseWheel ( event )
-  {
+  function onDocumentMouseWheel ( event ){
 
 //            camera.fov += event.deltaY * 0.05;
 //            camera.updateProjectionMatrix();
@@ -3077,7 +3076,7 @@ function initWallEditor( obj ){
 //    element.css('top', 0);
 //    var coord = getScreenCoord(self.position.clone(), camera);
 //    element.offset({left: coord.x - field.width()/2 , top: coord.y - field.height()/2 });
-  }
+  };
 
   //считываем координаты элементов меню
   obj.getWallMenuCoord();
