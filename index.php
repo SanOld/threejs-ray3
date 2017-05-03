@@ -35,7 +35,7 @@
             <div class="col-lg-4 mode2D pull-right">
               <div class="btn-group">
                 <button style=" display: none;" type="button" class="btn btn-default" action="modeE" title="Режим - редактирование">E</button>
-                <button type="button" class="btn btn-default" action="modeD" title="Режим - размеры">Размеры <span class="fa fa-expand"></span></button>
+                <!--<button type="button" class="btn btn-default" action="modeD" title="Режим - размеры">Размеры <span class="fa fa-expand"></span></button>-->
                 <button type="button" class="btn btn-default" action="modeC" title="Режим - создание стен">Стена <span class="fa fa-pencil"></span></button>
               </div>
             </div> <!-- /.col-lg-1 -->
@@ -73,13 +73,19 @@
 </body>
 
 <div class="ActiveElementMenu" style="top: 187px; left: 500px; display: none;">
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -80.8112px; top: 40.8112px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addSingleEntryDoorblock" title="Дверь входная">
+  </div>
+  
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -103.07px; top: 5px; background-position: left -160px; opacity: 1; width: 40px; height: 40px;" action="addDoubleEntryDoorblock" title="Двойная входная дверь">
+  </div>
+
   <div target="_blank" ee="11" class="ActiveElementMenuAnimated" style="left: -103.07px; top: -42.2584px; background-position: left 0px; opacity: 1; width: 40px; height: 40px;" action="scaleFloor" title="Масштабировать чертеж">
   </div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: -80.8112px; top: -80.8112px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="addWindow" title="Окно">
   </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -42.2584px; top: -103.07px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addSingleDoorblock" title="Дверь">
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -42.2584px; top: -103.07px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addSingleDoorblock" title="Дверь межкомнатная">
   </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 2.25844px; top: -103.07px; background-position: left -160px; opacity: 1; width: 40px; height: 40px;" action="addDoubleDoorblock"title="Двойная дверь">
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 2.25844px; top: -103.07px; background-position: left -160px; opacity: 1; width: 40px; height: 40px;" action="addDoubleDoorblock"title="Двойная межкомнатная дверь">
   </div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40.8112px; top: -80.8112px; background-position: left -200px; opacity: 1; width: 40px; height: 40px;" action="addDoorway" title="Дверной проем (портал)">
   </div>
@@ -87,6 +93,8 @@
   </div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: 5px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="changeWidth" title="Толщина">
   </div>
+
+
 </div>
 
 <div class="FourStateSwitcher" style=" display: none;">

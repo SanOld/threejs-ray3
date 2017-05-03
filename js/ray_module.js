@@ -2364,8 +2364,8 @@ function initWallEditor( obj ){
                                     },
                                     cellAngle: cellAngle,
                                     flipped: false,
-                                    type: "entry_door",
-                                    systype: "entry_door",
+                                    type: doorway.json_type,
+                                    systype: doorway.json_systype,
                                     height: doorway.height,
                                     heightAboveFloor: doorway.elevation
                                   }
@@ -3095,10 +3095,16 @@ function initWallEditor( obj ){
 		obj.selected.addDoorway('doorway');
 	});
   $('.ActiveElementMenu').on('click', '[action = addSingleDoorblock]', function(){
-		obj.selected.addDoorway('singleDoor');
+		obj.selected.addDoorway('singleDoorFloor');
 	});
   $('.ActiveElementMenu').on('click', '[action = addDoubleDoorblock]', function(){
-		obj.selected.addDoorway('doubleDoor');
+		obj.selected.addDoorway('doubleDoorFloor');
+	});
+  $('.ActiveElementMenu').on('click', '[action = addSingleEntryDoorblock]', function(){
+		obj.selected.addDoorway('singleDoorEntry');
+	});
+  $('.ActiveElementMenu').on('click', '[action = addDoubleEntryDoorblock]', function(){
+		obj.selected.addDoorway('doubleDoorEntry');
 	});
   $('.ActiveElementMenu').on('click', '[action = addWindow]', function(){
 		obj.selected.addDoorway('windowblock');
@@ -4524,10 +4530,14 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     if( type == 'doorway' ){
       var obj = new Doorway(this);
-    } else if( type == 'singleDoor' ){
+    } else if( type == 'singleDoorEntry' ){
       var obj = new Doorblock(this);
-    } else if( type == 'doubleDoor' ){
+    } else if( type == 'doubleDoorEntry' ){
       var obj = new DoubleDoorBlock(this, { width: 1800, height: 2100 });
+    } else if( type == 'singleDoorFloor' ){
+      var obj = new DoorblockFloor(this);
+    } else if( type == 'doubleDoorFloor' ){
+      var obj = new DoubleDoorBlockFloor(this, { width: 1800, height: 2100 });
     } else if( type == 'windowblock' ){
       var obj = new WindowBlock(this, { elevation: 800, width: 1450, height: 1450 } );
     } else if( type == 'niche' ){
@@ -6196,6 +6206,10 @@ function Doorway( wall, parameters ){
 
   this.type = 'Doorway';
   this.name = 'doorway';
+
+  this.json_type = 'floorDoor';
+  this.json_systype = 'doorway';
+
   this.wall = wall;
 
   this.lkmMenu = '';
@@ -6707,7 +6721,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   }
 
 });
-//Дверной блок
+//Дверной блок входной
 function Doorblock( wall, parameters ){
 
   Doorway.apply( this, [wall, parameters] );
@@ -6717,6 +6731,10 @@ function Doorblock( wall, parameters ){
 
   this.type = 'Doorblock';
   this.name = 'singleDoor';
+  
+  this.json_type = 'entry_door';
+  this.json_systype = 'entry_door';
+
 
   this.lkmMenu = '.FourStateSwitcher';
   this.rkmMenu = '.DoorwayMenu';
@@ -7070,6 +7088,28 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
   }
   
 });
+//Дверной блок межкомнатный
+function DoorblockFloor( wall, parameters ){
+
+  Doorblock.apply( this, [wall, parameters] );
+
+  var parameters = parameters || {};
+  var self = this;
+
+  this.type = 'DoorblockFloor';
+  this.name = 'singleDoorFloor';
+
+  this.json_type = 'floorDoor';
+  this.json_systype = 'floorDoor';
+
+
+  this.lkmMenu = '.FourStateSwitcher';
+  this.rkmMenu = '.DoorwayMenu';
+
+}
+DoorblockFloor.prototype = Object.assign( Object.create( Doorblock.prototype ),{
+  constructor: DoorblockFloor
+});
 //Окно
 function WindowBlock( wall, parameters ){
 
@@ -7080,6 +7120,9 @@ function WindowBlock( wall, parameters ){
 
   this.type = 'WindowBlock';
   this.name = 'windowblock';
+
+  this.json_type = 'floorWindow';
+  this.json_systype = 'floorWindow';
 
   this.lkmMenu = '.TwoStateSwitcher';
   this.rkmMenu = '.DoorwayMenu';
@@ -7259,7 +7302,7 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
   }
 
 });
-//Двойная дверь
+//Двойная дверь входная
 function DoubleDoorBlock( wall, parameters ){
 
   Doorblock.apply( this, [wall, parameters] );
@@ -7269,6 +7312,9 @@ function DoubleDoorBlock( wall, parameters ){
 
   this.type = 'DoubleDoorBlock';
   this.name = 'doubleDoor';
+
+  this.json_type = 'entry_door';
+  this.json_systype = 'doublewingdoor';
 
   this.lkmMenu = '.TwoStateSwitcher';
   this.rkmMenu = '.DoorwayMenu';
@@ -7540,6 +7586,27 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
   }
 
 });
+
+function DoubleDoorBlockFloor( wall, parameters ){
+
+  DoubleDoorBlock.apply( this, [wall, parameters] );
+
+  var parameters = parameters || {};
+  var self = this;
+
+  this.type = 'DoubleDoorBlockFloor';
+  this.name = 'doubleDoorFloor';
+
+  this.json_type = 'floorDoor';
+  this.json_systype = 'doublewingdoor';
+
+  this.lkmMenu = '.TwoStateSwitcher';
+  this.rkmMenu = '.DoorwayMenu';
+
+}
+DoubleDoorBlockFloor.prototype = Object.assign( Object.create( DoubleDoorBlock.prototype ),{
+  constructor: DoubleDoorBlockFloor,
+})
 //Окно
 function WindowBlock2( wall, parameters ){
 
