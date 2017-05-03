@@ -2287,6 +2287,7 @@ function initWallEditor( obj ){
 
                 obj.setRoomWallNumbers( rooms );
 
+                obj.resetOuterWallNumber();
                 obj.setOuterWallNumbers( rooms )
 
                 rooms.forEach(function( room, room_index ){
@@ -2945,21 +2946,51 @@ function initWallEditor( obj ){
     })
 
   }
+  obj.resetOuterWallNumber = function(){
+    obj.walls.forEach(function (item, index, arr) {
+      item.outer_wall_num = 0;
+    })
+  }
   obj.setOuterWallNumbers = function(rooms){
-    var outer_wall_num = 1;
-    rooms.forEach(function (room, index, arr) {
 
-      room.walls.forEach(function ( uuid ) {
+    //step1
+    var outer_walls = [];
+    
+    obj.walls.forEach(function (wall, index, arr) {
 
-        var wall = scene.getObjectByProperty( 'uuid', uuid );
-        if( wall.external_wall ){
-          wall.outer_wall_num = outer_wall_num;
-          outer_wall_num++;
-        }
-
-      })
+      if( wall.external_wall ){
+        outer_walls.push(wall);
+      }
 
     })
+
+    //step2
+    var outer_wall_num = 1;
+    while(outer_walls.length){
+
+      var current_wall = outer_walls[0];
+      if( ! current_wall.outer_wall_num ){
+
+        current_wall.outer_wall_num = outer_wall_num;
+        outer_walls.splice(0,1);
+
+        outer_walls.forEach(function (item, index, arr) {
+
+          if( Math.abs(current_wall.direction.clone().dot( item.direction.clone() )) > 0.999 && current_wall.isNeighbor(item) ){
+            item.outer_wall_num = outer_wall_num;
+          }
+            
+        })
+
+        outer_wall_num++;
+
+      } else {
+        outer_walls.splice(0,1);
+      }
+      
+
+    }
+
   }
 
   //===========
@@ -4914,6 +4945,25 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         item.point.copy( self.v2.clone() ) ;
       })
     }
+  },
+
+  isNeighbor: function(wall){
+
+    var i = this.mover.v1_neighbors.length;
+    while (i--) {
+      if(this.mover.v1_neighbors[i].wall.uuid == wall.uuid){
+        return true;
+      }
+    }
+
+    var i = this.mover.v2_neighbors.length;
+    while (i--) {
+      if(this.mover.v2_neighbors[i].wall.uuid == wall.uuid){
+        return true;
+      }
+    }
+    
+    return false;
   },
 
   setFloorScale: function(event){
