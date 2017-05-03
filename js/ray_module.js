@@ -2281,9 +2281,15 @@ function initWallEditor( obj ){
 
                 var rooms = obj.getRooms();
 
-                obj.defineExternalWall(rooms);
+                obj.defineExternalWall( rooms );
 
-                rooms.forEach(function(room, room_index){
+                obj.defineFreeRoom( rooms );
+
+                obj.setRoomWallNumbers( rooms );
+
+                obj.setOuterWallNumbers( rooms )
+
+                rooms.forEach(function( room, room_index ){
 
 
 
@@ -2365,7 +2371,6 @@ function initWallEditor( obj ){
                                 );
                   })
 
-
                   export_data.floors[0].rooms[ room_index ].walls.push(
                                           {
                                           id: item.id,
@@ -2384,8 +2389,8 @@ function initWallEditor( obj ){
                                           },
                                           openings: openings,
                                           external_wall: item.external_wall,
-                                          room_wall_num: 0,
-                                          outer_wall_num: 0
+                                          room_wall_num: item.number,
+                                          outer_wall_num: item.outer_wall_num,
                                         }
                           )
 
@@ -2405,8 +2410,8 @@ function initWallEditor( obj ){
     obj.hideAreaNotifications();
 
     var rooms = [];
-    var nodes =  obj.getNodes();
-    var pathes = obj.getPathes();
+    var nodes =  obj.getNodes(obj.walls);
+    var pathes = obj.getPathes(obj.walls);
     var chains = obj.getChains(nodes, pathes);
     obj.ExclusionExternalChain(nodes, chains);
 
@@ -2448,6 +2453,10 @@ function initWallEditor( obj ){
           });
           countur.length = countur.length - 1;
 
+
+
+          var isClockWise = ! THREE.ShapeUtils.isClockWise(countur) ;
+          
           var objArea = obj.getArea( countur );
 
           rooms.push({
@@ -2456,7 +2465,8 @@ function initWallEditor( obj ){
                       external_walls: external_walls,
                       area: objArea.area,
                       area_coords: {x: objArea.coord.x, y: objArea.coord.z},
-                      area_coords_3D: objArea.coord
+                      area_coords_3D: objArea.coord,
+                      isClockWise: isClockWise
                     })
 
           if( Areas.children.length < rooms.length && objArea.area){
@@ -2482,11 +2492,11 @@ function initWallEditor( obj ){
     return rooms;
 
   }
-  obj.getNodes = function(){
+  obj.getNodes = function(walls){
 
     var nodes = {};
 
-    obj.walls.forEach(function( item ){
+    walls.forEach(function( item ){
 
       if( ! nodes[ item.node11.id ]){
         nodes[item.node11.id] = item.node11 ;
@@ -2506,11 +2516,11 @@ function initWallEditor( obj ){
     return nodes;
 
   };
-  obj.getPathes = function(){
+  obj.getPathes = function(walls){
 
     var pathes = [];
 
-    obj.walls.forEach(function( item ){
+    walls.forEach(function( item ){
 
       pathes.push({
                     id: item.uuid + '_11',
@@ -2788,6 +2798,168 @@ function initWallEditor( obj ){
 
     })
 
+  }
+  obj.setRoomWallNumbers = function(rooms){
+
+    rooms.forEach(function( room, room_index ){
+
+      var index = room.walls.length;
+
+      while(index--){
+
+        var uuid = room.walls[ index ];
+        var wall = scene.getObjectByProperty( 'uuid', uuid );
+
+        if( obj.isWallHasDoor(wall) ){
+
+          wall.number = 1;
+
+          if( room.isClockWise ){
+
+              //нумерация вперед
+            var current_number = 2;
+            var i;
+            for (i = index + 1; i < room.walls.length; i++) {
+              var next_wall = scene.getObjectByProperty( 'uuid', room.walls[i] );
+              next_wall.number = current_number;
+              current_number++;
+            }
+
+            //нумерация  назад
+            var current_number = room.walls.length - 1;
+            var y;
+            if(index > 0)
+            for (y = index - 1; y >= 0; y--) {
+              var next_wall = scene.getObjectByProperty( 'uuid', room.walls[y] );
+              next_wall.number = current_number;
+              current_number--;
+            }
+
+
+          } else {
+
+              //нумерация вперед
+            var current_number = room.walls.length - 1;
+            var i;
+            for (i = index + 1; i < room.walls.length; i++) {
+              var next_wall = scene.getObjectByProperty( 'uuid', room.walls[i] );
+              next_wall.number = current_number;
+              current_number--;
+            }
+
+            //нумерация  назад
+            var current_number = 2;
+            var y;
+            if(index > 0)
+            for (y = index - 1; y >= 0; y--) {
+              var next_wall = scene.getObjectByProperty( 'uuid', room.walls[y] );
+              next_wall.number = current_number;
+              current_number++;
+            }
+
+          }
+
+          return;
+
+        } else {
+          wall.number = index + 1;
+        }
+
+      }
+
+    })
+
+
+
+  }
+  obj.isWallHasDoor = function(wall){
+    
+    var i = wall.doors.length;
+
+    while(i--){
+
+      if( wall.doors[i].name == 'doorway' || wall.doors[i].name == 'singleDoor' || wall.doors[i].name == 'doubleDoor'){
+        return true;
+      }
+
+    }
+
+    return false;
+
+  }
+  obj.defineFreeRoom = function(rooms){
+
+    var walls = obj.walls.slice();
+
+    //step1
+    rooms.forEach(function(room){
+      room.walls.forEach(function ( uuid ) {
+
+        var wall = scene.getObjectByProperty( 'uuid', uuid );
+
+        var index = walls.indexOf(wall);
+        if(index != -1){
+          walls.splice( index, 1 );
+        }
+
+      })
+
+    })
+
+
+    //step2
+    var nodes =  obj.getNodes(walls);
+    var pathes = obj.getPathes(walls);
+    var chains = obj.getChains(nodes, pathes);
+
+    chains.forEach(function( chain ){
+
+      var walls = [];
+
+      if( chain ){
+          //отрисовка контура комнаты
+
+          //=================
+
+          chain.forEach(function( item ){
+
+            if( walls.indexOf( item.wall_uuid ) == -1 ){
+              walls.push( item.wall_uuid );
+            }
+
+          });
+
+          rooms.push({
+                      id: THREE.Math.generateUUID(),
+                      walls: walls,
+                      external_walls: true,
+                      area: 0,
+                      area_coords: {x: 0, y: 0},
+                      area_coords_3D: 0,
+                      isClockWise: 0
+                    })
+
+
+      }
+
+    })
+
+  }
+  obj.setOuterWallNumbers = function(rooms){
+    var outer_wall_num = 1;
+    rooms.forEach(function (room, index, arr) {
+
+      room.walls.forEach(function ( uuid ) {
+
+        var wall = scene.getObjectByProperty( 'uuid', uuid );
+        if( wall.external_wall ){
+          wall.outer_wall_num = outer_wall_num;
+          outer_wall_num++;
+        }
+
+      })
+
+    })
   }
 
   //===========
@@ -3597,6 +3769,8 @@ function Wall(vertices, parameters){
   this.walls = []//заполнение при обновлении
   this.doors = [];
   this.dimensions = []; //массив хранения объектов размеров стены
+
+  this.external_wall = true; //исп в json
   var self = this;
 
   this.editableFieldWrapper =  $( '.EditableField' );
