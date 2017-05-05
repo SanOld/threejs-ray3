@@ -10,11 +10,6 @@ AreaCounturs.name = "AreaCounturs";
 
 var floorHeight = 3000;
 
-//var floorScale = 1;
-//var floorLength = 20000;
-//var floorWidth = 12000;
-//var floorTextureFile = '';
-//var floor = undefined;
 
 //Материалы
 var floorMaterial = new THREE.MeshBasicMaterial( { color: 'white' } );
@@ -42,8 +37,6 @@ var doorwayBodyMaterial = new THREE.MeshBasicMaterial( {color: 'white', side: TH
 
 
 var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
-//var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
-
 
 var measure_unit = {
   'm':  {full_name: 'метр',           short_name: 'м',  c: 0.001 },
@@ -175,7 +168,7 @@ function Editor(obj){
       if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
 //        window.localStorage.removeItem( 'cad5');
 
-//      try{
+      try{
 
           var json = localStorage.getItem("cad5");
 
@@ -185,9 +178,10 @@ function Editor(obj){
 
           }
            
-//      } catch(e){
-//        window.localStorage.removeItem( 'cad5');
-//      }
+      } catch(e){
+        window.localStorage.removeItem( 'cad5');
+        window.console.warn('Ошибка при чтении данных из LocalStorage');
+      }
 
       }
 
@@ -248,11 +242,10 @@ function Editor(obj){
     }
 
 
-
-
     setTimeout(function(){
       $wallCreator.updateWalls();
     })
+
   }
 
   obj.addFloor = function(){
@@ -288,53 +281,9 @@ function Editor(obj){
       }
       break;
     case 50: /*2*/
-//      if(event.altKey){
-//        if($projection.enabled){
-//          $projection.off();
-//        } else {
-//          $projection.on('left');
-//        }
-//      }
-      break;
-    case 51: /*3*/
-//      if(event.altKey){
-//        if($projection.enabled){
-//          $projection.off();
-//        } else {
-//          $projection.on('right');
-//        }
-//      }
-      break;
-    case 57: /*9*/
 
       break;
-    case 82: /*r*/
 
-      break;
-    case 87:/*w*/
-
-      break;
-    case 83:/*s*/
-
-      break;
-    case 65:/*a*/
-
-      break;
-    case 68:/*d*/
-
-      break;
-    case 37:/*left*/
-
-      break;
-    case 38:/*up*/
-
-      break;
-    case 39:/*right*/
-
-      break;
-    case 40:/*down*/
-
-      break;
   }
 }
 
