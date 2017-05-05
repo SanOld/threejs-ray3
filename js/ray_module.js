@@ -34,7 +34,34 @@ var dimensionMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff } );
 var transparentMaterial = new THREE.MeshBasicMaterial( { transparent: true, opacity: 0} );
 var doorwayMaterial = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.DoubleSide} );
 var doorwayBodyMaterial = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.BackSide} )
-
+var projectionWallMaterial_black = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.8,
+      transparent: true,
+      depthWrite: false,
+      color: 'black'
+    });
+var projectionWallMaterial_green = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.8,
+      transparent: true,
+      depthWrite: false,
+      color: 'green'
+    });
+var projectionWallMaterial_red = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.8,
+      transparent: true,
+      depthWrite: false,
+      color: 'red'
+    });
+var acsWallMaterial = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.8,
+      transparent: true,
+      depthWrite: false,
+      color: '#d5c7ac'//бежевый
+    });
 
 var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
 
@@ -60,6 +87,15 @@ function Editor(obj){
   obj.timeSaveInterval = 15000;//мс
   obj.storageEnabled = true;
   obj.floor = null; //подложка
+  
+  obj.wallAction = [ 'notChangable', 'installation', 'deinstallation' ];
+  obj.wallBearingType = [ 'main' ,'partition' ]
+
+  obj.wallColors = {
+    notChangable: projectionWallMaterial_black,
+    installation: projectionWallMaterial_green,
+    deinstallation: projectionWallMaterial_red,
+  }
 
   obj.on = function(){
 
@@ -390,23 +426,6 @@ function initProjection(obj){
   obj.plane = null;
 
   obj.walls = [];//массив установленных стен TODO - заполнить при инициализации редактора
-  //obj.projectionWallMaterial
-  //obj.acsWallMaterial
-
-  obj.projectionWallMaterial = new THREE.MeshBasicMaterial({
-      wireframe: false,
-      opacity: 0.8,
-      transparent: true,
-      depthWrite: false,
-      color: 'black'
-    });
-  obj.acsWallMaterial = new THREE.MeshBasicMaterial({
-      wireframe: false,
-      opacity: 0.8,
-      transparent: true,
-      depthWrite: false,
-      color: '#d5c7ac'//бежевый
-    });
 
   obj.wallDimensionType = 'center';
 
@@ -425,7 +444,7 @@ function initProjection(obj){
 
     obj.planeHelperAdd();
 
-    obj.setMaterialToWall(obj.projectionWallMaterial);
+    obj.setMaterialToWall('2D');
 
     obj.doorwaysProjectionMode();
 
@@ -451,7 +470,7 @@ function initProjection(obj){
     Dimensions.visible = false;
     Areas.visible = false;
     AreaCounturs.visible = false;
-    obj.setMaterialToWall(obj.acsWallMaterial);
+    obj.setMaterialToWall('3D');
 
 
     obj.doorways3DMode();
@@ -513,11 +532,33 @@ function initProjection(obj){
     return result;
 
   };
-  obj.setMaterialToWall = function(material){
+  obj.setMaterialToWall = function(mode){
+    switch (mode) {
+      case '2D':
 
-    $wallCreator.walls.forEach(function(item){
-      item.material = material;
-    })
+        $wallCreator.walls.forEach( function( item ){
+
+          if( item.action && item.action.length > 0){
+            item.material = $Editor.wallColors[item.action];
+          } else {
+            item.material = $Editor.wallColors[ $Editor.wallAction[0] ];
+          }
+
+        })
+
+        break;
+
+      case '3D':
+
+        $wallCreator.walls.forEach( function( item ){
+
+          item.material = acsWallMaterial;
+
+        })
+
+        break;
+    }
+    
 
   }
   obj.doorways3DMode = function(){
@@ -590,9 +631,10 @@ function initProjection(obj){
   obj.select = function(event){
 
 //    obj.hideAllMenu();
+    obj.selected = event.object;
     if( 'select' in event.object )
     event.object.select(event);
-    obj.selected = event.object;
+    
 
   }
   obj.select_contextmenu = function(event){
@@ -642,6 +684,27 @@ function initProjection(obj){
 
         break;
 
+    }
+
+  }
+
+  obj.setWallBearingTypeValue = function( type ){
+
+    if( type && type != '' ){
+
+      var part = $('.wall_type').find('[data-type = ' + type + ']').find('a').text()
+      $('.wall_type').find('button').html( part + ' <span class="caret"></span>' );
+
+    }
+    
+  }
+  obj.setWallAction= function( action ){
+
+    if( action && action != '' ){
+
+      var part = $('.wall_action').find('[data-type =' + action + ']').find('a').text();
+      $('.wall_action').find('button').html( part + ' <span class="caret"></span>' );
+      
     }
 
   }
@@ -797,7 +860,28 @@ function initProjection(obj){
     event.preventDefault();
     obj.toggleModeIn2D('dimension');
 
-  })
+  });
+
+  $('.wall_type').on('click','li',function(){
+
+    if($wallEditor.selected && $wallEditor.selected.type == 'Wall'){
+
+      $wallEditor.selected.changeBearingType( $(this).attr('data-type') );
+      $('.wall_type').find('button').html($(this).find('a').text() + ' <span class="caret"></span>');
+
+    }
+
+	});
+  $('.wall_action').on('click','li',function(){
+
+		if($wallEditor.selected && $wallEditor.selected.type == 'Wall'){
+
+      $wallEditor.selected.changeAction( $(this).attr('data-type') );
+      $('.wall_action').find('button').html($(this).find('a').text() + ' <span class="caret"></span>');
+
+    }    
+
+	});
 
 }
 $projection = {};
@@ -2207,6 +2291,11 @@ function initWallEditor( obj ){
     if( 'select' in event.object )
     event.object.select(event);
     obj.selected = event.object;
+
+    if( obj.selected.type = 'Wall'){
+      $projection.setWallBearingTypeValue( obj.selected.bearingType );
+      $projection.setWallAction( obj.selected.action );
+    }
 
   };
   obj.select_contextmenu = function(event){
@@ -3861,6 +3950,8 @@ function Wall( vertices, parameters ){
   this.v1 = parameters.hasOwnProperty("v1") ? parameters["v1"] : vertices[0].clone();
   this.v2 = parameters.hasOwnProperty("v2") ? parameters["v2"] : vertices[1].clone();
   this.doors = parameters.hasOwnProperty("doors") ? parameters["doors"] : [];
+  this.bearingType = parameters.hasOwnProperty("bearingType") ? parameters["bearingType"] : $Editor.wallBearingType[0];
+  this.action = parameters.hasOwnProperty("action") ? parameters["action"] : $Editor.wallAction[0];
 
   this.doors = []
   this.dimensions = []; //массив хранения объектов размеров стены
@@ -3899,7 +3990,7 @@ function Wall( vertices, parameters ){
 
   self.geometry = self.buildGeometry();
 
-  self.material = $projection.projectionWallMaterial;
+  self.material = projectionWallMaterial_black;
 //  this.material.transparent = true;
 //  this.material.opacity = 0.8;
 
@@ -4003,6 +4094,8 @@ function Wall( vertices, parameters ){
     this.userData.v1 = this.v1;
     this.userData.v2 = this.v2;
     this.userData.doors = [];
+    this.userData.bearingType = this.bearingType;
+    this.userData.action = this.action;
     this.doors.forEach(function(item){
       self.userData.doors[item.uuid] = item.type;
     })
@@ -5030,7 +5123,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     }
   },
 
-  isNeighbor: function(wall){
+  isNeighbor: function( wall ){
 
     var i = this.mover.v1_neighbors.length;
     while (i--) {
@@ -5049,7 +5142,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     return false;
   },
 
-  setFloorScale: function(event){
+  setFloorScale: function( event ){
 
     var self = this
 
@@ -5124,7 +5217,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     });
   },
-  changeWidth: function(event){
+  changeWidth: function( event ){
 
     var self = this
 
@@ -5175,6 +5268,19 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 //    });
 
   },
+
+  changeAction: function( action ){
+
+    this.material = $Editor.wallColors[ action ];
+    this.action = action;
+
+  },
+  changeBearingType: function( type ){
+
+    this.bearingType = type;
+
+  },
+
 
 });
 
@@ -6842,8 +6948,8 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
   addCGI: function(){
       //УГО двери
-    this.CGI.door = new THREE.Mesh( this.getCGIDoorGeometry(), $projection.projectionWallMaterial );
-    this.CGI.door.material.copy( $projection.projectionWallMaterial.clone() );
+    this.CGI.door = new THREE.Mesh( this.getCGIDoorGeometry(), projectionWallMaterial_black );
+    this.CGI.door.material.copy( projectionWallMaterial_black.clone() );
     this.CGI.door.lookAt(new THREE.Vector3(0, 0, -1));
 
     //параметры дуги
@@ -7224,7 +7330,7 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
 
   addCGI: function(){
 
-    this.CGI.window_line = new THREE.LineSegments( this.getCGIGeometry(), $projection.projectionWallMaterial.clone());
+    this.CGI.window_line = new THREE.LineSegments( this.getCGIGeometry(), projectionWallMaterial_black.clone());
 
 //позиционирование дополнительных объектов двери и дуги
     this.setCGILocation();
@@ -7418,8 +7524,8 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
 
   addCGI: function(){
       //УГО двери
-    this.CGI.door = new THREE.Mesh( this.getCGIDoorGeometry(), $projection.projectionWallMaterial );
-    this.CGI.door.material.copy( $projection.projectionWallMaterial.clone() );
+    this.CGI.door = new THREE.Mesh( this.getCGIDoorGeometry(), projectionWallMaterial_black );
+    this.CGI.door.material.copy( projectionWallMaterial_black.clone() );
     this.CGI.door.lookAt(new THREE.Vector3(0, 0, -1));
 
     this.CGI.door2 = this.CGI.door.clone();

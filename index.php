@@ -22,7 +22,7 @@
 
             <div class="col-lg-3  mode2D">
                 <div class="btn-group dropup wall_dim_type">
-				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
                   <ul class="dropdown-menu">
                     <li class="without" data-type = "without"><a>Стена: размер скрыть</a></li>
                     <li class="center" data-type = "center"><a>Стена: размер по осевой</a></li>
@@ -61,6 +61,27 @@
               </div>
             </div><!-- /.col-lg-1 -->
 
+            <div class="col-lg-2 mode2D">
+                <div class="btn-group dropup wall_type">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Несущая <span class="caret"></span></button>
+                  <ul class="dropdown-menu">
+                    <li  data-type = "main"><a>Несущая</a></li>
+                    <li  data-type = "partition"><a>Перегородка</a></li>
+                  </ul>
+                </div><!-- /btn-group -->
+            </div><!-- /.col-lg-3 -->
+
+            <div class="col-lg-2 mode2D">
+                <div class="btn-group dropup wall_action">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Не менять стену <span class="caret"></span></button>
+                  <ul class="dropdown-menu">
+                    <li data-type = "notChangable"><a>Не менять стену</a></li>
+                    <li data-type = "installation"><a>Монтаж</a></li>
+                    <li data-type = "deinstallation"><a>Демонтаж</a></li>
+                  </ul>
+                </div><!-- /btn-group -->
+            </div><!-- /.col-lg-3 -->
+            
             <div class="col-lg-2">
                 <button type="button" class="btn btn-default" action="exportJSON">to JSON <i class="fa fa-fire" aria-hidden="true"></i></span></button>
             </div><!-- /.col-lg-1 -->
@@ -68,6 +89,7 @@
           </div>
         </div>
 
+  </div>
   </div>
 </nav>
 </body>
@@ -95,6 +117,14 @@
   </div>
 
 
+</div>
+
+<div class="WallMenuLMB" style=" display: none;">
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40px;  top: -40px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="location_1" title="Несущая"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 90px; top: -40px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="location_2" title="Перегородка"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40px;  top: 10px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="location_3" title="Положение-3"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 90px; top: 10px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="location_4" title="Положение-4"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 140px; top: 10px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="location_4" title="Положение-4"></div>
 </div>
 
 <div class="FourStateSwitcher" style=" display: none;">
