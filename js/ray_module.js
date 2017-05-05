@@ -10,10 +10,11 @@ AreaCounturs.name = "AreaCounturs";
 
 var floorHeight = 3000;
 
-var floorScale = 1;
-var floorLength = 20000;
-var floorWidth = 12000;
-var floor = undefined;
+//var floorScale = 1;
+//var floorLength = 20000;
+//var floorWidth = 12000;
+//var floorTextureFile = '';
+//var floor = undefined;
 
 //Материалы
 var floorMaterial = new THREE.MeshBasicMaterial( { color: 'white' } );
@@ -41,7 +42,7 @@ var doorwayBodyMaterial = new THREE.MeshBasicMaterial( {color: 'white', side: TH
 
 
 var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
-var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
+//var floorGeometry = new THREE.PlaneBufferGeometry(floorLength * floorScale, floorWidth * floorScale, 10, 10);
 
 
 var measure_unit = {
@@ -65,29 +66,31 @@ function Editor(obj){
   obj.timerId = undefined; //id интервала сохранения
   obj.timeSaveInterval = 15000;//мс
   obj.storageEnabled = true;
+  obj.floor = null; //подложка
 
   obj.on = function(){
 
+    obj.addFloor();
     obj.loadFromLocalStorage();
 
     //активация
     obj.activate();
 
-    obj.addFloor();
-    controls.target.set( floor.position.x, floor.position.y, floor.position.z );
-    camera.lookAt(floor.position.clone());
+    
+    controls.target.set( obj.floor.position.x, obj.floor.position.y, obj.floor.position.z );
+    camera.lookAt(obj.floor.position.clone());
     controls.update();
     
     //глобальный объект-хранилище размеров
-    scene.add(Dimensions);
+    scene.add( Dimensions );
     //глобальный объект-хранилище размеров площадей комнат
-    scene.add(Areas);
+    scene.add( Areas );
     //глобальный объект-хранилище размеров контуров комнат
-    scene.add(AreaCounturs);
+    scene.add( AreaCounturs );
     //режим чертежа
     if( ! $projection.enabled){
       toggleMode('2D');
-      $projection.toggleModeIn2D('creation');
+      $projection.toggleModeIn2D( 'creation' );
     }
     
   };
@@ -131,7 +134,7 @@ function Editor(obj){
     }
 
   }
-  obj.storageAvailable = function(type) {
+  obj.storageAvailable = function( type ) {
       try {
         var storage = window[type],
           x = '__storage_test__';
@@ -154,6 +157,10 @@ function Editor(obj){
 
         cad5.walls.push( JSON.stringify( el ) );
         
+      } else if( el.type == 'Floor' ){
+
+        cad5.floor = JSON.stringify( el );
+
       }
 
     })
@@ -168,7 +175,7 @@ function Editor(obj){
       if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
 //        window.localStorage.removeItem( 'cad5');
 
-      try{
+//      try{
 
           var json = localStorage.getItem("cad5");
 
@@ -178,9 +185,9 @@ function Editor(obj){
 
           }
            
-      } catch(e){
-        window.localStorage.removeItem( 'cad5');
-      }
+//      } catch(e){
+//        window.localStorage.removeItem( 'cad5');
+//      }
 
       }
 
@@ -188,10 +195,12 @@ function Editor(obj){
       obj.localSavingOn();
     }
   }
-  obj.parseJSON = function(json){
+  
+  obj.parseJSON = function( json ){
 
     var cad5 = JSON.parse( json );
 
+    //СТЕНЫ
     var i = cad5.walls.length;
     while (i--) {
 
@@ -208,7 +217,7 @@ function Editor(obj){
 
         var y = item.object.children.length;
 
-        while (y--) {
+        while ( y-- ) {
 
           var door = item.object.children[y];
 
@@ -229,6 +238,18 @@ function Editor(obj){
 
     }
 
+    //ПОЛ
+    var floor = JSON.parse( cad5.floor );
+    $Editor.floor.scale.set( floor.object.userData.scale.x, floor.object.userData.scale.y, floor.object.userData.scale.z )
+    $Editor.floor.width = floor.object.userData.width;
+    $Editor.floor.length = floor.object.userData.length;
+    if( floor.object.userData.textureFile != '' ){
+      setFloorTexture( floor.object.userData.textureFile );
+    }
+
+
+
+
     setTimeout(function(){
       $wallCreator.updateWalls();
     })
@@ -236,20 +257,13 @@ function Editor(obj){
 
   obj.addFloor = function(){
 
-    floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    floor.name = 'floor';
-    scene.add(floor);
+    obj.floor = new Floor();
+    scene.add( obj.floor );
 
-    obj.setFloorLocation();
+    obj.floor.setLocation();
     
   }
-  obj.setFloorLocation = function(){
-    floor.position.x = floorLength * floorScale/2;
-    floor.position.z = floorWidth * floorScale/2;
-    floor.position.y = -1;
-    floor.rotation.x = -Math.PI / 2;
-    
-  }
+
 
   function onKeyDownEditor ( event ){
 //  alert(event.keyCode)
@@ -475,8 +489,8 @@ function initProjection(obj){
     obj.enabled = !obj.enabled;
     camera = currentCamera.clone();
     controls = new THREE.OrbitControls( camera, renderer.domElement );
-    controls.target.set( floor.position.x, floor.position.y, floor.position.z );
-    camera.lookAt(floor.position.clone());
+    controls.target.set( $Editor.floor.position.x, $Editor.floor.position.y, $Editor.floor.position.z );
+    camera.lookAt($Editor.floor.position.clone());
     controls.update()
     currentCamera = null;
 
@@ -507,7 +521,7 @@ function initProjection(obj){
                                         );
                
 
-    camera.position.copy( floor.position.clone() );
+    camera.position.copy( $Editor.floor.position.clone() );
 
 
     switch (obj.type) {
@@ -522,7 +536,7 @@ function initProjection(obj){
         break;
     }
 
-    camera.lookAt( floor.position.clone() );
+    camera.lookAt( $Editor.floor.position.clone() );
 
 
 
@@ -1211,7 +1225,7 @@ function initDimensionEditorMode(obj){
 //      event.preventDefault();
     }
 
-  //оодноразовая операция
+  //одноразовая операция
   obj.getDimensionMenu();
 
   $('.DimensionMenu').on('click', '[action = remove]', function(){
@@ -3812,8 +3826,76 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
   }
 });
 
+//Пол(подложка)
+function Floor( parameters ){
+
+  THREE.Mesh.call( this, new THREE.Geometry() );
+
+  if ( parameters === undefined ) parameters = {};
+
+  this.type = 'Floor';
+  this.name = 'floor';
+
+  var self = this;
+
+  this.length = parameters.hasOwnProperty("length") ? parameters["length"] : 20000;
+  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 12000;
+  this.textureFile = parameters.hasOwnProperty("textureFile") ? parameters["textureFile"] : '';
+
+  this.geometry = parameters.hasOwnProperty("geometry") ? parameters["geometry"] : this.buildGeometry();
+  this.material = parameters.hasOwnProperty("material") ? parameters["material"] : floorMaterial;
+
+  var parent_toJson = this.toJSON;
+
+  this.toJSON = function ( meta ) {
+
+    this.userData.width = this.width;
+    this.userData.length = this.length;
+    this.userData.textureFile = this.textureFile;
+    this.userData.scale = this.scale;
+
+    return parent_toJson.call(this);
+
+  };
+
+}
+Floor.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
+
+  constructor: Floor,
+
+  buildGeometry: function(){
+    var floorGeometry = new THREE.PlaneBufferGeometry(this.length * this.scale.x, this.width * this.scale.y, 10, 10);
+    return floorGeometry;
+  },
+
+  setLocation: function(){
+
+    this.position.x = this.length * this.scale.x/2;
+    this.position.z = this.width * this.scale.y/2;
+    this.position.y = -1;
+    this.rotation.x = -Math.PI / 2;
+
+  },
+
+  setScale: function( floorScaleX, floorScaleY, floorScaleZ ){
+
+    var floorScaleX = floorScaleX || 1;
+    var floorScaleY = floorScaleY || 1;
+    var floorScaleZ = floorScaleZ || 1;
+    
+    this.scale.set (
+                    this.scale.x * floorScaleX,
+                    this.scale.y * floorScaleY,
+                    this.scale.z * floorScaleZ
+                    );
+
+  }
+
+
+})
+
 //Объект стены
-function Wall(vertices, parameters){
+function Wall( vertices, parameters ){
 
   THREE.Mesh.call( this, new THREE.Geometry() );
 
@@ -5057,14 +5139,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       }
 
-
-      scene.getObjectByName('floor').scale.set ( 
-                                                scene.getObjectByName('floor').scale.x * floorScaleX,
-                                                scene.getObjectByName('floor').scale.y * floorScaleY,
-                                                scene.getObjectByName('floor').scale.z * floorScaleZ
-                                                );
-
-
+      $Editor.floor.setScale( floorScaleX, floorScaleY, floorScaleZ );
 
 
       self.dimensions.forEach(function( item ){
@@ -5075,7 +5150,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         }
 
       });
-
 
       self.hideMenu();
 
@@ -5151,9 +5225,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 //    });
 
   },
-
-  
-  
 
 });
 
@@ -7678,7 +7749,7 @@ function DoubleDoorBlockFloor( wall, parameters ){
 }
 DoubleDoorBlockFloor.prototype = Object.assign( Object.create( DoubleDoorBlock.prototype ),{
   constructor: DoubleDoorBlockFloor,
-})
+});
 
 
 //Примечания
@@ -8950,7 +9021,8 @@ function setFloorTexture(filename) {
 
       floorTexture.needsUpdate = true;
       floorTexture.repeat.set( 1, 1 );
-      floor.material = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
+      $Editor.floor.material = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
+      $Editor.floor.textureFile = filename;
 
 		},
 		// Function called when download progresses
