@@ -138,6 +138,7 @@ function initMain()
 	var skyBoxGeometry = new THREE.BoxGeometry( 1000000, 1000000, 1000000 );
 	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
 	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
+  skyBox.name = "skyBox";
 	scene.add(skyBox);
 
     controls = new THREE.OrbitControls( camera, renderer.domElement );

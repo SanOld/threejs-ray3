@@ -2,8 +2,11 @@
 /* global this */
 
 var Dimensions = new THREE.Object3D(0,3000,0); //объект хранилище размеров
+Dimensions.name = "Dimensions";
 var Areas = new THREE.Object3D(0,3000,0); //объект хранилище размеров площадей
+Areas.name = "Areas";
 var AreaCounturs = new THREE.Object3D(0,1,0); //объект хранилище размеров площадей
+AreaCounturs.name = "AreaCounturs";
 
 var floorHeight = 3000;
 
@@ -33,6 +36,8 @@ var wallControlPointMaterial_hover = new THREE.MeshBasicMaterial({
 var LineBasicMaterialRed = new THREE.LineBasicMaterial( {color: 'red'} );
 var dimensionMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff } );
 var transparentMaterial = new THREE.MeshBasicMaterial( { transparent: true, opacity: 0} );
+var doorwayMaterial = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.DoubleSide} );
+var doorwayBodyMaterial = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.BackSide} )
 
 
 var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
@@ -58,71 +63,12 @@ var area_accuracy_measurements = 2;
 function Editor(obj){
 
   obj.timerId = undefined; //id интервала сохранения
-
-  obj.storageEnabled = false;
+  obj.timeSaveInterval = 15000;//мс
+  obj.storageEnabled = true;
 
   obj.on = function(){
 
-    if(obj.storageEnabled){
-    //загрузка из localStorage
-    if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
-//      window.localStorage.removeItem( 'cad5');
-      try{
-
-        var json = localStorage.getItem("cad5");
-        if (json) {
-
-            var cad5 = JSON.parse(json);
-            var loader = new THREE.ObjectLoader();
-            window.console.log(cad5.scene);
-//            var loadedScene = loader.parse( JSON.parse(cad5.scene)) ;
-
-//            window.console.log(loadedScene);
-//            scene = loadedScene;
-
-            cad5.objects.forEach(function(item){
-              window.console.log( JSON.parse(item) );
-              scene.add(loader.parse( JSON.parse(item) ));
-              window.console.log( loader.parse( JSON.parse(item) ) );
-            })
-
-        
-
-            if ( loadedScene instanceof THREE.Scene ) {
-//
-              loadedScene.children.forEach(function(item, i) {
-
-                window.console.log(item.type.toLowerCase());
-
-                if ( item.type.toLowerCase() == 'mesh' || item.type.toLowerCase() == 'object3d' ) {
-
- //                 if (item.name == 'wall' ){
-
-                  var cl = item.clone();
-
-                  scene.add(cl);
-
-                }
-
-              });
-
-             }
-
-
-          }
-
-
-      } catch(e){
-        window.localStorage.removeItem( 'cad5');
-      }
-
-    }
-
-    //сохранение в ls
-      obj.localSavingOn();
-    }
-
-
+    obj.loadFromLocalStorage();
 
     //активация
     obj.activate();
@@ -166,39 +112,24 @@ function Editor(obj){
   }
 
   obj.localSavingOn = function(){
+    
+    if( obj.storageEnabled )
 
-      obj.timerId = setInterval(function() {
+    obj.timerId = setInterval(function() {
 
-//        var exporter = new THREE.OBJExporter();
-        var cad5 = {};
-//        cad5.scene = JSON.stringify( exporter.parse(scene) );
-        
-        cad5.scene = JSON.stringify( scene );
+      obj.saveOnLocalStorage();
 
-        
+    }, obj.timeSaveInterval);
 
-        cad5.objects = [];
-
-        scene.children.forEach(function(el){
-          cad5.objects.push(JSON.stringify( el ))
-        })
-
-
-
-//        window.console.log(cad5.scene);
-//        window.localStorage.setItem( 'cad5', JSON.stringify( cad5) );
-
-        cad5.scene = JSON.stringify( scene );
-        window.localStorage.setItem( 'cad5',  JSON.stringify( cad5) );
-
-        
-      }, 5000);
-      
   }
   obj.localSavingOff = function(){
+
     if( obj.timerId ){
+
       clearTimeout( obj.timerId );
+
     }
+
   }
   obj.storageAvailable = function(type) {
       try {
@@ -212,6 +143,96 @@ function Editor(obj){
         return false;
       }
     }
+  obj.saveOnLocalStorage = function(){
+
+    var cad5 = {};
+    cad5.walls = [];
+
+    scene.children.forEach(function(el){
+      
+      if( el.type == 'Wall'){
+
+        cad5.walls.push( JSON.stringify( el ) );
+        
+      }
+
+    })
+
+    window.localStorage.setItem( 'cad5',  JSON.stringify( cad5 ) );
+
+  }
+  obj.loadFromLocalStorage = function(){
+
+    if(obj.storageEnabled){
+      //загрузка из localStorage
+      if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
+//        window.localStorage.removeItem( 'cad5');
+
+      try{
+
+          var json = localStorage.getItem("cad5");
+
+          if ( json ) {
+
+            obj.parseJSON(json);
+
+          }
+           
+      } catch(e){
+        window.localStorage.removeItem( 'cad5');
+      }
+
+      }
+
+    //сохранение в ls
+      obj.localSavingOn();
+    }
+  }
+  obj.parseJSON = function(json){
+
+    var cad5 = JSON.parse( json );
+
+    var i = cad5.walls.length;
+    while (i--) {
+
+      //восстанавливаем стены
+      var item = JSON.parse( cad5.walls[i] );
+      var v1 = item.object.userData.v1;
+      var v2 = item.object.userData.v2;
+      item.object.userData.v1 = new THREE.Vector3(v1.x, v1.y, v1.z);
+      item.object.userData.v2 = new THREE.Vector3(v2.x, v2.y, v2.z)
+      var wall = $wallCreator.addWall( null, item.object.userData );
+      wall.uuid = item.object.uuid;
+      //восстанавливаем проемы
+      if(item.object.children){
+
+        var y = item.object.children.length;
+
+        while (y--) {
+
+          var door = item.object.children[y];
+
+          switch (door.type) {
+            case 'Doorway':
+            case 'Doorblock':
+            case 'DoorblockFloor':
+            case 'WindowBlock':
+            case 'DoubleDoorBlock':
+            case 'DoubleDoorBlockFloor':
+              wall.addDoorway( door.type, door.userData );
+              wall.doors[ wall.doors.length-1 ].uuid = door.uuid;
+              break;
+          }
+
+        }
+      }
+
+    }
+
+    setTimeout(function(){
+      $wallCreator.updateWalls();
+    })
+  }
 
   obj.addFloor = function(){
 
@@ -222,7 +243,6 @@ function Editor(obj){
     obj.setFloorLocation();
     
   }
-
   obj.setFloorLocation = function(){
     floor.position.x = floorLength * floorScale/2;
     floor.position.z = floorWidth * floorScale/2;
@@ -1299,7 +1319,6 @@ function initWallCreator(obj){
 //    })
 //  }
 
-
   obj.hideAllMenu = function(){
     
     $('.ActiveElementMenu').css('display','none');
@@ -1364,18 +1383,21 @@ function initWallCreator(obj){
 
       obj.hideAllMenu();
   }
-  obj.addWall = function( vertices, params ){
-    var vertices = vertices;
-    var params = params || {width: obj.wall_width};
+  obj.addWall = function( vertices, parameters ){
+    var vertices = vertices || [];
+    var parameters = parameters || {width: obj.wall_width};
 
-    if( !params.auto_building )
+    vertices[0] = parameters.hasOwnProperty("v1") ? parameters["v1"] : vertices[0].clone();
+    vertices[1] = parameters.hasOwnProperty("v2") ? parameters["v2"] : vertices[1].clone();
+
+    if( !parameters.auto_building )
     //проверка doubleclck и расстояние меньше половины ширины стены
-    if( vertices && vertices[0].equals( vertices[1] ) || vertices[0].distanceTo( vertices[1]) < params.width/2 ){
+    if( vertices && vertices[0].equals( vertices[1] ) || vertices[0].distanceTo( vertices[1]) < parameters.width/2 ){
       window.console.warn("Неверные параметры для создания стены!");
       return false;
     }
 
-    var wall = new Wall( vertices, params );
+    var wall = new Wall( vertices, parameters );
     if( wall ){
 
       obj.walls.push( wall );
@@ -1389,6 +1411,8 @@ function initWallCreator(obj){
       $wallEditor.deactivateSelectControls();
       $wallEditor.activateSelectControls();
 
+     wall.toJSON();
+
     } else {
 
       window.console.warn("Ошибка при создании стены!");
@@ -1396,8 +1420,6 @@ function initWallCreator(obj){
 
     }
     
-      
-
     return wall;
 
   }
@@ -3092,22 +3114,22 @@ function initWallEditor( obj ){
 		obj.selected.remove();
 	});
   $('.ActiveElementMenu').on('click', '[action = addDoorway]', function(){
-		obj.selected.addDoorway('doorway');
+		obj.selected.addDoorway('Doorway');
 	});
   $('.ActiveElementMenu').on('click', '[action = addSingleDoorblock]', function(){
-		obj.selected.addDoorway('singleDoorFloor');
+		obj.selected.addDoorway('DoorblockFloor');
 	});
   $('.ActiveElementMenu').on('click', '[action = addDoubleDoorblock]', function(){
-		obj.selected.addDoorway('doubleDoorFloor');
+		obj.selected.addDoorway('DoubleDoorBlockFloor');
 	});
   $('.ActiveElementMenu').on('click', '[action = addSingleEntryDoorblock]', function(){
-		obj.selected.addDoorway('singleDoorEntry');
+		obj.selected.addDoorway('Doorblock');
 	});
   $('.ActiveElementMenu').on('click', '[action = addDoubleEntryDoorblock]', function(){
-		obj.selected.addDoorway('doubleDoorEntry');
+		obj.selected.addDoorway('DoubleDoorBlock');
 	});
   $('.ActiveElementMenu').on('click', '[action = addWindow]', function(){
-		obj.selected.addDoorway('windowblock');
+		obj.selected.addDoorway('WindowBlock');
 	});
   $('.ActiveElementMenu').on('click', '[action = addArch]', function(){
 		obj.selected.addDoorway('arch');
@@ -3797,35 +3819,33 @@ function Wall(vertices, parameters){
 
   if ( parameters === undefined ) parameters = {};
 
-//  this.uid = THREE.Math.generateUUID();
   this.type = 'Wall';
   this.name = 'wall';
-  this._wall = null; // объект стены с проемами
-  this.index = '';//присваивается в редакторе
-  this.walls = []//заполнение при обновлении
-  this.doors = [];
-  this.dimensions = []; //массив хранения объектов размеров стены
 
-  this.external_wall = true; //исп в json
   var self = this;
-
-  this.editableFieldWrapper =  $( '.EditableField' );
-  this.editableField = self.editableFieldWrapper.find('input');
 
   this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 100;
   this.height = parameters.hasOwnProperty("height") ? parameters["height"] : floorHeight;
-  this.v1 = vertices[0].clone();
-  this.v2 = vertices[1].clone();
+  this.v1 = parameters.hasOwnProperty("v1") ? parameters["v1"] : vertices[0].clone();
+  this.v2 = parameters.hasOwnProperty("v2") ? parameters["v2"] : vertices[1].clone();
+  this.doors = parameters.hasOwnProperty("doors") ? parameters["doors"] : [];
 
-  
-//    this.offset = {x: this.v1.x, y: this.v1.z};
+  this.doors = []
+  this.dimensions = []; //массив хранения объектов размеров стены
+  this.walls = []//заполнение при обновлении
+
+  this._wall = null; // объект стены с проемами
+  this.index = '';//присваивается в редакторе
+  this.external_wall = true; //исп в json
+  this.editableFieldWrapper =  $( '.EditableField' );
+  this.editableField = self.editableFieldWrapper.find('input');
 
   this.axisLine = new THREE.Line3(this.v1,this.v2);
   this.direction = this.axisLine.delta().normalize();
   this.direction90 = new THREE.Vector3( this.direction.z, 0 , -this.direction.x );
   this.axisLength = this.axisLine.distance();
 
-  var response = $Editor.getAdditionalPoints({v1: this.v1, v2: this.v2, width: this.width, direction90: this.direction90 })
+  var response = $Editor.getAdditionalPoints({v1: this.v1, v2: this.v2, width: this.width, direction90: this.direction90 });
 
   self.v11 = parameters.hasOwnProperty("v11") ? parameters["v11"] : new THREE.Vector3(response.v11.x, response.v11.y, response.v11.z);
   self.v12 = parameters.hasOwnProperty("v12") ? parameters["v12"] : new THREE.Vector3(response.v12.x, response.v12.y, response.v12.z);
@@ -3833,8 +3853,8 @@ function Wall(vertices, parameters){
   self.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : new THREE.Vector3(response.v22.x, response.v22.y, response.v22.z);
 
 
-  self.p1 = new THREE.Vector3();
-  self.p2 = new THREE.Vector3();
+  self.p1 =  new THREE.Vector3();
+  self.p2 =  new THREE.Vector3();
   self.p11 = new THREE.Vector3();
   self.p21 = new THREE.Vector3();
   self.p12 = new THREE.Vector3();
@@ -3867,10 +3887,8 @@ function Wall(vertices, parameters){
   //хелпер примечание id
 //  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
 
-
   //Ноды
   self.setDefaultNode();
-
 
   setTimeout(function(){
     self.calcDimensionsPoints();
@@ -3879,8 +3897,6 @@ function Wall(vertices, parameters){
 //    self.showDimensions();
   });
 
-
- 
 
   this.changeDim =       function ( event ) {
 
@@ -3922,7 +3938,7 @@ function Wall(vertices, parameters){
       } else if( dimension.rightArrowActivated ){
 
         self.movePoint( right_point, offset, dimension.dim_type == 'center' );
-        
+
       } else if( !dimension.leftArrowActivated && !dimension.rightArrowActivated && isScale ){
 
         self.movePoint( right_point, offset/2, dimension.dim_type == 'center' );
@@ -3942,9 +3958,26 @@ function Wall(vertices, parameters){
   //    self.update();
 
       $wallCreator.updateWalls();
-      
+
 
     };
+
+  var parent_toJson = this.toJSON;
+
+  this.toJSON = function ( meta ) {
+
+    this.userData.width = this.width;
+    this.userData.height = this.height;
+    this.userData.v1 = this.v1;
+    this.userData.v2 = this.v2;
+    this.userData.doors = [];
+    this.doors.forEach(function(item){
+      self.userData.doors[item.uuid] = item.type;
+    })
+
+    return parent_toJson.call(this);
+
+  };
 
 
 }
@@ -4523,23 +4556,30 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
   },
 
-  addDoorway: function( type ){
-    
+  addDoorway: function( type, parameters ){
+    var parameters = parameters || {};
     var type = type || 'doorway';
     var obj = null;
 
-    if( type == 'doorway' ){
-      var obj = new Doorway(this);
-    } else if( type == 'singleDoorEntry' ){
-      var obj = new Doorblock(this);
-    } else if( type == 'doubleDoorEntry' ){
-      var obj = new DoubleDoorBlock(this, { width: 1800, height: 2100 });
-    } else if( type == 'singleDoorFloor' ){
-      var obj = new DoorblockFloor(this);
-    } else if( type == 'doubleDoorFloor' ){
-      var obj = new DoubleDoorBlockFloor(this, { width: 1800, height: 2100 });
-    } else if( type == 'windowblock' ){
-      var obj = new WindowBlock(this, { elevation: 800, width: 1450, height: 1450 } );
+    if( type == 'Doorway' ){
+      var obj = new Doorway(this, parameters);
+    } else if( type == 'Doorblock' ){
+      var obj = new Doorblock(this, parameters);
+    } else if( type == 'DoubleDoorBlock' ){
+      parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1800;
+      parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
+      var obj = new DoubleDoorBlock(this, parameters);
+    } else if( type == 'DoorblockFloor' ){
+      var obj = new DoorblockFloor(this, parameters);
+    } else if( type == 'DoubleDoorBlockFloor' ){
+      parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1800;
+      parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
+      var obj = new DoubleDoorBlockFloor(this, parameters);
+    } else if( type == 'WindowBlock' ){
+      parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1450;
+      parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 1450;
+      parameters["elevation"] = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 800;
+      var obj = new WindowBlock(this, parameters );
     } else if( type == 'niche' ){
 		type = 'niche';
 //      var obj = new Doorblock(this);
@@ -4615,7 +4655,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     self.visible = true;
 
     if(self._wall){
-        self._wall.visible = false;
+//        self._wall.visible = false;
+        scene.remove(this._wall);
+        this._wall = null;
     }
 
     self.doors.forEach(function( item ){
@@ -5108,7 +5150,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 //
 //    });
 
-  }
+  },
+
+  
+  
 
 });
 
@@ -6218,14 +6263,13 @@ function Doorway( wall, parameters ){
   this.raycaster = new THREE.Raycaster();
   this.top_offset = 2; //отступ от верха стены
 
- 
-  this.offset = this.wall.axisLength / 2; //отступ от v1 до центра проема
-
 
   this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 900;
   this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
   this.thickness = parameters.hasOwnProperty("thickness") ? parameters["thickness"] : this.wall.width;
   this.elevation = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 0;
+  this.offset = parameters.hasOwnProperty("offset") ? parameters["offset"] : this.wall.axisLength / 2;
+
 
   this.dimensions = []; //массив хранения объектов размеров проемов
   //точки привязки для размеров
@@ -6245,13 +6289,14 @@ function Doorway( wall, parameters ){
     new THREE.Line3(this.p_22, this.p22)
   ]
 
-//  this.geometry = new THREE.PlaneBufferGeometry( this.width, this.thickness+1 );
   this.geometry = new THREE.BoxBufferGeometry( this.width, this.thickness+1, 1 );
-  this.material = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.DoubleSide} );
+  this.material = doorwayMaterial;
+
 
   //тело проема
   var geometry = new THREE.BoxGeometry();
-  this.doorwayBody = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( {color: 'white', side: THREE.BackSide} ) );
+  this.doorwayBody = new THREE.Mesh( geometry, doorwayBodyMaterial );
+  this.doorwayBody.name = 'doorwayBody';
   this.doorwayBody.visible = false;
 
   this.rebuildGeometry();
@@ -6387,6 +6432,21 @@ function Doorway( wall, parameters ){
     }
 
     self.update();
+  };
+
+  var parent_toJson = this.toJSON;
+
+  this.toJSON = function ( meta ) {
+
+    this.userData.width = this.width;
+    this.userData.height = this.height;
+    this.userData.thickness = this.thickness;
+    this.userData.elevation = this.elevation;
+    this.userData.offset = this.offset;
+    this.userData.location = this.location;
+
+    return parent_toJson.call(this);
+
   };
 
 }
@@ -6741,7 +6801,8 @@ function Doorblock( wall, parameters ){
 
   this.door_thickness = parameters.hasOwnProperty("thicdoor_thicknesskness") ? parameters["door_thickness"] : 40;
   //свойство положения
-  this.location = parameters.hasOwnProperty("location") ? parameters["location"] : 1;
+  this.start_location = parameters.hasOwnProperty("location") ? parameters["location"] : 1;
+  this.location = 1;
 
   //условное графическое изображение
   this.CGI = {};
@@ -6752,7 +6813,7 @@ function Doorblock( wall, parameters ){
   //зависимый объект
   this.depObject = null;
   this.loadObject();
-
+  
 }
 Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
@@ -6862,12 +6923,15 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
     var self = this;
 
-    loadJSON('sc/door.json','door', function(item){
-      if(item){
+    loadJSON('sc/door.json','door', function( item ){
+      if( item ){
         self.depObject = item;
         self.setDepObjectPosition();
         self.setDepObjectSize();
         self.depObject.visible = false;
+
+        self.setLocation(self.start_location);
+        
       }
     });
   },
@@ -6961,12 +7025,15 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
   },
   showDepObject: function(){
+    if(this.depObject)
     this.depObject.visible = true;
   },
   hideDepObject: function(){
+    if(this.depObject)
     this.depObject.visible = false;
   },
   removeDepObject: function(){
+    if(this.depObject)
     scene.remove( this.depObject );
   },
   
@@ -7069,9 +7136,11 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
     this.add(this.CGI.arc);
 
-    this.setDepObjectSize();
-    this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
-    this.setDepObjectPosition();
+    if(this.depObject){
+      this.setDepObjectSize();
+      this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
+      this.setDepObjectPosition();
+    }
 
   },
   remove: function(object){
@@ -7097,7 +7166,7 @@ function DoorblockFloor( wall, parameters ){
   var self = this;
 
   this.type = 'DoorblockFloor';
-  this.name = 'singleDoorFloor';
+  this.name = 'DoorblockFloor';
 
   this.json_type = 'floorDoor';
   this.json_systype = 'floorDoor';
@@ -7294,10 +7363,12 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
     Doorway.prototype.update.call(this);
 
     this.CGI.window_line.geometry = this.getCGIGeometry();
-    
-    this.setDepObjectSize();
-    this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
-    this.setDepObjectPosition();
+
+    if(this.depObject){
+      this.setDepObjectSize();
+      this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
+      this.setDepObjectPosition();
+    }
 
   }
 
@@ -7578,10 +7649,11 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
 //    this.setDoorwayBodyPosition();
 //
 //    this.setDepObjectPosition();
-
-    this.setDepObjectSize();
-    this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
-    this.setDepObjectPosition();
+    if(this.depObject){
+      this.setDepObjectSize();
+      this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
+      this.setDepObjectPosition();
+    }
 
   }
 
@@ -7595,7 +7667,7 @@ function DoubleDoorBlockFloor( wall, parameters ){
   var self = this;
 
   this.type = 'DoubleDoorBlockFloor';
-  this.name = 'doubleDoorFloor';
+  this.name = 'DoubleDoorBlockFloor';
 
   this.json_type = 'floorDoor';
   this.json_systype = 'doublewingdoor';
@@ -7607,254 +7679,7 @@ function DoubleDoorBlockFloor( wall, parameters ){
 DoubleDoorBlockFloor.prototype = Object.assign( Object.create( DoubleDoorBlock.prototype ),{
   constructor: DoubleDoorBlockFloor,
 })
-//Окно
-function WindowBlock2( wall, parameters ){
 
-  Doorway.apply( this, [wall, parameters] );
-
-  var parameters = parameters || {};
-  var self = this;
-
-  this.type = 'WindowBlock';
-  this.name = 'windowblock';
-
-  this.location = parameters.hasOwnProperty("location") ? parameters["location"] : 1;
-
-  //условное графическое изображение
-  this.CGI = {};
-  this.addCGI();
-
-  this.dragControls = null;
-
-  //зависимый объект
-  this.depObject = null;
-  this.loadObject();
-  
-}
-WindowBlock2.prototype = Object.assign( Object.create( Doorway.prototype ),{
-
-  constructor: WindowBlock2,
-
-  addCGI: function(){
-    
-    //УГО окна
-    var geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3( -this.width/2,  this.wall.width/4+1, 0));
-    geometry.vertices.push(new THREE.Vector3(  this.width/2,  this.wall.width/4+1, 0));
-    geometry.vertices.push(new THREE.Vector3( -this.width/2, -this.wall.width/4+1, 0));
-    geometry.vertices.push(new THREE.Vector3(  this.width/2, -this.wall.width/4+1, 0));
-
-    this.CGI.window_line = new THREE.LineSegments(geometry, $projection.projectionWallMaterial.clone());
-
-    this.add( this.CGI.window_line);
-  },
-  setCGIPosition: function(){
-
-    switch (this.location) {
-      case 1:
-
-        this.CGI.window_line.rotateZ( Math.PI );
-
-        break;
-      case 2:
-
-        break;
-      case 3:
-
-        this.CGI.window_line.rotateZ( Math.PI );
-
-        break;
-      case 4:
-
-        break;
-    }
-
-  },
-  setCGILocation: function(){
-    this.CGI.window_line.rotateZ( Math.PI );
-  },
-  
-  loadObject: function(){
-
-    var self = this;
-
-    loadJSON('sc/window.json','window', function(item){
-      if(item){
-        self.depObject = item;
-        self.setDepObjectPosition();
-        self.setDepObjectSize();
-        self.depObject.visible = false;
-      }
-    });
-
-  },
-  setDepObjectPosition: function(){
-
-    this.depObject.position.copy( this.wall.localToWorld(this.position.clone()) );
-    this.depObject.rotation.y =  Math.PI - this.rotation.z;
-    this.depObject.position.y = this.depObject.position.y  - this.wall.height - this.top_offset  + this.elevation;
-
-  },
-  setDepObjectSize: function(){
-
-    this.depObject.children[0].geometry.computeBoundingBox();
-    var box = this.depObject.children[0].geometry.boundingBox;
-
-    var height = Math.abs( box.max.applyMatrix4( this.depObject.matrixWorld ).y - box.min.applyMatrix4( this.depObject.matrixWorld ).y );
-    var width = Math.abs( box.max.applyMatrix4( this.depObject.matrixWorld ).x - box.min.applyMatrix4( this.depObject.matrixWorld ).x );
-
-
-    if( ! this.depObject.children[0].scale.x){
-      this.depObject.children[0].scale.set(1,1,1);
-    }
-    var koef_height = height * this.depObject.children[0].scale.y / (this.height - 1);
-    var koef_width = width * this.depObject.children[0].scale.x / (this.width - 1);
-
-    var X = this.depObject.children[0].scale.x / koef_width;
-    var Y = this.depObject.children[0].scale.y / koef_height;
-
-    this.depObject.children[0].scale.set( X, Y, X < Y ? X : Y );
-
-  },
-  setDepObjectLocation: function(location){
-
-      if(location != this.location){
-
-        switch (this.location) {
-          case 1:
-
-            this.depObject.children[0].geometry.scale(-1,1,1);
-            this.reverseWindingOrder( this.depObject );
-
-            break;
-          case 2:
-
-            this.depObject.children[0].geometry.scale(1, 1, 1);
-            this.reverseWindingOrder( this.depObject );
-
-            break;
-          case 3:
-
-            this.depObject.children[0].geometry.scale(-1, 1, -1);
-            this.reverseWindingOrder( this.depObject );
-
-            break;
-          case 4:
-
-            this.depObject.children[0].geometry.scale(1, 1, -1);
-            this.reverseWindingOrder( this.depObject );
-
-            break;
-        }
-
-        switch (location) {
-          case 1:
-
-            this.depObject.children[0].geometry.scale(-1,1,1);
-            this.reverseWindingOrder(this.depObject);
-
-            break;
-          case 2:
-
-            this.depObject.children[0].geometry.scale(1, 1, 1);
-            this.reverseWindingOrder(this.depObject);
-
-            break;
-          case 3:
-
-            this.depObject.children[0].geometry.scale(-1, 1, -1);
-            this.reverseWindingOrder(this.depObject);
-
-            break;
-          case 4:
-
-            this.depObject.children[0].geometry.scale(1, 1, -1);
-            this.reverseWindingOrder(this.depObject);
-
-            break;
-        }
-
-    }
-
-  },
-
-  setLocation: function(location){
-
-    this.setDepObjectLocation(location);
-
-    this.location = location;
-
-    this.setCGILocation();
-
-  },
-
-  hideMenu: function() {
-    $('.DoorwayMenu').css('display','none');
-  },
-  showMenu: function(center){
-
-    var elements =  $('.DoorwayMenu').find('.ActiveElementMenuAnimated');
-
-    //сбрасываем в ноль координаты для анимации
-    elements.each( function( i, item ){
-      item.style.left = 0;
-      item.style.top = 0;
-    })
-
-    //отображаем меню
-    $('.DoorwayMenu').css('display','block');
-    $(".DoorwayMenu").offset({top:center.y, left:center.x});
-
-    //отображаем пункты меню
-    setTimeout(function(){
-      elements.each( function( i, item ){
-        item.style.left = $wallEditor.doorwayMenu[i].left;
-        item.style.top = $wallEditor.doorwayMenu[i].top;
-      })
-
-    }, 50);
-
-  },
-
-  hideMenuLKM: function() {
-    $('.TwoStateSwitcher').css('display','none');
-  },
-  showMenuLKM: function(center){
-
-    var elements =  $('.TwoStateSwitcher').find('.ActiveElementMenuAnimated');
-
-    //сбрасываем в ноль координаты для анимации
-    elements.each( function( i, item ){
-      item.style.left = 0;
-      item.style.top = 0;
-    })
-
-    //отображаем меню
-    $('.TwoStateSwitcher').css('display','block');
-    $(".TwoStateSwitcher").offset({top:center.y, left:center.x});
-
-
-    setTimeout(function(){
-      elements[0].style.left = $wallEditor.windowblockSwitcherCoord[0].left;
-      elements[0].style.top = $wallEditor.windowblockSwitcherCoord[0].top;
-
-      elements[1].style.left = $wallEditor.windowblockSwitcherCoord[1].left;
-      elements[1].style.top = $wallEditor.windowblockSwitcherCoord[1].top;
-    }, 50);
-
-  },
-
-  update: function(){
-
-    this.position.copy( this.getCalculatePosition() );
-
-    this.setDoorwayBodyPosition();
-
-    this.setDepObjectPosition();
-
-  }
-
-});
 
 //Примечания
 function noteMaker( obj, message, parameters )
