@@ -152,7 +152,9 @@ function Editor(obj){
         
       } else if( el.type == 'Floor' ){
 
-        cad5.floor = JSON.stringify( el );
+        cad5.floor = JSON.parse( JSON.stringify( el ) );
+        cad5.floor.images = '';
+        cad5.floor = JSON.stringify( cad5.floor )
 
       }
 
@@ -3839,7 +3841,6 @@ Floor.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
                     );
 
   }
-
 
 })
 
