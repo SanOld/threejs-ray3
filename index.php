@@ -15,24 +15,30 @@
                 <button type="button" class="btn btn-default" action="mode" title="Переключение режима отображения">2D</button>
             </div> <!-- /.col-lg-1 -->
 
-            <div class="col-lg-2 mode2D">
+            
+
+<!--            <div class="col-lg-2 mode2D">
                 <button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>
                 <img class = "localImage" style="display: none">
-            </div><!-- /.col-lg-1 -->
+            </div>-->
 
-            <div class="col-lg-3  mode2D">
+            <div class="col-lg-4  mode2D">
+                
+                <button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>
+                <img class = "localImage" style="display: none">
+                
                 <div class="btn-group dropup wall_dim_type">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Стена: размер по осевой <span class="caret"></span></button>
-                  <ul class="dropdown-menu">
-                    <li class="without" data-type = "without"><a>Стена: размер скрыть</a></li>
-                    <li class="center" data-type = "center"><a>Стена: размер по осевой</a></li>
-                    <li class="inner" data-type = "inner"><a>Стена: размер внутри</a></li>
-                    <li class="outer" data-type = "outer"><a>Стена: размер снаружи</a></li>
-                  </ul>
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Размер по осевой <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                      <li class="without" data-type = "without"><a>Размер скрыть</a></li>
+                      <li class="center" data-type = "center"><a>Размер по осевой</a></li>
+                      <li class="inner" data-type = "inner"><a>Размер внутри</a></li>
+                      <li class="outer" data-type = "outer"><a>Размер снаружи</a></li>
+                    </ul>
                 </div><!-- /btn-group -->
-            </div><!-- /.col-lg-3 -->
+            </div><!-- /.col-lg-4 -->
 
-            <div class="col-lg-4 mode2D pull-right">
+            <div class="col-lg-1 mode2D pull-right">
               <div class="btn-group">
                 <button style=" display: none;" type="button" class="btn btn-default" action="modeE" title="Режим - редактирование">E</button>
                 <!--<button type="button" class="btn btn-default" action="modeD" title="Режим - размеры">Размеры <span class="fa fa-expand"></span></button>-->
@@ -44,12 +50,12 @@
         </div> <!-- /.col-lg-6 -->
 
         <div class="col-lg-6">
-          <div class="row">
+          
 	       <form name="floor_plan_form" onsubmit="return setFloorPlan(this);">
             <div class="col-lg-2">
                 <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
-				<input type ="file" name="image_file" class = "floorLoader" style="display: none">
-				<input type="hidden" name="user_id" value="userID">
+                <input type ="file" name="image_file" class = "floorLoader" style="display: none">
+                <input type="hidden" name="user_id" value="userID">
                 <img class = "localImage" style="display: none">
             </div><!-- /.col-lg-2 -->
 	       </form>
@@ -59,7 +65,8 @@
                 <input type="dim" class="form-control floorHeight" pattern="^[0-9]+$" action="floorHeight">
                 <span class="input-group-addon measure_unit" >мм</span>
               </div>
-            </div><!-- /.col-lg-1 -->
+            </div><!-- /.col-lg-4 -->
+
 
             <div class="col-lg-4 mode2D">
                 <div class="btn-group dropup wall_type">
@@ -79,19 +86,30 @@
                   </ul>
                 </div><!-- /btn-group -->
 
-            </div><!-- /.col-lg-3 -->
+            </div><!-- /.col-lg-4 -->
 
-            <div class="col-lg-2 mode2D">
-                
-            </div><!-- /.col-lg-3 -->
-            
-            
-
-          </div>
-        </div>
+        </div> <!-- /.col-lg-6 -->
+      </div>
 
   </div>
   <div class="row">
+
+    <div class="col-lg-6">
+              <div class="input-group objParams" style="display: none">
+                <span class="input-group-addon" >Высота:</span>
+                <input type="dim" class="form-control" pattern="^[0-9]+$" param="height" title="Высота">
+                <span class="input-group-addon" >Ширина:</span>
+                <input type="dim" class="form-control" pattern="^[0-9]+$" param="width" title="Ширина">
+                <span class="input-group-addon" >Толщина:</span>
+                <input type="dim" class="form-control" pattern="^[0-9]+$" param="depObject_thickness" title="Толщина">
+                <span class="input-group-addon" >От пола:</span>
+                <input type="dim" class="form-control" pattern="^[0-9]+$" param="elevation" title="Высота от пола">
+                <span class="input-group-addon" >Ширина откоса:</span>
+                <input type="dim" class="form-control" pattern="^[0-9]+$" param="slope" title="Откос" disabled>
+
+              </div>
+    </div><!-- /.col-lg-6 -->
+
     <div class="col-lg-2 pull-right">
         <button type="button" class="btn btn-default pull-right" action="cancel">Отмена</button>
         <button type="button" class="btn btn-default pull-right" action="exportJSON">Ок</button>

@@ -353,24 +353,19 @@ function Editor(obj){
   }
 
 });
-  $('.footer').on('keydown','[action = floorHeight]',function(event){
+  $('.footer').on('click','[action]', function(){
+    if($(this).context.tagName == 'INPUT'){
+      $(this).focus();
+    }
 
-  if(event.keyCode == 13){
+  });//фокус
+  $('.footer').on('click','[param]', function(){
+    if($(this).context.tagName == 'INPUT'){
+      $(this).focus();
+    }
 
-    var elem = $(this);
-    $wallEditor.walls.forEach(function( wall ){
-      wall.height =  + elem.val();
-      wall.update();
-    });
+  });//фокус
 
-    $(this).trigger( "blur" );
-
-  }
-
-});
-  $('.footer').on('click','[action = floorHeight]',function(){
-  $(this).focus();
-});
 
   obj.getAdditionalPoints = function(data){
 
@@ -698,7 +693,7 @@ function initProjection(obj){
     }
     
   }
-  obj.setWallAction= function( action ){
+  obj.setWallAction = function( action ){
 
     if( action && action != '' ){
 
@@ -706,6 +701,29 @@ function initProjection(obj){
       $('.wall_action').find('button').html( part + ' <span class="caret"></span>' );
       
     }
+
+  }
+
+  obj.showObjParams = function( parameters ){
+
+    $('.objParams').show();
+
+    var height = parameters.hasOwnProperty("height") ? parameters["height"] : '';
+    var width = parameters.hasOwnProperty("width") ? parameters["width"] : '';
+    var depObject_thickness = parameters.hasOwnProperty("depObject_thickness") ? parameters["depObject_thickness"] : '';
+    var elevation = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : '';
+    var slope = parameters.hasOwnProperty("slope") ? parameters["slope"] : '';
+
+    $('.objParams').find('[param = height]').val( height );
+    $('.objParams').find('[param = width]').val( width );
+    $('.objParams').find('[param = depObject_thickness]').val( depObject_thickness );
+    $('.objParams').find('[param = elevation]').val( elevation );
+    $('.objParams').find('[param = slope]').val( slope );
+
+  }
+  obj.hideObjParams = function( parameters ){
+
+    $('.objParams').hide();
 
   }
 
@@ -2304,17 +2322,33 @@ function initWallEditor( obj ){
   };
   obj.select = function(event){
 
+    
+
     if(obj.selected && obj.selected != event.object && ('unselect' in obj.selected)){
       obj.selected.unselect(event);
+      
     }
 //    obj.hideAllMenu();
     if( 'select' in event.object )
     event.object.select(event);
     obj.selected = event.object;
 
-    if( obj.selected.type = 'Wall'){
+
+    if( obj.selected.type == 'Wall'){
+
       $projection.setWallBearingTypeValue( obj.selected.bearingType );
       $projection.setWallAction( obj.selected.action );
+
+    } else if( obj.selected.type == 'WindowBlock' || obj.selected.type == 'DoorblockFloor' || obj.selected.type == 'DoubleDoorBlockFloor' ){
+
+      $projection.showObjParams({
+        height: obj.selected.height,
+        width: obj.selected.width,
+        depObject_thickness: obj.selected.depObject_thickness,
+        elevation: obj.selected.elevation,
+        slope: obj.selected.slope
+      })
+      
     }
 
   };
@@ -2329,6 +2363,7 @@ function initWallEditor( obj ){
   obj.unselect = function( event ){
 
     obj.hideAllMenu();
+    $projection.hideObjParams();
     if( obj.selected && ('unselect' in obj.selected) )
     obj.selected.unselect(event);
     obj.selected = null;
@@ -2463,7 +2498,10 @@ function initWallEditor( obj ){
                                     type: doorway.json_type,
                                     systype: doorway.json_systype,
                                     height: doorway.height,
-                                    heightAboveFloor: doorway.elevation
+                                    heightAboveFloor: doorway.elevation,
+                                    width: doorway.width,
+                                    slope: doorway.slope,
+                                    obj_thickness: doorway.depObject_thickness
                                   }
                                 );
                   })
@@ -3261,7 +3299,69 @@ function initWallEditor( obj ){
 
 		obj.selected.remove();
 
-	})
+	});
+
+
+  $('.footer').on('keydown','[action = floorHeight]',function(event){
+
+  if(event.keyCode == 13){
+
+    var elem = $(this);
+    $wallEditor.walls.forEach(function( wall ){
+      wall.height =  + elem.val()/current_unit.c;
+      wall.update();
+    });
+
+    $(this).trigger( "blur" );
+
+  }
+
+});
+  $('.footer').on('keydown','[param]',function(event){
+
+    if(event.keyCode == 13 ){
+
+      var param = $(this).attr('param');
+
+      if( obj.selected && $(this).val() != '' ){
+
+        var val = +$(this).val()/current_unit.c
+
+        switch (param) {
+          case 'depObject_thickness':
+            obj.selected.setDepObjectThickness( val );
+            break;
+
+          default:
+            obj.selected[ param ] = val;
+            break;
+        }
+
+        
+
+        obj.selected.wall.update();
+
+      }
+
+      obj.unselect();
+
+    }
+
+  });
+
+//  $('.footer').on('keydown','[action = objWidth]',function(event){
+//
+//  });
+//  $('.footer').on('keydown','[action = objThickness]',function(event){
+//
+//  });
+//  $('.footer').on('keydown','[action = objElevation]',function(event){
+//
+//  });
+//  $('.footer').on('keydown','[action = objSlope]',function(event){
+
+//  });
+
 
 }
 $wallEditor = {};
@@ -6947,13 +7047,16 @@ function Doorblock( wall, parameters ){
   this.lkmMenu = '.FourStateSwitcher';
   this.rkmMenu = '.DoorwayMenu';
 
-  this.door_thickness = parameters.hasOwnProperty("thicdoor_thicknesskness") ? parameters["door_thickness"] : 40;
+  this.depObject_thickness = parameters.hasOwnProperty("door_thickness") ? parameters["door_thickness"] : 100;
+  this.slope = parameters.hasOwnProperty("slope") ? parameters["slope"] : this.getSlope();
+
   //свойство положения
   this.start_location = parameters.hasOwnProperty("location") ? parameters["location"] : 1;
   this.location = 1;
 
   //условное графическое изображение
   this.CGI = {};
+  this.CGI_door_thickness = 40;
   this.addCGI();
 
   this.dragControls = null;
@@ -6996,11 +7099,11 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     switch (this.location) {
       case 1:
 
-        this.CGI.door.position.x = this.width/2 - this.door_thickness/2;
+        this.CGI.door.position.x = this.width/2 - this.CGI_door_thickness/2;
         this.CGI.door.position.y = this.width/2 + this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.ax = this.CGI.door.position.x + this.door_thickness/2;
+        this.CGI.ax = this.CGI.door.position.x + this.CGI_door_thickness/2;
         this.CGI.ay = this.thickness/2;
         this.CGI.xRadius = this.CGI.yRadius = this.width - 2;
         this.CGI.aStartAngle = Math.PI/2;
@@ -7008,11 +7111,11 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
         break;
       case 2:
-        this.CGI.door.position.x = - this.width/2 + this.door_thickness/2;
+        this.CGI.door.position.x = - this.width/2 + this.CGI_door_thickness/2;
         this.CGI.door.position.y = this.width/2 + this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.ax = this.CGI.door.position.x - this.door_thickness/2;
+        this.CGI.ax = this.CGI.door.position.x - this.CGI_door_thickness/2;
         this.CGI.ay = this.thickness/2;
         this.CGI.xRadius = this.CGI.yRadius = this.width - 2;
         this.CGI.aStartAngle = 0;
@@ -7020,11 +7123,11 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
         break;
       case 3:
-        this.CGI.door.position.x = this.width/2 - this.door_thickness/2;
+        this.CGI.door.position.x = this.width/2 - this.CGI_door_thickness/2;
         this.CGI.door.position.y = -this.width/2 - this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.ax = this.CGI.door.position.x + this.door_thickness/2;
+        this.CGI.ax = this.CGI.door.position.x + this.CGI_door_thickness/2;
         this.CGI.ay = -this.thickness/2;
         this.CGI.xRadius = this.CGI.yRadius = this.width - 2;
         this.CGI.aStartAngle = Math.PI;
@@ -7032,11 +7135,11 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
         break;
       case 4:
-        this.CGI.door.position.x = - this.width/2 + this.door_thickness/2;
+        this.CGI.door.position.x = - this.width/2 + this.CGI_door_thickness/2;
         this.CGI.door.position.y = - this.width/2 - this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.ax = this.CGI.door.position.x - this.door_thickness/2;
+        this.CGI.ax = this.CGI.door.position.x - this.CGI_door_thickness/2;
         this.CGI.ay = -this.thickness/2;
         this.CGI.xRadius = this.CGI.yRadius = this.width - 2;
         this.CGI.aStartAngle = Math.PI + Math.PI/2 ;
@@ -7047,7 +7150,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
   },
   getCGIDoorGeometry: function(){
-    return new THREE.PlaneBufferGeometry( this.width, this.door_thickness );
+    return new THREE.PlaneBufferGeometry( this.width, this.CGI_door_thickness );
   },
   getArc: function(){
 
@@ -7086,30 +7189,42 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
   setDepObjectPosition: function(){
     
     this.depObject.position.copy( this.wall.localToWorld(this.position.clone()) );
+    this.depObject.position.add( this.wall.direction90.clone().multiplyScalar( this.slope ) );//смещение по откосу
+    
     this.depObject.rotation.y =  Math.PI - this.rotation.z;
     this.depObject.position.y = this.depObject.position.y  - this.wall.height - this.top_offset  + this.elevation;
+
 
   },
   setDepObjectSize: function(){
 
+    if( this.depObject.children[0].scale.x  != 1 ){
+      this.depObject.children[0].scale.set(1,1,1);
+    }
+    this.depObject.updateMatrix();
+
     this.depObject.children[0].geometry.computeBoundingBox();
     var box = this.depObject.children[0].geometry.boundingBox;
 
-    var height = Math.abs( box.max.applyMatrix4( this.depObject.matrixWorld ).y - box.min.applyMatrix4( this.depObject.matrixWorld ).y );
-    var width = Math.abs( box.max.applyMatrix4( this.depObject.matrixWorld ).x - box.min.applyMatrix4( this.depObject.matrixWorld ).x );
 
-
-    if( ! this.depObject.children[0].scale.x){
-      this.depObject.children[0].scale.set(1,1,1);
-    }
-    var koef_height = height * this.depObject.children[0].scale.y / (this.height - 1);
-    var koef_width = width * this.depObject.children[0].scale.x / (this.width - 1);
+    var height = Math.abs( box.max.y - box.min.y );
+    var width = Math.abs( box.max.x - box.min.x );
+    
+    var koef_height = height * this.depObject.children[0].scale.y / (this.height);
+    var koef_width = width * this.depObject.children[0].scale.x / (this.width);
 
     var X = this.depObject.children[0].scale.x / koef_width ;
     var Y = this.depObject.children[0].scale.y / koef_height ;
 
     this.depObject.children[0].scale.set( X, Y, X < Y ? X : Y );
+    window.console.log(this.depObject.children[0].scale);
 
+  },
+  setDepObjectThickness: function(w){
+    if( w <= this.wall.width){
+      this.depObject_thickness = w;
+    }
+    
   },
   setDepObjectLocation: function(location){
 
@@ -7183,6 +7298,10 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
   removeDepObject: function(){
     if(this.depObject)
     scene.remove( this.depObject );
+  },
+
+  getSlope: function(){
+    return Math.abs( this.thickness - this.depObject_thickness );
   },
   
 
@@ -7286,6 +7405,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
     if(this.depObject){
       this.setDepObjectSize();
+      this.slope = this.getSlope();
       this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
       this.setDepObjectPosition();
     }
@@ -7344,6 +7464,9 @@ function WindowBlock( wall, parameters ){
   this.lkmMenu = '.TwoStateSwitcher';
   this.rkmMenu = '.DoorwayMenu';
 
+  this.depObject_thickness = parameters.hasOwnProperty("window_thickness") ? parameters["window_thickness"] : 60;
+  this.slope = parameters.hasOwnProperty("slope") ? parameters["slope"] : this.getSlope();
+
 }
 WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
 
@@ -7400,18 +7523,23 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
   },
   setDepObjectSize: function(){
 
+    if( this.depObject.children[0].scale.x != 1 ){
+      this.depObject.children[0].scale.set(1,1,1);
+    }
+
     this.depObject.children[0].geometry.computeBoundingBox();
     var box = this.depObject.children[0].geometry.boundingBox;
 
-    var height = Math.abs( box.max.applyMatrix4( this.depObject.matrixWorld ).y - box.min.applyMatrix4( this.depObject.matrixWorld ).y );
-    var width = Math.abs( box.max.applyMatrix4( this.depObject.matrixWorld ).x - box.min.applyMatrix4( this.depObject.matrixWorld ).x );
+
+    var height = Math.abs( box.max.y - box.min.y );
+    var width = Math.abs( box.max.x - box.min.x );
 
 
     if( ! this.depObject.children[0].scale.x){
       this.depObject.children[0].scale.set(1,1,1);
     }
-    var koef_height = height * this.depObject.children[0].scale.y / (this.height - 1);
-    var koef_width = width * this.depObject.children[0].scale.x / (this.width - 1);
+    var koef_height = height * this.depObject.children[0].scale.y / (+this.height );
+    var koef_width = width * this.depObject.children[0].scale.x / (+this.width );
 
     var X = this.depObject.children[0].scale.x / koef_width;
     var Y = this.depObject.children[0].scale.y / koef_height;
@@ -7514,7 +7642,8 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
 
     if(this.depObject){
       this.setDepObjectSize();
-      this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
+      this.slope = this.getSlope();
+      this.setDepObjectLocation( this.location );//здесь необходим при изм размеров
       this.setDepObjectPosition();
     }
 
@@ -7537,6 +7666,9 @@ function DoubleDoorBlock( wall, parameters ){
 
   this.lkmMenu = '.TwoStateSwitcher';
   this.rkmMenu = '.DoorwayMenu';
+
+  this.depObject_thickness = parameters.hasOwnProperty("door_thickness") ? parameters["door_thickness"] : 100;
+  this.slope = parameters.hasOwnProperty("slope") ? parameters["slope"] : this.getSlope();
 
 }
 DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
@@ -7574,21 +7706,21 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
     switch (this.location) {
       case 1:
 
-        this.CGI.door.position.x = this.width/2 - this.door_thickness/2;
+        this.CGI.door.position.x = this.width/2 - this.CGI_door_thickness/2;
         this.CGI.door.position.y = this.width/4 + this.thickness/2 + 1;
 
-        this.CGI.door2.position.x = - this.width/2 + this.door_thickness/2;
+        this.CGI.door2.position.x = - this.width/2 + this.CGI_door_thickness/2;
         this.CGI.door2.position.y = this.width/4 + this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.prop_arc.ax = this.CGI.door.position.x + this.door_thickness/2;;
+        this.CGI.prop_arc.ax = this.CGI.door.position.x + this.CGI_door_thickness/2;;
         this.CGI.prop_arc.ay = this.thickness/2;
         this.CGI.prop_arc.xRadius = this.CGI.prop_arc.yRadius = this.width/2 - 2;
         this.CGI.prop_arc.aStartAngle = Math.PI/2;
         this.CGI.prop_arc.aEndAngle = Math.PI ;
 
         //параметры дуги
-        this.CGI.prop_arc2.ax = this.CGI.door2.position.x - this.door_thickness/2;;
+        this.CGI.prop_arc2.ax = this.CGI.door2.position.x - this.CGI_door_thickness/2;;
         this.CGI.prop_arc2.ay = this.thickness/2;
         this.CGI.prop_arc2.xRadius = this.CGI.prop_arc2.yRadius = this.width/2 - 2;
         this.CGI.prop_arc2.aStartAngle = 0;
@@ -7600,21 +7732,21 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
 
         break;
       case 3:
-        this.CGI.door.position.x = this.width/2 - this.door_thickness/2;
+        this.CGI.door.position.x = this.width/2 - this.CGI_door_thickness/2;
         this.CGI.door.position.y = -this.width/4 - this.thickness/2 + 1;
 
-        this.CGI.door2.position.x = - this.width/2 + this.door_thickness/2;
+        this.CGI.door2.position.x = - this.width/2 + this.CGI_door_thickness/2;
         this.CGI.door2.position.y = - this.width/4 - this.thickness/2 + 1;
 
         //параметры дуги
-        this.CGI.prop_arc.ax = this.CGI.door.position.x + this.door_thickness/2;;
+        this.CGI.prop_arc.ax = this.CGI.door.position.x + this.CGI_door_thickness/2;;
         this.CGI.prop_arc.ay = -this.thickness/2;
         this.CGI.prop_arc.xRadius = this.CGI.prop_arc.yRadius = this.width/2 - 2;
         this.CGI.prop_arc.aStartAngle = Math.PI;
         this.CGI.prop_arc.aEndAngle = Math.PI + Math.PI/2 ;
 
         //параметры дуги
-        this.CGI.prop_arc2.ax = this.CGI.door2.position.x - this.door_thickness/2;;
+        this.CGI.prop_arc2.ax = this.CGI.door2.position.x - this.CGI_door_thickness/2;;
         this.CGI.prop_arc2.ay = -this.thickness/2;
         this.CGI.prop_arc2.xRadius = this.CGI.prop_arc2.yRadius = this.width/2 - 2;
         this.CGI.prop_arc2.aStartAngle = Math.PI + Math.PI/2 ;
@@ -7629,7 +7761,7 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
 
   },
   getCGIDoorGeometry: function(){
-    return new THREE.PlaneBufferGeometry( this.width/2, this.door_thickness );
+    return new THREE.PlaneBufferGeometry( this.width/2, this.CGI_door_thickness );
   },
   getArc: function( prop ){
 
@@ -7676,15 +7808,15 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
     this.depObject.children[0].geometry.computeBoundingBox();
     var box = this.depObject.children[0].geometry.boundingBox;
 
-    var height = Math.abs( box.max.applyMatrix4( this.depObject.matrixWorld ).y - box.min.applyMatrix4( this.depObject.matrixWorld ).y );
-    var width = Math.abs( box.max.applyMatrix4( this.depObject.matrixWorld ).x - box.min.applyMatrix4( this.depObject.matrixWorld ).x );
+    var height = Math.abs( box.max.y - box.min.y );
+    var width = Math.abs( box.max.x - box.min.x );
 
 
     if( ! this.depObject.children[0].scale.x){
       this.depObject.children[0].scale.set(1,1,1);
     }
-    var koef_height = height * this.depObject.children[0].scale.y / (this.height - 1);
-    var koef_width = width * this.depObject.children[0].scale.x / (this.width - 1);
+    var koef_height = height * this.depObject.children[0].scale.y / (this.height );
+    var koef_width = width * this.depObject.children[0].scale.x / (this.width );
 
     var X = this.depObject.children[0].scale.x / koef_width;
     var Y = this.depObject.children[0].scale.y / koef_height;
@@ -7799,6 +7931,7 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
 //    this.setDepObjectPosition();
     if(this.depObject){
       this.setDepObjectSize();
+      this.slope = this.getSlope();
       this.setDepObjectLocation(this.location);//здесь необходим при изм размеров
       this.setDepObjectPosition();
     }
