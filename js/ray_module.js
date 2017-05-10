@@ -204,7 +204,7 @@ function Editor(obj){
     if(obj.storageEnabled){
       //загрузка из localStorage
       if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
-//        window.localStorage.removeItem( 'cad5');
+        window.localStorage.removeItem( 'cad5');
 
       try{
 
@@ -1285,6 +1285,7 @@ function initWallCreator(obj){
   var ray = new THREE.Ray();
   var pointHelper_material = new THREE.MeshBasicMaterial( {color: '#00FF00'} );
   var wallPointHelper_material = new THREE.MeshBasicMaterial( {color: 'red'} );
+  var isChanged = false;//контроль  изменения размера
 
   obj.enabled = false;
 //  obj.plane = null;
@@ -2052,11 +2053,25 @@ function initWallCreator(obj){
 
   function onKeydownDim( event ){
 
+    window.console.log(event);
+
       switch( event.keyCode ) {
         case 13: /*enter*/
-        document.removeEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
-        obj.lineHelperPointAdd();
-        obj.lineHelperAdd();
+          window.console.log('keydown-enter');
+        setTimeout(function(){
+          
+          if( ! isChanged ){
+            
+//            document.removeEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
+            obj.lineHelperPointAdd();
+            obj.lineHelperAdd();
+            
+          } else {
+            isChanged = false;
+          }
+          
+        })
+        
           break;
     }
 
@@ -2075,8 +2090,9 @@ function initWallCreator(obj){
     obj.lineHelperPointAdd();
     obj.lineHelperAdd();
     obj.hideDimensions();
+    isChanged = true;
 
-    document.addEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
+//    document.addEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
     
   }
 
@@ -3481,6 +3497,7 @@ function Dimension( param1, param2, plane, parameters ){
   this.onkeydown = function ( event ){
     if (!self.enabled)
       return false;
+//    event.preventDefault();
     
     switch( event.keyCode ) {
       case 46: /*del*/
