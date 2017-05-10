@@ -178,6 +178,7 @@ function Editor(obj){
   obj.saveOnLocalStorage = function(){
 
     var cad5 = {};
+    cad5.clear = clear;
     cad5.walls = [];
 
     scene.children.forEach(function(el){
@@ -204,15 +205,20 @@ function Editor(obj){
     if(obj.storageEnabled){
       //загрузка из localStorage
       if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
-        window.localStorage.removeItem( 'cad5');
-
+//        
       try{
 
           var json = localStorage.getItem("cad5");
 
-          if ( json ) {
+          if ( json  ) {
 
-            obj.parseJSON(json);
+            var cad5 = JSON.parse( json );
+
+            if( cad5.clear && cad5.clear == clear ){
+              obj.parseData( cad5 );
+            } else {
+              window.localStorage.removeItem( 'cad5' );
+            }
 
           }
            
@@ -228,9 +234,7 @@ function Editor(obj){
     }
   }
   
-  obj.parseJSON = function( json ){
-
-    var cad5 = JSON.parse( json );
+  obj.parseData = function( cad5 ){
 
     //СТЕНЫ
     var i = cad5.walls.length;
