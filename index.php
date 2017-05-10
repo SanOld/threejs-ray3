@@ -61,7 +61,7 @@
               </div>
             </div><!-- /.col-lg-1 -->
 
-            <div class="col-lg-2 mode2D">
+            <div class="col-lg-4 mode2D">
                 <div class="btn-group dropup wall_type">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Несущая <span class="caret"></span></button>
                   <ul class="dropdown-menu">
@@ -69,9 +69,7 @@
                     <li  data-type = "partition"><a>Перегородка</a></li>
                   </ul>
                 </div><!-- /btn-group -->
-            </div><!-- /.col-lg-3 -->
 
-            <div class="col-lg-2 mode2D">
                 <div class="btn-group dropup wall_action">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Не менять стену <span class="caret"></span></button>
                   <ul class="dropdown-menu">
@@ -80,15 +78,24 @@
                     <li data-type = "deinstallation"><a>Демонтаж</a></li>
                   </ul>
                 </div><!-- /btn-group -->
+
+            </div><!-- /.col-lg-3 -->
+
+            <div class="col-lg-2 mode2D">
+                
             </div><!-- /.col-lg-3 -->
             
-            <div class="col-lg-2">
-                <button type="button" class="btn btn-default" action="exportJSON">to JSON <i class="fa fa-fire" aria-hidden="true"></i></span></button>
-            </div><!-- /.col-lg-1 -->
+            
 
           </div>
         </div>
 
+  </div>
+  <div class="row">
+    <div class="col-lg-2 pull-right">
+        <button type="button" class="btn btn-default pull-right" action="cancel">Отмена</button>
+        <button type="button" class="btn btn-default pull-right" action="exportJSON">Ок</button>
+    </div><!-- /.col-lg-1 -->
   </div>
   </div>
 </nav>

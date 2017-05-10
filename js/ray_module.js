@@ -829,6 +829,12 @@ function initProjection(obj){
     $wallEditor.off();
     
   });
+  $('.footer').on('click','[action = cancel]',function(){
+
+    $wallEditor.off();
+    post_cancel();
+
+  });
 
   $('.footer').on('click','[action = hideWalls]',function(){
     
@@ -2052,8 +2058,6 @@ function initWallCreator(obj){
   }
 
   function onKeydownDim( event ){
-
-    window.console.log(event);
 
       switch( event.keyCode ) {
         case 13: /*enter*/
