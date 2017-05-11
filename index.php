@@ -89,6 +89,7 @@
             <ul class="dropdown-menu">
               <li  data-type = "main"><a>Несущая</a></li>
               <li  data-type = "partition"><a>Перегородка</a></li>
+              <li  data-type = "divider"><a>Разделитель зон</a></li>
             </ul>
         </div>
 

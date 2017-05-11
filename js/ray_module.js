@@ -4812,44 +4812,49 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   },
 
   addDoorway: function( type, parameters ){
-    var parameters = parameters || {};
-    var type = type || 'doorway';
-    var obj = null;
 
-    if( type == 'Doorway' ){
-      var obj = new Doorway(this, parameters);
-    } else if( type == 'Doorblock' ){
-      var obj = new Doorblock(this, parameters);
-    } else if( type == 'DoubleDoorBlock' ){
-      parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1800;
-      parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
-      var obj = new DoubleDoorBlock(this, parameters);
-    } else if( type == 'DoorblockFloor' ){
-      var obj = new DoorblockFloor(this, parameters);
-    } else if( type == 'DoubleDoorBlockFloor' ){
-      parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1800;
-      parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
-      var obj = new DoubleDoorBlockFloor(this, parameters);
-    } else if( type == 'WindowBlock' ){
-      parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1450;
-      parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 1450;
-      parameters["elevation"] = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 800;
-      var obj = new WindowBlock(this, parameters );
-    } else if( type == 'niche' ){
-		type = 'niche';
-//      var obj = new Doorblock(this);
-    } else if( type == 'arch' ){
-		type = 'arch';
-//      var obj = new Doorblock(this);
+    if(this.bearingType != 'divider'){
+
+      var parameters = parameters || {};
+      var type = type || 'doorway';
+      var obj = null;
+
+      if( type == 'Doorway' ){
+        var obj = new Doorway(this, parameters);
+      } else if( type == 'Doorblock' ){
+        var obj = new Doorblock(this, parameters);
+      } else if( type == 'DoubleDoorBlock' ){
+        parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1800;
+        parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
+        var obj = new DoubleDoorBlock(this, parameters);
+      } else if( type == 'DoorblockFloor' ){
+        var obj = new DoorblockFloor(this, parameters);
+      } else if( type == 'DoubleDoorBlockFloor' ){
+        parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1800;
+        parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
+        var obj = new DoubleDoorBlockFloor(this, parameters);
+      } else if( type == 'WindowBlock' ){
+        parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1450;
+        parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 1450;
+        parameters["elevation"] = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 800;
+        var obj = new WindowBlock(this, parameters );
+      } else if( type == 'niche' ){
+      type = 'niche';
+  //      var obj = new Doorblock(this);
+      } else if( type == 'arch' ){
+      type = 'arch';
+  //      var obj = new Doorblock(this);
+      }
+
+      this.doors.push(obj);
+      this.add( obj );
+      obj.activate();
+
+      $wallEditor.deactivateSelectControls();
+      $wallEditor.activateSelectControls();
+      $wallEditor.selected = obj;
+      
     }
-
-    this.doors.push(obj);
-    this.add( obj );
-    obj.activate();
-
-    $wallEditor.deactivateSelectControls();
-    $wallEditor.activateSelectControls();
-    $wallEditor.selected = obj;
 
   },
   removeDoorway: function( doorway ){
@@ -4893,6 +4898,11 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     if(self._wall){
       scene.add( self._wall );
+      self.visible = false;
+    }
+
+    //скрываем дивайдер
+    if(self.bearingType == 'divider'){
       self.visible = false;
     }
 
@@ -5408,6 +5418,11 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   changeBearingType: function( type ){
 
     this.bearingType = type;
+
+    if ( type == 'divider' ) {
+      this.width = 10;
+      $wallCreator.updateWalls();
+    }
 
   },
 
