@@ -3552,10 +3552,17 @@ function Dimension( param1, param2, plane, parameters ){
 
     self.editableField.off('change');
     self.editableField.on('change', function(){
-
+        this.value = eval(this.value);
         self.dispatchEvent( { type: 'edit', object: obj, value: + self.editableField.val()/current_unit.c } );
         self.editableField.off('change');
       });
+
+
+//self.editableField.on('keypress', function( event ){
+//  alert('keypress')
+//  alert(event.keyCode)
+//      alert(event.charCode)
+//})
 
     self.editableField.off('keydown');
     self.editableField.on('keydown', function( event ){
@@ -3565,9 +3572,31 @@ function Dimension( param1, param2, plane, parameters ){
         return;
       }
 
+      //валидация введенных символов
+      var allowedKeys = [8, 46, 13, 27];
+      var letters=' 1234567890.,+-*/';
+      var operators = '+-*/';
+      var key = event.keyCode;
+
+      var cond1 =  $.inArray(key, allowedKeys) > -1 || letters.indexOf(event.key) != -1;
+      var cond2 = operators.indexOf(this.value.slice(-1)) != -1 && operators.indexOf(event.key) != -1 ? false : true;
+      
+      if( cond1 && cond2 )  {
+
+      } else {
+//          alert('Недопустимый символ');
+//          this.value = this.value.slice(0, -1);
+          return false;
+      }
+
+
+
+
       self.dispatchEvent( { type: 'keydown', object: obj, keyCode: event.keyCode } );
 
       if( event.keyCode == 13 ){
+
+        
 
         self.unselect();
 
