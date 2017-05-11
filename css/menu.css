@@ -83,3 +83,9 @@ nav input{
     text-align: center;
     z-index: 90;
 }
+
+.input-group[class*=col-] {
+    float: none;
+    padding-right: 0;
+    padding-left: 0;
+}

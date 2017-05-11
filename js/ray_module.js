@@ -3553,16 +3553,10 @@ function Dimension( param1, param2, plane, parameters ){
     self.editableField.off('change');
     self.editableField.on('change', function(){
         this.value = eval(this.value);
-        self.dispatchEvent( { type: 'edit', object: obj, value: + self.editableField.val()/current_unit.c } );
+        self.dispatchEvent( { type: 'edit', object: obj, value: + this.value /current_unit.c } );
         self.editableField.off('change');
       });
 
-
-//self.editableField.on('keypress', function( event ){
-//  alert('keypress')
-//  alert(event.keyCode)
-//      alert(event.charCode)
-//})
 
     self.editableField.off('keydown');
     self.editableField.on('keydown', function( event ){
