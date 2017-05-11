@@ -2444,8 +2444,6 @@ function initWallEditor( obj ){
 
                 rooms.forEach(function( room, room_index ){
 
-
-
                   export_data.floors[0].rooms[ room_index ] =
                                                                 {
                                                                   "id": room.uuid,
@@ -2462,25 +2460,55 @@ function initWallEditor( obj ){
                                                                   "elements": []
                                                                 };
 
-                  room.walls.forEach(function(uuid){
+                  var j = room.walls.length;
+                  while (j--) {
 
-                  var item = scene.getObjectByProperty( 'uuid', uuid )
-                  //координаты
-                  if ( item.v11.distanceTo( item.v21 ) < item.v12.distanceTo( item.v22 ) ){
+                    var item = scene.getObjectByProperty( 'uuid', room.walls[j] );
+                    var next_item = scene.getObjectByProperty( 'uuid', room.walls[j-1] );
 
-                    var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-                    var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+                    next_item = next_item ? next_item : scene.getObjectByProperty( 'uuid', room.walls[ room.walls.length - 1 ] );
 
-                  } else {
+                    switch ( item.isNeighbor(next_item) ) {
+                      case 'v1':
 
-                    var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-                    var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+                        var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
 
-                  }
+                        if ( obj.isPointInCountur(room.walls, item.v11 ) ){
 
-                  var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
+                          var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
 
-                  //проемы
+                        } else if( obj.isPointInCountur(room.walls, item.v12 ) ) {
+
+                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+                          var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+
+                        }
+
+                        break;
+                      case 'v2':
+
+                        var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
+
+                        if ( obj.isPointInCountur(room.walls, item.v21 ) ){
+
+                          var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+
+                        } else if( obj.isPointInCountur(room.walls, item.v22 ) ) {
+
+                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+                          var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+
+                        }
+
+                        break;
+
+                    }
+
+
+
+                    //проемы
                   var openings = [];
                   item.doors.forEach(function(doorway){
 
@@ -2550,7 +2578,97 @@ function initWallEditor( obj ){
                                         }
                           )
 
-                })
+                  }
+
+//                  room.walls.forEach(function(uuid){
+//
+//                  var item = scene.getObjectByProperty( 'uuid', uuid )
+//                  //координаты
+//                  if ( item.v11.distanceTo( item.v21 ) < item.v12.distanceTo( item.v22 ) ){
+//
+//                    var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+//                    var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+//
+//                  } else {
+//
+//                    var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+//                    var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+//
+//                  }
+//
+//                  var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
+//
+//                  //проемы
+//                  var openings = [];
+//                  item.doors.forEach(function(doorway){
+//
+//                    var doorway_inner = {start: {x: +doorway.p_11.x.toFixed(2), y: +doorway.p_11.z.toFixed(2) }, end: {x: +doorway.p_21.x.toFixed(2), y: +doorway.p_21.z.toFixed(2) } };
+//                    var doorway_outer = {start: {x: +doorway.p_12.x.toFixed(2), y: +doorway.p_12.z.toFixed(2) }, end: {x: +doorway.p_22.x.toFixed(2), y: +doorway.p_22.z.toFixed(2) } };
+//                    var cellAngle = 0;
+//                    if(doorway.location){
+//                      switch (doorway.location) {
+//                        case 1:
+//                          cellAngle = 0;
+//                          break;
+//                        case 2:
+//                          cellAngle = 90;
+//                          break;
+//                        case 3:
+//                          cellAngle = 180;
+//                          break;
+//                        case 4:
+//                          cellAngle = 270;
+//                          break;
+//
+//                      }
+//                    }
+//
+//                    openings.push(
+//                                  {
+//                                    id: doorway.id,
+//                                    inner: doorway_inner,
+//                                    outer: doorway_outer,
+//                                    cellPosition: {
+//                                      x: 0,
+//                                      y: 0
+//                                    },
+//                                    cellAngle: cellAngle,
+//                                    flipped: false,
+//                                    type: doorway.json_type,
+//                                    systype: doorway.json_systype,
+//                                    height: doorway.height,
+//                                    heightAboveFloor: doorway.elevation,
+//                                    width: doorway.width,
+//                                    slope: doorway.slope,
+//                                    obj_thickness: doorway.depObject_thickness
+//                                  }
+//                                );
+//                  })
+//
+//                  export_data.floors[0].rooms[ room_index ].walls.push(
+//                                          {
+//                                          id: item.id,
+//                                          inner: inner,
+//                                          outer: outer,
+//                                          center: center,
+//                                          arcPath: null,
+//                                          mount_type: "",
+//                                          wall_length_mm: +item.getCurrentDimValue().toFixed(2),
+//                                          width_px: item.width,
+//                                          width_units: +(item.width * current_unit.c).toFixed(2),
+//                                          type: "bearing_wall",
+//                                          height: {
+//                                            start: +item.height.toFixed(2),
+//                                            end: +item.height.toFixed(2)
+//                                          },
+//                                          openings: openings,
+//                                          external_wall: item.external_wall,
+//                                          room_wall_num: item.number,
+//                                          outer_wall_num: item.outer_wall_num,
+//                                        }
+//                          )
+//
+//                })
                 })
 
                 callback( JSON.stringify(export_data) );
@@ -2610,7 +2728,6 @@ function initWallEditor( obj ){
           countur.length = countur.length - 1;
 
 
-
           var isClockWise = ! THREE.ShapeUtils.isClockWise(countur) ;
           
           var objArea = obj.getArea( countur );
@@ -2648,7 +2765,7 @@ function initWallEditor( obj ){
     return rooms;
 
   };
-  obj.getNodes = function(walls){
+  obj.getNodes = function( walls ){
 
     var nodes = {};
 
@@ -2672,7 +2789,7 @@ function initWallEditor( obj ){
     return nodes;
 
   };
-  obj.getPathes = function(walls){
+  obj.getPathes = function( walls ){
 
     var pathes = [];
 
@@ -2771,27 +2888,27 @@ function initWallEditor( obj ){
     })
 
   };
-  obj.ExclusionExternalChain = function(nodes, chains){
+  obj.ExclusionExternalChain = function( nodes, chains ){
 
     var toRemove = [];
 
-    chains.forEach(function(item, index){
+    chains.forEach( function( item, index ){
 
       var wall_uuid = item[0].wall_uuid;
       var wall = scene.getObjectByProperty ( 'uuid', wall_uuid );
 
       if( wall ){
-        if (obj.isWallInRoom(nodes, wall, item))
-			delete chains[index];
+        if ( obj.isWallInRoom( nodes, wall, item ) )
+			delete chains[ index ];
       }
     });
 
-    toRemove.forEach(function(item){
-      chains.splice(item,1);
+    toRemove.forEach( function( item ){
+      chains.splice( item, 1 );
     })
 
   };
-  obj.isWallInRoom = function(nodes, wall, chain){
+  obj.isWallInRoom = function( nodes, wall, chain ){
 
     //массив диний для проверки пересечения
     var objects = [];
@@ -2828,7 +2945,38 @@ function initWallEditor( obj ){
 
     return false;
   };
-  obj.getArea = function(countur){
+  obj.isPointInCountur = function(countur, point){
+    var objects = [];
+    // countur - массив wall uuid в комнате
+    countur.forEach(function(wall_uuid){
+
+      var wall = scene.getObjectByProperty ( 'uuid', wall_uuid );
+
+      var geometry = new THREE.Geometry();
+
+
+        geometry.vertices.push( wall.v1, wall.v2 );
+
+        var line = new THREE.Line(geometry);
+        objects.push( line );
+
+
+    })
+
+    //==========
+      obj.raycaster.ray.origin = point.clone();
+      obj.raycaster.ray.direction.copy( new THREE.Vector3(0, 0, 1) );
+
+      //=====================
+      //пересечение
+      var intersectObjects = obj.raycaster.intersectObjects(objects);
+      if( (intersectObjects.length % 2) != 0){
+        return true;
+      }
+
+      return false;
+  };
+  obj.getArea = function( countur ){
 
     var result = {};
     result.area = Math.abs( THREE.ShapeUtils.area( countur )* area_unit.c ).toFixed( area_accuracy_measurements );
@@ -2890,7 +3038,7 @@ function initWallEditor( obj ){
       item.material.visible = false;
     })
   };
-  obj.addCounturLine = function(chain, nodes){
+  obj.addCounturLine = function( chain, nodes ){
     chain.forEach(function(item){
 
       var geometry = new THREE.Geometry();
@@ -2955,7 +3103,7 @@ function initWallEditor( obj ){
     })
 
   };
-  obj.setRoomWallNumbers = function(rooms){
+  obj.setRoomWallNumbers = function( rooms ){
 
     rooms.forEach(function( room, room_index ){
 
@@ -3028,7 +3176,7 @@ function initWallEditor( obj ){
 
 
   };
-  obj.isWallHasDoor = function(wall){
+  obj.isWallHasDoor = function( wall ){
     
     var i = wall.doors.length;
 
@@ -3043,7 +3191,7 @@ function initWallEditor( obj ){
     return false;
 
   };
-  obj.defineFreeRoom = function(rooms){
+  obj.defineFreeRoom = function( rooms ){
 
     var walls = obj.walls.slice();
 
@@ -3106,12 +3254,12 @@ function initWallEditor( obj ){
       item.outer_wall_num = 0;
     })
   };
-  obj.setOuterWallNumbers = function(rooms){
+  obj.setOuterWallNumbers = function( rooms ){
 
     //step1
     var outer_walls = [];
     
-    obj.walls.forEach(function (wall, index, arr) {
+    obj.walls.forEach(function ( wall, index, arr ) {
 
       if( wall.external_wall ){
         outer_walls.push(wall);
@@ -5291,14 +5439,14 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     var i = this.mover.v1_neighbors.length;
     while (i--) {
       if(this.mover.v1_neighbors[i].wall.uuid == wall.uuid){
-        return true;
+        return 'v1';
       }
     }
 
     var i = this.mover.v2_neighbors.length;
     while (i--) {
       if(this.mover.v2_neighbors[i].wall.uuid == wall.uuid){
-        return true;
+        return 'v2';
       }
     }
     
@@ -9295,6 +9443,7 @@ function setFloorTexture(filename) {
 $('input[name="image_file"]').change(function() {
 	$('form[name="floor_plan_form"]').submit();
 });
+
 
 
 
