@@ -6413,7 +6413,7 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
     var worldPosition = this.position.clone().multiply( new THREE.Vector3(1,0,1) );
 
     //по точке v1
-    if(worldPosition.equals(this.wall.v1) && this.wall.mover.v1_neighbors.length == 1){
+    if(worldPosition.equals(this.wall.v1) && (this.wall.mover.v1_neighbors.length == 1 || !this.wall.mover) ){
 
 //      var dot = this.wall.direction.clone().dot ( this.wall.mover.v1_neighbors[0].wall.direction.clone() );
 
@@ -6441,7 +6441,7 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
     }
 
     //по точке v2
-    if(worldPosition.equals(this.wall.v2) && this.wall.mover.v2_neighbors.length == 1){
+    if(worldPosition.equals(this.wall.v2) && (this.wall.mover.v2_neighbors.length == 1 || !this.wall.mover)){
 
 //      var dot = this.wall.direction.clone().dot ( this.wall.mover.v2_neighbors[0].wall.direction.clone() );
 
