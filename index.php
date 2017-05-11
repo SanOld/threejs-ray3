@@ -83,7 +83,7 @@
 
     <div class="row">
 
-      <div class="col-lg-2 objParams" style="display: none">
+      <div class="col-lg-3 objParams" style="display: none">
         <div class="btn-group dropup wall_type">
             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Несущая <span class="caret"></span></button>
             <ul class="dropdown-menu">
