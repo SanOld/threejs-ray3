@@ -70,3 +70,16 @@
 .dim-arrow.active {
   background-color: #64b26d;
 }
+
+nav input{
+    padding: 2px 0px;
+    position: absolute;
+    display: block;
+    width: 100px !important;
+    height: 20px;
+    line-height: 20px;
+    font-size: 14px;
+    text-indent: 0;
+    text-align: center;
+    z-index: 90;
+}

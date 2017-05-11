@@ -691,7 +691,9 @@ function initProjection(obj){
 
     if( type && type != '' ){
 
-      var part = $('.wall_type').find('[data-type = ' + type + ']').find('a').text()
+      $('.wall_type').show();
+
+      var part = $('.wall_type').find('[data-type = ' + type + ']').find('a').text();
       $('.wall_type').find('button').html( part + ' <span class="caret"></span>' );
 
     }
@@ -700,6 +702,8 @@ function initProjection(obj){
   obj.setWallAction = function( action ){
 
     if( action && action != '' ){
+
+      $('.wall_action').show();
 
       var part = $('.wall_action').find('[data-type =' + action + ']').find('a').text();
       $('.wall_action').find('button').html( part + ' <span class="caret"></span>' );
@@ -710,19 +714,25 @@ function initProjection(obj){
 
   obj.showObjParams = function( parameters ){
 
-    $('.objParams').show();
+//    $('.objParams').show();
+    var elements = $('.objParams').children();
 
-    var height = parameters.hasOwnProperty("height") ? parameters["height"] : '';
-    var width = parameters.hasOwnProperty("width") ? parameters["width"] : '';
-    var depObject_thickness = parameters.hasOwnProperty("depObject_thickness") ? parameters["depObject_thickness"] : '';
-    var elevation = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : '';
-    var slope = parameters.hasOwnProperty("slope") ? parameters["slope"] : '';
+    //скрываем все параметры
+    var i = elements.length;
+    while (i--) {
+      $(elements[i]).hide();
+    }
 
-    $('.objParams').find('[param = height]').val( height );
-    $('.objParams').find('[param = width]').val( width );
-    $('.objParams').find('[param = depObject_thickness]').val( depObject_thickness );
-    $('.objParams').find('[param = elevation]').val( elevation );
-    $('.objParams').find('[param = slope]').val( slope );
+    //отображаем необходимые
+    for(var param in parameters){
+      $('.objParams').find('.' + param).show();
+      $('.objParams').find('span.' + param).text( parameters[ param ].label );
+      $('.objParams').find('[param = '+ param +']').val( parameters[ param ].val );
+
+      $('.objParams').find('.' + param).parent().show();
+    }
+
+
 
   }
   obj.hideObjParams = function( parameters ){
@@ -2340,17 +2350,24 @@ function initWallEditor( obj ){
 
     if( obj.selected.type == 'Wall'){
 
+      $projection.showObjParams({
+        height: {val: obj.selected.height, label: 'Высота'},
+        width: {val: obj.selected.width, label: 'Толщина'},
+        wall_type: {},
+        wall_action: {}
+      })
+
       $projection.setWallBearingTypeValue( obj.selected.bearingType );
       $projection.setWallAction( obj.selected.action );
 
     } else if( obj.selected.type == 'WindowBlock' || obj.selected.type == 'DoorblockFloor' || obj.selected.type == 'DoubleDoorBlockFloor' ){
 
       $projection.showObjParams({
-        height: obj.selected.height,
-        width: obj.selected.width,
-        depObject_thickness: obj.selected.depObject_thickness,
-        elevation: obj.selected.elevation,
-        slope: obj.selected.slope
+        height: {val: obj.selected.height, label: 'Высота'},
+        width: {val: obj.selected.width, label: 'Ширина'},
+        depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
+        elevation: {val: obj.selected.elevation, label: 'От пола'},
+        slope: {val: obj.selected.slope, label: 'Откос'}
       })
       
     }
@@ -3332,18 +3349,20 @@ function initWallEditor( obj ){
         var val = +$(this).val()/current_unit.c
 
         switch (param) {
-          case 'depObject_thickness':
-            obj.selected.setDepObjectThickness( val );
-            break;
 
+          case 'depObject_thickness':
+
+            obj.selected.setDepObjectThickness( val );
+
+            break;
           default:
+
             obj.selected[ param ] = val;
+            
             break;
         }
 
-        
-
-        obj.selected.wall.update();
+        obj.selected.wall ? obj.selected.wall.update() : obj.selected.update();
 
       }
 
@@ -3352,20 +3371,6 @@ function initWallEditor( obj ){
     }
 
   });
-
-//  $('.footer').on('keydown','[action = objWidth]',function(event){
-//
-//  });
-//  $('.footer').on('keydown','[action = objThickness]',function(event){
-//
-//  });
-//  $('.footer').on('keydown','[action = objElevation]',function(event){
-//
-//  });
-//  $('.footer').on('keydown','[action = objSlope]',function(event){
-
-//  });
-
 
 }
 $wallEditor = {};
