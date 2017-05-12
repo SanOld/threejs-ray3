@@ -112,6 +112,8 @@
         <input type="dim" class="form-control length" pattern="^[0-9]+$" param="length" title="Длина">
         <span class="input-group-addon depObject_thickness" >Толщина:</span>
         <input type="dim" class="form-control depObject_thickness" pattern="^[0-9]+$" param="depObject_thickness" title="Толщина">
+        <span class="input-group-addon thickness" >Толщина:</span>
+        <input type="dim" class="form-control thickness" pattern="^[0-9]+$" param="thickness" title="Толщина">
         <span class="input-group-addon elevation" >От пола:</span>
         <input type="dim" class="form-control elevation" pattern="^[0-9]+$" param="elevation" title="Высота от пола">
         <span class="input-group-addon slope" >Ширина откоса:</span>
@@ -149,6 +151,8 @@
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: -42.2584px; background-position: left -80px; opacity: 1; width: 40px; height: 40px;" action="remove" title="Удалить">
   </div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: 5px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="changeWidth" title="Толщина">
+  </div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40.8112px; top: 40.8112px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addNiche" title="Ниша">
   </div>
 
 

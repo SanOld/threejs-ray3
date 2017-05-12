@@ -260,6 +260,7 @@ function Editor(obj){
 
           switch (door.type) {
             case 'Doorway':
+            case 'Niche':
             case 'Doorblock':
             case 'DoorblockFloor':
             case 'WindowBlock':
@@ -768,6 +769,7 @@ function initProjection(obj){
 
   }
   function onKeyDownProjection ( event ){
+
     if (!obj.enabled)
       return false;
     if(event.ctrlKey || event.altKey) {
@@ -2337,8 +2339,6 @@ function initWallEditor( obj ){
   };
   obj.select = function(event){
 
-    
-
     if(obj.selected && obj.selected != event.object && ('unselect' in obj.selected)){
       obj.selected.unselect(event);
       
@@ -2370,7 +2370,15 @@ function initWallEditor( obj ){
         elevation: {val: obj.selected.elevation, label: 'От пола'},
         slope: {val: obj.selected.slope, label: 'Откос'}
       })
-      
+
+    } else if( obj.selected.type == 'Doorway' || obj.selected.type == 'Niche' ){
+      $projection.showObjParams({
+        height: {val: obj.selected.height, label: 'Высота'},
+        width: {val: obj.selected.width, label: 'Ширина'},
+        thickness: {val: obj.selected.thickness, label: 'Толщина'},
+        elevation: {val: obj.selected.elevation, label: 'От пола'},
+
+      })
     }
 
   };
@@ -3418,7 +3426,7 @@ function initWallEditor( obj ){
 		obj.selected.addDoorway('arch');
 	});
   $('.ActiveElementMenu').on('click', '[action = addNiche]', function(){
-		obj.selected.addDoorway('niche');
+		obj.selected.addDoorway('Niche');
 	});
   $('.ActiveElementMenu').on('click', '[action = scaleFloor]', function(event){
 
@@ -5011,9 +5019,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 1450;
         parameters["elevation"] = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 800;
         var obj = new WindowBlock(this, parameters );
-      } else if( type == 'niche' ){
-      type = 'niche';
-  //      var obj = new Doorblock(this);
+      } else if( type == 'Niche' ){
+        var obj = new Niche(this, parameters);
       } else if( type == 'arch' ){
       type = 'arch';
   //      var obj = new Doorblock(this);
@@ -6783,7 +6790,7 @@ function Doorway( wall, parameters ){
   this.drag =               function ( event ) {
 
     //скрываем меню выбора положения
-    self.hideMenuLKM();
+//    self.hideMenuLKM();
 
     var position = event.object.position.clone().projectOnVector (
                                           self.wall.worldToLocal ( self.wall.v2.clone() )
@@ -6797,6 +6804,9 @@ function Doorway( wall, parameters ){
 
     //вычисление смещения
     var vec = event.object.getWorldPosition().clone().sub(self.wall.v1.clone()).projectOnVector(self.wall.direction.clone());
+
+    if( self.offset != vec.length() ) self.hideMenuLKM();
+    
     self.offset = vec.length();
     var dot = vec.dot ( self.wall.direction.clone() )
 
@@ -6814,6 +6824,7 @@ function Doorway( wall, parameters ){
 	};
   this.dragend =            function ( event ) {
 //  alert('dragend дверного проема');
+
         controls.enabled = true;
         self.wall.mover.activate();
 
@@ -6905,7 +6916,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.doorwayBody.geometry = new THREE.BoxGeometry( this.width, this.height, this.wall.width + 1 );
   },
 
-  getCalculatePosition: function(){
+  getCalculatedPosition: function(){
 
     var result = new THREE.Vector3();
     result.copy( this.wall.worldToLocal(  this.wall.v1.clone().add( this.wall.direction.clone().multiplyScalar( this.offset ) ) ) );
@@ -6916,7 +6927,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   },
   setStartPosition: function(){
 
-    this.position.copy( this.getCalculatePosition() );
+    this.position.copy( this.getCalculatedPosition() );
 
     //поворот по стене
 
@@ -6973,7 +6984,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   },
 
   hideMenuLKM: function() {
-
+    $( this.lkmMenu ).css('display','none');
   },
   showMenuLKM: function(center){
 
@@ -7053,7 +7064,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
 	},
 
-  reverseWindingOrder: function(object3D) {
+  reverseWindingOrder: function( object3D ) {
 
     if (object3D.type === "Mesh" && object3D.geometry.faces) {
 
@@ -7117,7 +7128,11 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
   },
   calcDimensionsPoints: function(){
-    
+
+    //масштабируем для однозначного попадания луча
+    var scaleY = this.scale.y;
+    this.scale.setY(5);
+
     var Y = this.getWorldPosition().y;
 
     this.p11.copy( this.wall.v11.clone().add(new THREE.Vector3( 0, Y, 0)) );
@@ -7126,7 +7141,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.raycaster.ray.origin = this.p11.clone();
     this.raycaster.ray.direction = this.wall.direction.clone();
     var intersects = [];
-    intersects = this.raycaster.intersectObject(this);
+    intersects = this.raycaster.intersectObject( this );
     if(intersects.length > 0){
       this.p_11.copy( intersects[0].point );
     }
@@ -7134,7 +7149,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.raycaster.ray.origin = this.p21.clone();
     this.raycaster.ray.direction = this.wall.direction.clone().negate();
     var intersects = [];
-    intersects = this.raycaster.intersectObject(this);
+    intersects = this.raycaster.intersectObject( this );
     if(intersects.length > 0){
       this.p_21.copy( intersects[0].point );
     }
@@ -7145,7 +7160,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.raycaster.ray.origin = this.p12.clone();
     this.raycaster.ray.direction = this.wall.direction.clone();
     var intersects = [];
-    intersects = this.raycaster.intersectObject(this);
+    intersects = this.raycaster.intersectObject( this );
     if(intersects.length > 0){
       this.p_12.copy( intersects[0].point );
     }
@@ -7153,7 +7168,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.raycaster.ray.origin = this.p22.clone();
     this.raycaster.ray.direction = this.wall.direction.clone().negate();
     var intersects = [];
-    intersects = this.raycaster.intersectObject(this);
+    intersects = this.raycaster.intersectObject( this );
     if(intersects.length > 0){
       this.p_22.copy( intersects[0].point );
     }
@@ -7196,6 +7211,10 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
       this.p22.copy( intersects[0].point );
     }
 
+
+    //возвращаем значение масштаба
+    this.scale.setY( scaleY );
+
   },
   updateDimensions: function(){
     //перерасчет размеров
@@ -7226,6 +7245,117 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   }
 
 });
+//Ниша
+function Niche( wall, parameters ){
+
+  //свойство положения
+  this.start_location = parameters.hasOwnProperty("location") ? parameters["location"] : 1;
+  this.location = 1;
+
+  Doorway.apply( this, [wall, parameters] );
+
+  var parameters = parameters || {};
+  var self = this;
+
+  this.type = 'Niche';
+  this.name = 'niche';
+
+  this.json_type = 'niche';
+  this.json_systype = 'niche';
+
+
+  this.lkmMenu = '.TwoStateSwitcher';
+  this.rkmMenu = '.DoorwayMenu';
+
+  this.thickness = parameters.hasOwnProperty("thickness") ? parameters["thickness"] : this.wall.width/2;
+
+  
+  this.dragControls = null;
+
+  this.update();
+
+
+}
+Niche.prototype = Object.assign( Object.create( Doorway.prototype ),{
+  constructor: Niche,
+
+  rebuildGeometry: function() {
+
+    this.geometry = new THREE.BoxBufferGeometry( this.width, this.thickness+1, 1 );
+    this.doorwayBody.geometry = new THREE.BoxGeometry( this.width, this.height, this.thickness );
+  },
+  getCalculatedPosition: function(){
+    
+    switch (this.location) {
+      case 1:
+        var offset90 = this.wall.direction90.clone().multiplyScalar( this.wall.width/2 + 1 - this.thickness/2 );
+        break;
+        
+      case 3:
+        var offset90 = this.wall.direction90.clone().multiplyScalar( -(this.wall.width/2 + 1) + this.thickness/2 );
+        break;
+    }
+    
+    var result = new THREE.Vector3();
+    result.copy( this.wall.worldToLocal(  this.wall.v1.clone().add( this.wall.direction.clone().multiplyScalar( this.offset ) ).add( offset90 ) ) );
+    result.add( new THREE.Vector3(0,0,-(this.wall.height + this.top_offset)) );
+
+    return result;
+
+  },
+
+  showMenuLKM: function(center){
+
+    var elements =  $( this.lkmMenu ).find('.ActiveElementMenuAnimated');
+
+    //сбрасываем в ноль координаты для анимации
+    elements.each( function( i, item ){
+      item.style.left = 0;
+      item.style.top = 0;
+    })
+
+    //отображаем меню
+    $( this.lkmMenu ).css('display','block');
+    $( this.lkmMenu ).offset({top:center.y, left:center.x});
+
+
+    setTimeout(function(){
+      elements[0].style.left = $wallEditor.windowblockSwitcherCoord[0].left;
+      elements[0].style.top = $wallEditor.windowblockSwitcherCoord[0].top;
+
+      elements[1].style.left = $wallEditor.windowblockSwitcherCoord[1].left;
+      elements[1].style.top = $wallEditor.windowblockSwitcherCoord[1].top;
+    }, 50);
+
+  },
+
+  setLocation: function(location){
+    this.location = location || 1;
+  },
+
+
+
+  setDoorwayBodyPosition: function(){
+
+    this.doorwayBody.position.copy( this.wall.localToWorld(this.position.clone()) );
+    this.doorwayBody.rotation.y = - this.rotation.z;
+    this.doorwayBody.position.y = this.doorwayBody.position.y  - this.wall.height - this.top_offset + this.height/2 + this.elevation;
+
+  },
+
+  update: function(){
+
+    this.rebuildGeometry();
+
+    this.setStartPosition();
+
+    this.setDoorwayBodyPosition();
+
+    this.updateDimensions();
+
+  }
+  
+})
 //Дверной блок входной
 function Doorblock( wall, parameters ){
 
@@ -7403,7 +7533,6 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     this.depObject.children[0].geometry.computeBoundingBox();
     var box = this.depObject.children[0].geometry.boundingBox;
 
-
     var height = Math.abs( box.max.y - box.min.y );
     var width = Math.abs( box.max.x - box.min.x );
     
@@ -7414,7 +7543,6 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     var Y = this.depObject.children[0].scale.y / koef_height ;
 
     this.depObject.children[0].scale.set( X, Y, X < Y ? X : Y );
-    window.console.log(this.depObject.children[0].scale);
 
   },
   setDepObjectThickness: function(w){
@@ -7585,7 +7713,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
   update: function(){
 
-//    this.position.copy( this.getCalculatePosition() );
+//    this.position.copy( this.getCalculatedPosition() );
 //
 //    this.setDoorwayBodyPosition();
 //
@@ -8110,7 +8238,7 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
 
   update: function(){
 
-//    this.position.copy( this.getCalculatePosition() );
+//    this.position.copy( this.getCalculatedPosition() );
 
     Doorway.prototype.update.call(this);
 
@@ -9003,6 +9131,7 @@ DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
 	var _intersection = new THREE.Vector3();
 
 	var _selected = null, _hovered = null;
+  var _click = 0;
 
 	//
 
@@ -9031,7 +9160,7 @@ DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
 	}
 
 	function onDocumentMouseMove( event ) {
-
+    
 		event.preventDefault();
 
 		_mouse.x = ( event.clientX / _domElement.width ) * 2 - 1;
@@ -9049,7 +9178,13 @@ DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
 
 			}
 
-			scope.dispatchEvent( { type: 'drag', object: _selected } );
+      //проверка, что не просто клик
+      _click += 1;
+      if( event.which == 1 && _click > 1 ){
+        scope.dispatchEvent( { type: 'drag', object: _selected } );
+      }
+
+			
 
 //      _offset.copy( _intersection.clone() .sub( _selected.position ) );   //=============
 //      _offset.copy( _intersection ).sub( _selected.parent.localToWorld(_selected.position.clone()) );
@@ -9128,6 +9263,7 @@ DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
 	function onDocumentMouseUp( event ) {
 
 		event.preventDefault();
+    
 
 		if ( _selected ) {
 
