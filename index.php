@@ -29,7 +29,7 @@
                 <img class = "localImage" style="display: none">
             </div>-->
 
-            <div class="col-lg-4  mode2D">
+            <div class="col-lg-5  mode2D">
                 
                 <button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>
                 <img class = "localImage" style="display: none">
@@ -87,9 +87,9 @@
         <div class="btn-group dropup wall_type">
             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Несущая <span class="caret"></span></button>
             <ul class="dropdown-menu">
-              <li  data-type = "main"><a>Несущая</a></li>
-              <li  data-type = "partition"><a>Перегородка</a></li>
-              <li  data-type = "divider"><a>Разделитель зон</a></li>
+              <li  data-type = "bear_wall"><a>Несущая</a></li>
+              <li  data-type = "partition_wall"><a>Перегородка</a></li>
+              <!--<li  data-type = "divider"><a>Разделитель зон</a></li>-->
             </ul>
         </div>
 

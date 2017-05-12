@@ -89,7 +89,8 @@ function Editor(obj){
   obj.floor = null; //подложка
   
   obj.wallAction = [ 'notChangable', 'installation', 'deinstallation' ];
-  obj.wallBearingType = [ 'main' ,'partition' ]
+//  obj.wallBearingType = [ 'main' , 'partition', 'divider' ];
+  obj.wallBearingType = [ 'bear_wall' , 'partition_wall']
 
   obj.wallColors = {
     notChangable: projectionWallMaterial_black,
@@ -2566,7 +2567,8 @@ function initWallEditor( obj ){
                                           wall_length_mm: +item.getCurrentDimValue().toFixed(2),
                                           width_px: item.width,
                                           width_units: +(item.width * current_unit.c).toFixed(2),
-                                          type: "bearing_wall",
+                                          type: item.bearingType,
+                                          wall_action: item.wallAction,
                                           height: {
                                             start: +item.height.toFixed(2),
                                             end: +item.height.toFixed(2)
