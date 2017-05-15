@@ -120,18 +120,7 @@ function initMain()
 //	stats.domElement.style.zIndex = 100;
 //	container.appendChild( stats.domElement );
 	// LIGHT
-    var light1 = new THREE.PointLight(0xffffff);
-    light1.position.set(-10000, 5000, -10000);
-    var light2 = new THREE.PointLight(0xffffff);
-    light2.position.set(-10000, 5000, 10000);
-    var light3 = new THREE.PointLight(0xffffff);
-    light3.position.set(10000, 5000, 10000);
-    var light4 = new THREE.PointLight(0xffffff);
-    light4.position.set(10000, 5000, -10000);
-    var light5 = new THREE.PointLight(0xffffff);
-    light5.position.set(0, 5000, 0);
-
-    scene.add(light1, light2, light3, light4, light5);
+    
 
 
 	// SKYBOX/FOG

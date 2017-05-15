@@ -80,7 +80,6 @@
         </div> <!-- /.col-lg-6 -->
       </div>
 
-
     <div class="row">
 
       <div class="col-lg-3 objParams pull-left" style="display: none">
@@ -103,7 +102,7 @@
         </div>
       </div><!-- /.col-lg-3 -->
       
-      <div class="col-lg-4 input-group objParams pull-left" style="display: none">
+      <div class="col-lg-6 input-group objParams pull-left" style="display: none">
         <span class="input-group-addon  height" >Высота:</span>
         <input type="dim" class="form-control height" pattern="^[0-9]+$" param="height" title="Высота">
         <span class="input-group-addon width" >Ширина:</span>
@@ -119,6 +118,11 @@
         <span class="input-group-addon slope" >Ширина откоса:</span>
         <input type="dim" class="form-control slope" pattern="^[0-9]+$" param="slope" title="Откос" disabled>
       </div><!-- /.col-lg-4 -->
+        <div class="col-lg-1 input-group  objParams" style="display: none">
+            <input type="checkbox" class="form-control isEntryDoor"  param="isEntryDoor" title="Входная дверь" value="">
+            <span class="input-group-addon isEntryDoor " ></span>
+        </div>
+      </div>
 
       <div class="col-lg-2 pull-right">
           <button type="button" class="btn btn-default pull-right" action="cancel">Отмена</button>
@@ -132,13 +136,15 @@
 </body>
 
 <div class="ActiveElementMenu" style="top: 187px; left: 500px; display: none;">
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -80.8112px; top: 40.8112px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addSingleEntryDoorblock" title="Дверь входная">
+<!--  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -80.8112px; top: 40.8112px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addSingleEntryDoorblock" title="Дверь входная">
   </div>
   
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: -103.07px; top: 5px; background-position: left -160px; opacity: 1; width: 40px; height: 40px;" action="addDoubleEntryDoorblock" title="Двойная входная дверь">
-  </div>
+  </div>-->
 
-  <div target="_blank" ee="11" class="ActiveElementMenuAnimated" style="left: -103.07px; top: -42.2584px; background-position: left 0px; opacity: 1; width: 40px; height: 40px;" action="scaleFloor" title="Масштабировать чертеж">
+  <div target="_blank" ee="11" class="ActiveElementMenuAnimated" style="left: -103.07px; top: 5px; background-position: left 0px; opacity: 1; width: 40px; height: 40px;" action="scaleFloor" title="Масштабировать чертеж">
+  </div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -103.07px; top: -42.2584px; background-position: left -280px; opacity: 1; width: 40px; height: 40px;" action="addNiche" title="Ниша">
   </div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: -80.8112px; top: -80.8112px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="addWindow" title="Окно">
   </div>
@@ -150,10 +156,9 @@
   </div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: -42.2584px; background-position: left -80px; opacity: 1; width: 40px; height: 40px;" action="remove" title="Удалить">
   </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: 5px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="changeWidth" title="Толщина">
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: 5px; background-position: left -320px; opacity: 1; width: 40px; height: 40px;" action="changeWidth" title="Толщина">
   </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40.8112px; top: 40.8112px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addNiche" title="Ниша">
-  </div>
+  
 
 
 </div>

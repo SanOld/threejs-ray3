@@ -62,6 +62,13 @@ var acsWallMaterial = new THREE.MeshBasicMaterial({
       depthWrite: false,
       color: '#d5c7ac'//бежевый
     });
+var acsWallMaterial2 = new THREE.MeshLambertMaterial({
+      wireframe: false,
+      opacity: 0.8,
+      transparent: true,
+      depthWrite: false,
+      color: '#d5c7ac'
+    });
 
 var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
 
@@ -83,6 +90,8 @@ var area_accuracy_measurements = 2;
 //Редактор
 function Editor(obj){
 
+  obj.lights = [];
+
   obj.timerId = undefined; //id интервала сохранения
   obj.timeSaveInterval = 15000;//мс
   obj.storageEnabled = true;
@@ -101,7 +110,9 @@ function Editor(obj){
   obj.on = function(){
 
     obj.addFloor();
+    obj.addLight();
     obj.loadFromLocalStorage();
+    obj.setPositionLight();
 
     //активация
     obj.activate();
@@ -291,7 +302,22 @@ function Editor(obj){
     })
 
   }
+  obj.addLight = function(){
 
+    var light1 = new THREE.PointLight(0xffffff);
+    light1.position.set(-10000, 5000, -10000);
+    var light2 = new THREE.PointLight(0xffffff);
+    light2.position.set(-10000, 5000, 10000);
+    var light3 = new THREE.PointLight(0xffffff);
+    light3.position.set(10000, 5000, 10000);
+    var light4 = new THREE.PointLight(0xffffff);
+    light4.position.set(10000, 5000, -10000);
+    var light5 = new THREE.PointLight(0xffffff);
+    light5.position.set(0, 5000, 0);
+    
+    obj.lights.push(light1, light2, light3, light4, light5);
+    scene.add(light1, light3);
+  }
   obj.addFloor = function(){
 
     obj.floor = new Floor();
@@ -299,6 +325,17 @@ function Editor(obj){
 
     obj.floor.setLocation();
     
+  }
+  obj.setPositionLight = function(){
+
+
+
+    obj.lights[0].position.set( 0, floorHeight * 2 , 0 );
+    obj.lights[1].position.set( obj.floor.length, floorHeight * 2 , 0 );
+    obj.lights[2].position.set( obj.floor.length, floorHeight * 2 , obj.floor.width );
+    obj.lights[3].position.set( 0, floorHeight * 2 , obj.floor.width );
+
+    obj.lights[4].position.set( obj.floor.length/2, floorHeight  , obj.floor.width/2 );
   }
 
 
@@ -553,7 +590,7 @@ function initProjection(obj){
 
         $wallCreator.walls.forEach( function( item ){
 
-          item.material = acsWallMaterial;
+          item.material = acsWallMaterial2;
 
         })
 
@@ -727,9 +764,20 @@ function initProjection(obj){
 
     //отображаем необходимые
     for(var param in parameters){
+
+      if( parameters[ param ].hasOwnProperty('checked') ){
+
+        $('.objParams').find('[param = '+ param +']').prop('checked', parameters[ param ].checked );
+
+      } else {
+
+        $('.objParams').find('[param = '+ param +']').val( +parameters[ param ].val );
+        
+      }
+
       $('.objParams').find('.' + param).show();
       $('.objParams').find('span.' + param).text( parameters[ param ].label );
-      $('.objParams').find('[param = '+ param +']').val( parameters[ param ].val );
+      
 
       $('.objParams').find('.' + param).parent().show();
     }
@@ -1323,9 +1371,7 @@ function initWallCreator(obj){
 
   var currentWall = null; //стена над которой находится поинтер
   var intersectWalls = []; //стены под т-образное соединение
-  var ray = new THREE.Ray();
   var pointHelper_material = new THREE.MeshBasicMaterial( {color: '#00FF00'} );
-  var wallPointHelper_material = new THREE.MeshBasicMaterial( {color: 'red'} );
   var isChanged = false;//контроль  изменения размера
 
   obj.enabled = false;
@@ -1404,11 +1450,6 @@ function initWallCreator(obj){
     scene.add( obj.pointerHelper );
 
   }
-//  function pointerHelpersRemove(){
-//    obj.pointerHelpersArray.forEach( function( item ){
-//      scene.remove( item );
-//    })
-//  }
 
   obj.hideAllMenu = function(){
     
@@ -2096,7 +2137,7 @@ function initWallCreator(obj){
 
       switch( event.keyCode ) {
         case 13: /*enter*/
-          window.console.log('keydown-enter');
+
         setTimeout(function(){
           
           if( ! isChanged ){
@@ -2361,14 +2402,25 @@ function initWallEditor( obj ){
       $projection.setWallBearingTypeValue( obj.selected.bearingType );
       $projection.setWallAction( obj.selected.action );
 
-    } else if( obj.selected.type == 'WindowBlock' || obj.selected.type == 'DoorblockFloor' || obj.selected.type == 'DoubleDoorBlockFloor' ){
+    } else if( obj.selected.type == 'WindowBlock'){
 
       $projection.showObjParams({
         height: {val: obj.selected.height, label: 'Высота'},
         width: {val: obj.selected.width, label: 'Ширина'},
         depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
         elevation: {val: obj.selected.elevation, label: 'От пола'},
-        slope: {val: obj.selected.slope, label: 'Откос'}
+        slope: {val: obj.selected.slope, label: 'Откос'},
+      })
+
+    } else if( obj.selected.type == 'DoorblockFloor' || obj.selected.type == 'DoubleDoorBlockFloor' ){
+
+      $projection.showObjParams({
+        height: {val: obj.selected.height, label: 'Высота'},
+        width: {val: obj.selected.width, label: 'Ширина'},
+        depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
+        elevation: {val: obj.selected.elevation, label: 'От пола'},
+        slope: {val: obj.selected.slope, label: 'Откос'},
+        isEntryDoor: {checked: obj.selected.isEntryDoor, label: 'Входная дверь'}
       })
 
     } else if( obj.selected.type == 'Doorway' || obj.selected.type == 'Niche' ){
@@ -3496,6 +3548,16 @@ function initWallEditor( obj ){
   }
 
 });
+  $('.footer').on('change','[param][type = checkbox]',function(event){
+    
+    var param = $(this).attr('param');
+    var val = $(this).prop('checked');
+    if( obj.selected ){
+//      obj.selected[ param ] = val;
+      obj.selected.set(param, val);
+    }
+
+  });
   $('.footer').on('keydown','[param]',function(event){
 
     if(event.keyCode == 13 ){
@@ -7367,12 +7429,14 @@ function Doorblock( wall, parameters ){
   this.type = 'Doorblock';
   this.name = 'singleDoor';
   
-  this.json_type = 'entry_door';
-  this.json_systype = 'entry_door';
+  this.json_type = 'floorDoor';
+  this.json_systype = 'floorDoor';
 
 
   this.lkmMenu = '.FourStateSwitcher';
   this.rkmMenu = '.DoorwayMenu';
+
+  this.isEntryDoor = false;
 
   this.depObject_thickness = parameters.hasOwnProperty("door_thickness") ? parameters["door_thickness"] : 100;
   this.slope = parameters.hasOwnProperty("slope") ? parameters["slope"] : this.getSlope();
@@ -7396,6 +7460,33 @@ function Doorblock( wall, parameters ){
 Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
   constructor: Doorblock,
+
+    set: function( prop, val ){
+
+      switch (prop) {
+        case 'isEntryDoor':
+          this[ prop ] = val;
+
+          if(val){
+
+            this.json_type = 'entry_door';
+            this.json_systype = 'entry_door';
+            
+          } else {
+
+            this.json_type = 'floorDoor';
+            this.json_systype = 'floorDoor';
+
+          }
+
+          break;
+
+        default:
+          this[ prop ] = val;
+          break;
+      }
+
+  },
 
   addCGI: function(){
       //УГО двери
@@ -7516,7 +7607,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
   setDepObjectPosition: function(){
     
     this.depObject.position.copy( this.wall.localToWorld(this.position.clone()) );
-    this.depObject.position.add( this.wall.direction90.clone().multiplyScalar( this.slope ) );//смещение по откосу
+    this.depObject.position.add( this.wall.direction90.clone().multiplyScalar( this.wall.width/2 - this.slope ) );//смещение по откосу
     
     this.depObject.rotation.y =  Math.PI - this.rotation.z;
     this.depObject.position.y = this.depObject.position.y  - this.wall.height - this.top_offset  + this.elevation;
@@ -9179,10 +9270,10 @@ DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
 			}
 
       //проверка, что не просто клик
-      _click += 1;
-      if( event.which == 1 && _click > 1 ){
+//      _click += 1;
+//      if( event.which == 1 && _click > 1 ){
         scope.dispatchEvent( { type: 'drag', object: _selected } );
-      }
+//      }
 
 			
 
