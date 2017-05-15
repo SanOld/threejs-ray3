@@ -35,6 +35,9 @@
           if (mess && mess.cmd == 'put_data') {
             parentURL = event.originalEvent.origin;
             serverData = mess.data;
+            
+            init();
+            animate();
           }
         }
 
@@ -66,6 +69,8 @@
     }
 
 
+
+
 // standard global variables
 var container, scene, camera, renderer, controls, stats, selection;
 //var keyboard = new THREEx.KeyboardState();
@@ -76,10 +81,6 @@ var rendererStats;
 var mouse = new THREE.Vector2();
 var offset = new THREE.Vector3()
 
-
-
-init();
-animate();
 
 function initMain()
 {
