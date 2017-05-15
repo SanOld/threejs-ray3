@@ -3,12 +3,7 @@
 <head>
 <?php include('hash.php'); ?>  
 <?php include('head.php'); ?>
-<?php include('params.php'); ?>
 </head>
-
-<script>
-  var clear = "<?php echo $clear; ?>"
-</script>
 
 <body id="bd">
   

@@ -2,6 +2,7 @@
 // MAIN
 
 	var parentURL = '*';
+  var serverData = null; //данные для инициализации
 
 	window.onbeforeunload = function() {  
 		//console.log('unload widget');
@@ -33,6 +34,7 @@
 
           if (mess && mess.cmd == 'put_data') {
             parentURL = event.originalEvent.origin;
+            serverData = mess.data;
           }
         }
 

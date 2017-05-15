@@ -96,6 +96,7 @@ function Editor(obj){
   obj.timeSaveInterval = 15000;//мс
   obj.storageEnabled = true;
   obj.floor = null; //подложка
+  obj.timeStamp = 0;
   
   obj.wallAction = [ 'notChangable', 'installation', 'deinstallation' ];
 //  obj.wallBearingType = [ 'main' , 'partition', 'divider' ];
@@ -111,7 +112,8 @@ function Editor(obj){
 
     obj.addFloor();
     obj.addLight();
-    obj.loadFromLocalStorage();
+    obj.loadData();
+//    obj.loadFromLocalStorage();
     obj.setPositionLight();
 
     //активация
@@ -187,65 +189,108 @@ function Editor(obj){
         return false;
       }
     }
-  obj.saveOnLocalStorage = function(){
+  obj.prepareDataToSave = function(){
 
+    var date = new Date();
     var cad5 = {};
-    cad5.clear = clear;
+
+    cad5.timeStamp = date.getTime();
+    if( ! cad5.id )(cad5.id = THREE.Math.generateUUID() )
     cad5.walls = [];
 
     scene.children.forEach(function(el){
-      
+
       if( el.type == 'Wall'){
 
         cad5.walls.push( JSON.stringify( el ) );
-        
+
       } else if( el.type == 'Floor' ){
 
         cad5.floor = JSON.parse( JSON.stringify( el ) );
         cad5.floor.images = '';
-        cad5.floor = JSON.stringify( cad5.floor )
+        cad5.floor = JSON.stringify( cad5.floor );
 
       }
 
     })
 
-    window.localStorage.setItem( 'cad5',  JSON.stringify( cad5 ) );
+    return JSON.stringify( cad5 );
 
   }
-  obj.loadFromLocalStorage = function(){
+  obj.saveOnLocalStorage = function(){
+
+    window.localStorage.setItem( 'cad5',  obj.prepareDataToSave() );
+
+  }
+
+  obj.loadData = function(){
+
+    var localData = obj.getLocalData();
+    var serverData = obj.getServerData();
+
+    switch (true) {
+
+      case ! serverData && !window.localStorage.getItem("cad5_new"):
+        window.localStorage.removeItem( 'cad5' );
+        window.localStorage.setItem( 'cad5_new',  true  );
+        break;
+
+      case (serverData instanceof Object) && (localData instanceof Object):
+
+        if( localData.id == serverData.id && localData.timeStamp > serverData.timeStamp ){
+          obj.parseData( localData );
+        } else {
+          obj.parseData( serverData );
+        }
+        window.localStorage.removeItem( 'cad5_new' );
+        break;
+
+      case (serverData instanceof Object) && !localData:
+        obj.parseData( serverData );
+        window.localStorage.removeItem( 'cad5_new' );
+        break;
+
+      case ! serverData && (localData instanceof Object):
+        obj.parseData( localData );
+        break;
+
+      default:
+        window.localStorage.removeItem( 'cad5' );
+        window.localStorage.setItem( 'cad5_new',  true  );
+        break;
+
+    }
+
 
     if(obj.storageEnabled){
-      //загрузка из localStorage
-      if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
-//        
-      try{
-
-          var json = localStorage.getItem("cad5");
-
-          if ( json  ) {
-
-            var cad5 = JSON.parse( json );
-
-            if( cad5.clear && cad5.clear == clear ){
-              obj.parseData( cad5 );
-            } else {
-              window.localStorage.removeItem( 'cad5' );
-            }
-
-          }
-           
-      } catch(e){
-        window.localStorage.removeItem( 'cad5');
-        window.console.warn('Ошибка при чтении данных из LocalStorage');
-      }
-
-      }
-
-    //сохранение в ls
       obj.localSavingOn();
     }
+
+
   }
-  
+  obj.getLocalData = function(){
+    if(obj.storageEnabled){
+      if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
+
+        var json = localStorage.getItem("cad5");
+
+        if ( json  ) {
+          var data = JSON.parse( json );
+          return data;
+        }
+      }
+    }
+
+    return false;
+  }
+  obj.getServerData = function(){
+    if( !obj.isEmptyObject( serverData ) ){
+      var data = JSON.parse( serverData );
+      return data;
+    }
+    return false;
+  }
+
   obj.parseData = function( cad5 ){
 
     //СТЕНЫ
@@ -444,6 +489,15 @@ function Editor(obj){
       var response = JSON.parse(response);
       callback( response );
     });
+  }
+
+  obj.isEmptyObject = function (obj) {
+    for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            return false;
+        }
+    }
+    return true;
   }
 
 }
@@ -2491,6 +2545,8 @@ function initWallEditor( obj ){
     $.getJSON("data/export_example.json", function(data) {
 
                 export_data = data;
+                export_data.drawing = $Editor.prepareDataToSave();
+                window.localStorage.setItem( 'cad5',  export_data.drawing  );
 
                 var rooms = obj.getRooms();
 
