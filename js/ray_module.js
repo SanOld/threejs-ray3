@@ -230,9 +230,8 @@ function Editor(obj){
 
     switch (true) {
 
-      case ! serverData && !window.localStorage.getItem("cad5_new"):
+      case ! serverData :
         window.localStorage.removeItem( 'cad5' );
-        window.localStorage.setItem( 'cad5_new',  true  );
         break;
 
       case (serverData instanceof Object) && (localData instanceof Object):
@@ -242,21 +241,18 @@ function Editor(obj){
         } else {
           obj.parseData( serverData );
         }
-        window.localStorage.removeItem( 'cad5_new' );
         break;
 
       case (serverData instanceof Object) && !localData:
         obj.parseData( serverData );
-        window.localStorage.removeItem( 'cad5_new' );
         break;
 
-      case ! serverData && (localData instanceof Object):
-        obj.parseData( localData );
-        break;
+//      case ! serverData && (localData instanceof Object):
+//        obj.parseData( localData );
+//        break;
 
       default:
         window.localStorage.removeItem( 'cad5' );
-        window.localStorage.setItem( 'cad5_new',  true  );
         break;
 
     }
