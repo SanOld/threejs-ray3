@@ -14,60 +14,59 @@
 		post_cancel();
 	};
 
-    $(function () {
+  $(function () {
 
-        $(document).keypress(function(e) {
-            if (e.keyCode == 119) {
-                post_ok();
-            }
-            if (e.keyCode == 27) {
-                post_cancel();
-            }
-        });
-
-        $(window).on("message onmessage", listener);
-		
-        parent.window.postMessage({message: {cmd: 'ready', data: {} }}, parentURL);
-
-        function listener(event) {
-          var mess = event.originalEvent.data.message;
-
-          if (mess && mess.cmd == 'put_data') {
-            parentURL = event.originalEvent.origin;
-            serverData = mess.data;
-            
-            init();
-            animate();
+      $(document).keypress(function(e) {
+          if (e.keyCode == 119) {
+              post_ok();
           }
-        }
+          if (e.keyCode == 27) {
+              post_cancel();
+          }
+      });
 
-    });
+      $(window).on("message onmessage", listener);
+
+      parent.window.postMessage({message: {cmd: 'ready', data: {} }}, parentURL);
+
+      function listener(event) {
+        var mess = event.originalEvent.data.message;
+
+        if (mess && mess.cmd == 'put_data') {
+          parentURL = event.originalEvent.origin;
+          serverData = mess.data;
+
+          init();
+          animate();
+        }
+      }
+
+  });
 
 	// на "OK" выходной джсон передается в заданное место (в тестовом варианте - на страницу документа)
-    function post_ok(data) {
-		if (data == undefined)
-		{
-			$wallEditor.on();
-			$wallEditor.getJSON(post_ok) ;
-			$wallEditor.off();
-		}
-		else
-		{
-			console.log(parentURL);
-			if (parentURL != '*')
-				parent.window.postMessage({message: {cmd: 'put_data', data: JSON.parse(data) }}, parentURL);
-			else {	
-				console.log('JSON:');
-				console.log(data);
-			}	
-		}
+  function post_ok(data) {
+  if (data == undefined)
+  {
+    $wallEditor.on();
+    $wallEditor.getJSON(post_ok) ;
+    $wallEditor.off();
+  }
+  else
+  {
+    console.log(parentURL);
+    if (parentURL != '*')
+      parent.window.postMessage({message: {cmd: 'put_data', data: JSON.parse(data) }}, parentURL);
+    else {
+      console.log('JSON:');
+      console.log(data);
     }
+  }
+  }
 
-    function post_cancel() {
+  function post_cancel() {
 		console.log(parentURL);
         parent.window.postMessage({message: {cmd: 'cancel'}}, parentURL);
     }
-
 
 
 
