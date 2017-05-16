@@ -1701,7 +1701,7 @@ function initWallCreator(obj){
 
     })
 
-    wallsNeedUpdate = true
+    wallsNeedUpdate = true;
     obj.updateWalls();
 
   }
@@ -1983,18 +1983,67 @@ function initWallCreator(obj){
         currentWall = null;
       }
 
-
       if( ! magnitObject.wall ){return;}
       
       //позиционирование хелпера указателя к осевой
       if( magnitObject.distanceToWallAxis < obj.magnitValue ){
 
         object.position.sub( magnitObject.wall.v1.clone() ).projectOnVector ( magnitObject.wall.v2.clone().sub(magnitObject.wall.v1.clone()) ).add(magnitObject.wall.v1.clone());
-//        object.position.x = magnitObject.itemOnWallAxis.x;
-//        object.position.z = magnitObject.itemOnWallAxis.z;
         currentWall = magnitObject.wall;//стена над которой находится поинтер
 
-      }
+      
+      
+      
+        var ray = new THREE.Ray(magnitObject.wall.v1, magnitObject.wall.direction);
+        var  optionalPointOnSegment = new THREE.Vector3();
+        var  optionalPointOnRay = new THREE.Vector3();
+
+      //позиционирование при смешанном совпадении
+        if(magnitObject.distanceZ < obj.magnitValue  &&
+           magnitObject.distanceZ < 2 * magnitObject.distanceToWallAxis &&
+           magnitObject.wall.direction.clone().cross(new THREE.Vector3(1,0,0)).length()){
+
+          ray.distanceSqToSegment (
+              new THREE.Vector3(-100000,0,magnitObject.itemZ.z),
+              new THREE.Vector3( 100000,0,magnitObject.itemZ.z),
+              optionalPointOnRay,
+              optionalPointOnSegment );
+
+          if( optionalPointOnRay && Math.abs(optionalPointOnRay.x) != 100000 )
+          if( ! optionalPointOnRay.clone().round().equals( magnitObject.wall.v1.clone().round() ) &&
+              ! optionalPointOnRay.clone().round().equals( magnitObject.wall.v2.clone().round() )  ){
+            object.position.x =  optionalPointOnRay.x;
+            object.position.z = optionalPointOnRay.z;
+//            currentWall = magnitObject.wall;//стена над которой находится поинтер
+          }
+
+        }
+
+         //позиционирование при смешанном совпадении
+        if(magnitObject.distanceX < obj.magnitValue  &&
+           magnitObject.distanceX < 2 * magnitObject.distanceToWallAxis &&
+           magnitObject.wall.direction.clone().cross(new THREE.Vector3(0,0,1)).length()){
+
+          ray.distanceSqToSegment (
+              new THREE.Vector3(magnitObject.itemX.x,0,-100000),
+              new THREE.Vector3(magnitObject.itemX.x,0, 100000),
+              optionalPointOnRay,
+              optionalPointOnSegment );
+
+          if( optionalPointOnRay && Math.abs(optionalPointOnRay.z) != 100000)
+          if( ! optionalPointOnRay.clone().round().equals( magnitObject.wall.v1.clone().round() ) &&
+              ! optionalPointOnRay.clone().round().equals( magnitObject.wall.v2.clone().round() )  ){
+            object.position.x = optionalPointOnRay.x;
+            object.position.z = optionalPointOnRay.z;
+//            currentWall = magnitObject.wall;//стена над которой находится поинтер
+          }
+
+        }
+
+
+        }
+
+
 
       if( object.position.distanceTo( magnitObject.wall.v1 ) < obj.magnitValue ){
         object.position.copy( magnitObject.wall.v1.clone() );
