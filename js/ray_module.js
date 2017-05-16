@@ -480,11 +480,22 @@ function Editor(obj){
     });
   }
   obj.getPointerHelperPosition = function(data, callback){
-    $.get( "classes/getPointerHelperPosition.php", {data: JSON.stringify(data)} )
-    .done(function( response ) {
-      var response = JSON.parse(response);
-      callback( response );
+    
+    $.ajax({
+      url: "classes/getPointerHelperPosition.php",
+      type: "GET",
+      data: {data: JSON.stringify(data)},
+      async:false,
+      dataType: "json",
+      success: function success(res, textStatus, jqXHR) {
+        
+        callback( res );
+      },
+      error: function error(jqXHR, textStatus, errorThrown) {
+
+      }
     });
+
   }
 
   obj.isEmptyObject = function (obj) {
@@ -849,6 +860,7 @@ function initProjection(obj){
   document.addEventListener( 'keyup', onKeyUpProjection, false );
 
   function onDocumentMouseDownProjection( event ){
+
     if (!obj.enabled)
       return false;
     event.preventDefault();
@@ -1423,6 +1435,7 @@ function initWallCreator(obj){
   var intersectWalls = []; //стены под т-образное соединение
   var pointHelper_material = new THREE.MeshBasicMaterial( {color: '#00FF00'} );
   var isChanged = false;//контроль  изменения размера
+  var wallsNeedUpdate = true;
 
   obj.enabled = false;
 //  obj.plane = null;
@@ -1528,12 +1541,16 @@ function initWallCreator(obj){
   }
   obj.updateWalls = function(){
 
-    obj.walls.forEach(function( item, i, arr ){
-      item.update( obj.walls );
-    })
+    if( wallsNeedUpdate ){
 
-    obj.calculateRooms();
-    
+      obj.walls.forEach(function( item, i, arr ){
+        item.update( obj.walls );
+      })
+
+      obj.calculateRooms();
+
+    }
+
   }
   obj.updateWallsNodes = function(){
 
@@ -1560,7 +1577,7 @@ function initWallCreator(obj){
       obj.reIndexWall();
 
       wall = null;
-      
+
       $wallCreator.updateWalls();
 
       obj.hideAllMenu();
@@ -1569,8 +1586,11 @@ function initWallCreator(obj){
     var vertices = vertices || [];
     var parameters = parameters || {width: obj.wall_width};
 
+    var needUpdate = parameters.hasOwnProperty("needUpdate") ? parameters["needUpdate"] : true;
+
     vertices[0] = parameters.hasOwnProperty("v1") ? parameters["v1"] : vertices[0].clone();
     vertices[1] = parameters.hasOwnProperty("v2") ? parameters["v2"] : vertices[1].clone();
+
 
     if( !parameters.auto_building )
     //проверка doubleclck и расстояние меньше половины ширины стены
@@ -1587,7 +1607,9 @@ function initWallCreator(obj){
 
       scene.add( wall );
 
-      obj.updateWalls();           //Обновляем состояние стен
+      if(needUpdate){
+        obj.updateWalls();           //Обновляем состояние стен
+      }
       obj.magnitVerticiesCreate(); //пересоздание магнитных точек
 
       $wallEditor.deactivateSelectControls();
@@ -1661,8 +1683,13 @@ function initWallCreator(obj){
 
           var vertices1 = [ item.wall.v1.clone(), item.point.clone() ];
           var vertices2 = [ item.point.clone(), item.wall.v2.clone() ];
-          var params = { width: item.wall.width, height: item.wall.height };
+          var params = { 
+            width: item.wall.width,
+            height: item.wall.height,
+            needUpdate: false
+          };
 
+          wallsNeedUpdate = false;
           item.wall.remove();
           item.wall = null;
           currentWall = null;
@@ -1673,6 +1700,9 @@ function initWallCreator(obj){
       }
 
     })
+
+    wallsNeedUpdate = true
+    obj.updateWalls();
 
   }
 
@@ -1917,8 +1947,8 @@ function initWallCreator(obj){
           result.distanceToWallAxis = distanceToWallAxis;
           result.itemOnWallAxis = pointOnAxis;
           result.wall = wall;
-          result.distanceToStart = pointOnAxis.distanceTo ( wall.axisLine.start );;
-          result.distanceToEnd = pointOnAxis.distanceTo ( wall.axisLine.end );;
+          result.distanceToStart = pointOnAxis.distanceTo ( wall.axisLine.start );
+          result.distanceToEnd = pointOnAxis.distanceTo ( wall.axisLine.end );
         }
     })
 
@@ -1935,11 +1965,12 @@ function initWallCreator(obj){
       obj.dashedLineRemoveAll();
 
       //позиционирование хелпера
-      var magnitObject = obj.getMagnitObject(pointer);
+      var magnitObject = obj.getMagnitObject( pointer );
       object.position.x = pointer.x;
-      object.position.z = pointer.z;
+      object.position.z = pointer.z;      
 
-      //позиционирование хелпера указателя к точкам
+      
+      //позиционирование хелпера указателя к линии точек
       if(magnitObject.distanceX < obj.magnitValue){
         object.position.x = magnitObject.itemX.x;
         obj.dashedLineAdd(object.position.clone(), magnitObject.itemX);
@@ -1952,63 +1983,32 @@ function initWallCreator(obj){
         currentWall = null;
       }
 
-      //позиционирование хелпера указателя к осевой
-      if(magnitObject.distanceToWallAxis < obj.magnitValue){
 
-        object.position.x = magnitObject.itemOnWallAxis.x;
-        object.position.z = magnitObject.itemOnWallAxis.z;
+      if( ! magnitObject.wall ){return;}
+      
+      //позиционирование хелпера указателя к осевой
+      if( magnitObject.distanceToWallAxis < obj.magnitValue ){
+
+        object.position.sub( magnitObject.wall.v1.clone() ).projectOnVector ( magnitObject.wall.v2.clone().sub(magnitObject.wall.v1.clone()) ).add(magnitObject.wall.v1.clone());
+//        object.position.x = magnitObject.itemOnWallAxis.x;
+//        object.position.z = magnitObject.itemOnWallAxis.z;
         currentWall = magnitObject.wall;//стена над которой находится поинтер
 
-        var ray = new THREE.Ray(magnitObject.wall.v1, magnitObject.wall.direction);
-        var  optionalPointOnSegment = new THREE.Vector3();
-        var  optionalPointOnRay = new THREE.Vector3();
+      }
 
-        //позиционирование при смешанном совпадении
-        if(magnitObject.distanceZ < obj.magnitValue  &&
-           magnitObject.distanceZ < 2 * magnitObject.distanceToWallAxis &&
-           magnitObject.wall.direction.clone().cross(new THREE.Vector3(1,0,0)).length()){
-
-          ray.distanceSqToSegment (
-              new THREE.Vector3(-100000,0,magnitObject.itemZ.z),
-              new THREE.Vector3( 100000,0,magnitObject.itemZ.z),
-              optionalPointOnRay,
-              optionalPointOnSegment );
-
-          if( optionalPointOnRay && Math.abs(optionalPointOnRay.x) != 100000 ){
-            object.position.x =  optionalPointOnRay.x;
-            object.position.z = optionalPointOnRay.z;
-//            currentWall = magnitObject.wall;//стена над которой находится поинтер
-          }
-
-        }
-        //позиционирование при смешанном совпадении
-        if(magnitObject.distanceX < obj.magnitValue  &&
-           magnitObject.distanceX < 2 * magnitObject.distanceToWallAxis &&
-           magnitObject.wall.direction.clone().cross(new THREE.Vector3(0,0,1)).length()){
-
-          ray.distanceSqToSegment (
-              new THREE.Vector3(magnitObject.itemX.x,0,-100000),
-              new THREE.Vector3(magnitObject.itemX.x,0, 100000),
-              optionalPointOnRay,
-              optionalPointOnSegment );
-
-          if( optionalPointOnRay && Math.abs(optionalPointOnRay.z) != 100000){
-            object.position.x = optionalPointOnRay.x;
-            object.position.z = optionalPointOnRay.z;
-//            currentWall = magnitObject.wall;//стена над которой находится поинтер
-          }
-
-        }
-
-
-
+      if( object.position.distanceTo( magnitObject.wall.v1 ) < obj.magnitValue ){
+        object.position.copy( magnitObject.wall.v1.clone() );
+      }
+      if( object.position.distanceTo( magnitObject.wall.v2 ) < obj.magnitValue ){
+        object.position.copy( magnitObject.wall.v2.clone() );
       }
 
   }
 
   /*===================*/
   function onDocumentMouseDownWallCreator( event ){
-    if (!obj.enabled)
+
+    if (!obj.enabled || event.target.localName != 'canvas')
       return false;
     event.preventDefault();
 
@@ -2056,6 +2056,9 @@ function initWallCreator(obj){
       obj.addDimension();
 
       obj.magnit( obj.pointerHelper, intersectObjects[0].point );
+//      obj.pointerHelper.position.x = intersectObjects[0].point.x
+//      obj.pointerHelper.position.z = intersectObjects[0].point.z
+
 
     }
 
@@ -3467,6 +3470,7 @@ function initWallEditor( obj ){
   };
 
   function onDocumentMouseDownWallEditor( event ){
+
     if (!obj.enabled)
       return false;
 //    event.preventDefault();
@@ -5001,7 +5005,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   },
 
   update: function( walls ){
-
+      var self = this;
       this.walls = walls || this.walls;
      
       //если изменилась ширина
@@ -5042,7 +5046,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         item.update();
       });
 
-      this.updateDimensions();
+
+      self.updateDimensions();
+
+      
 
   },
   remove: function(object){
