@@ -1742,15 +1742,21 @@ function initWallCreator(obj){
       case 0:
         if(isClick){
 
-          $Editor.getPointerHelperPosition(obj.pointerHelper.position, function(p){
-
-            var point = new THREE.Vector3(p.x, p.y, p.z);
+//          $Editor.getPointerHelperPosition(obj.pointerHelper.position, function(p){
+//
+//            var point = new THREE.Vector3(p.x, p.y, p.z);
+//
+//            obj.lineHelperGeometry.vertices[0] = point;
+//            intersectWalls[0] = {wall:currentWall, point:point};
+//            obj.magnitVerticies.push(point);//для примагничивания
+//
+//          });
+          
+          var point = new THREE.Vector3(obj.pointerHelper.position.x, obj.pointerHelper.position.y, obj.pointerHelper.position.z);
 
             obj.lineHelperGeometry.vertices[0] = point;
             intersectWalls[0] = {wall:currentWall, point:point};
             obj.magnitVerticies.push(point);//для примагничивания
-
-          });
 
         }
         break;
