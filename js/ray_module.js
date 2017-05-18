@@ -1015,7 +1015,7 @@ function initProjection(obj){
   
   $('.footer').on('click','[action = sceneToConsole]',function(event){
 
-    window.console.dir(scene);
+    window.console.dir(scene.children);
 
   });
   
@@ -3740,6 +3740,7 @@ function initWallEditor( obj ){
         }
 
         obj.selected.wall ? obj.selected.wall.update() : obj.selected.update();
+        $wallCreator.updateWalls();
 
       }
 
