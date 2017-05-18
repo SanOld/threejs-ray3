@@ -44,6 +44,7 @@
               <div class="btn-group">
                 <button style=" display: none;" type="button" class="btn btn-default" action="modeE" title="Режим - редактирование">E</button>
                 <!--<button type="button" class="btn btn-default" action="modeD" title="Режим - размеры">Размеры <span class="fa fa-expand"></span></button>-->
+                <button type="button" class="btn btn-default" action="sceneToConsole" title="">Scene <span class="fa fa-pencil"></span></button>
                 <button type="button" class="btn btn-default" action="modeC" title="Режим - создание стен">Стена <span class="fa fa-pencil"></span></button>
               </div>
             </div> <!-- /.col-lg-1 -->

@@ -1012,6 +1012,14 @@ function initProjection(obj){
     obj.toggleModeIn2D('dimension');
 
   });
+  
+  $('.footer').on('click','[action = sceneToConsole]',function(event){
+
+    window.console.dir(scene);
+
+  });
+  
+
 
   $('.wall_type').on('click','li',function(){
 
@@ -5339,7 +5347,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     var params = {
       direction: this.direction90,
-      offset_direction: 200,
+      offset_direction: self.width/2 + 100,
       editable: true,
       arrow: true,
       dragable: false,
@@ -5354,7 +5362,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     //по осевой
     var params = {
       direction: this.direction90,
-      offset_direction: 200,
+      offset_direction: self.width/2 + 100,
       editable: true,
       arrow: true,
       dragable: false,
@@ -5400,6 +5408,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       this.dimensions[0].const_direction = this.direction90;
       this.dimensions[1].const_direction = this.direction90.clone().negate();
       this.dimensions[2].const_direction = this.direction90;
+
+      this.dimensions[0].offset_direction = this.width/2 + 100;
+      this.dimensions[1].offset_direction = this.width/2 + 100;
+      this.dimensions[2].offset_direction = this.width/2 + 100;
     }
     
     this.dimensions.forEach(function(item){
@@ -6053,7 +6065,7 @@ function WallMover( wall ){
    * @param {type} Vector3 point
    * @returns {neighbors.wall|false}
    */
-  function isIntersect(neighbors, point){
+  function isIntersect( neighbors, point ){
 
     var result = false;
     var result1 = 1;
