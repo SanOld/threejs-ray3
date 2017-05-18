@@ -7133,6 +7133,13 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   getCalculatedPosition: function(){
 
     var result = new THREE.Vector3();
+
+    if ( this.wall.axisLength - this.width/2 < this.offset  ){
+      this.offset = this.wall.axisLength - this.width/2;
+    } else if( this.offset < this.width/2 ){
+      this.offset = this.width/2;
+    }
+    
     result.copy( this.wall.worldToLocal(  this.wall.v1.clone().add( this.wall.direction.clone().multiplyScalar( this.offset ) ) ) );
     result.add( new THREE.Vector3(0,0,-(this.wall.height + this.top_offset)) );
 
