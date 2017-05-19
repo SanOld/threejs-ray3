@@ -3323,14 +3323,20 @@ function initWallEditor( obj ){
   };
   obj.setRoomWallNumbers = function( rooms ){
 
-    rooms.forEach(function( room, room_index ){
+    rooms.forEach(function( room ){
 
       var index = room.walls.length;
+      var current_number = 1;
+      var wall = scene.getObjectByProperty( 'uuid', room.walls[ index-1 ] );
 
       while(index--){
 
-        var uuid = room.walls[ index ];
-        var wall = scene.getObjectByProperty( 'uuid', uuid );
+        if(index)
+        var next_wall = scene.getObjectByProperty( 'uuid', room.walls[ index-1 ] );
+
+        if(index == 0 && room.walls.length > 1)
+        var next_wall = scene.getObjectByProperty( 'uuid', room.walls[ room.walls.length-1 ] );
+
 
         if( obj.isWallHasDoor(wall) ){
 
@@ -3338,11 +3344,15 @@ function initWallEditor( obj ){
 
           if( room.isClockWise ){
 
-              //нумерация вперед
+            //нумерация вперед
             var current_number = 2;
             var i;
             for (i = index + 1; i < room.walls.length; i++) {
               var next_wall = scene.getObjectByProperty( 'uuid', room.walls[i] );
+              if( obj.isCollinear( wall, next_wall ) ){
+                current_number--;
+              }
+              wall = next_wall;
               next_wall.number = current_number;
               current_number++;
             }
@@ -3353,9 +3363,15 @@ function initWallEditor( obj ){
             if(index > 0)
             for (y = index - 1; y >= 0; y--) {
               var next_wall = scene.getObjectByProperty( 'uuid', room.walls[y] );
+              if( obj.isCollinear( wall, next_wall ) ){
+                current_number++;
+              }
+              wall = next_wall;
               next_wall.number = current_number;
               current_number--;
             }
+
+
 
 
           } else {
@@ -3365,6 +3381,10 @@ function initWallEditor( obj ){
             var i;
             for (i = index + 1; i < room.walls.length; i++) {
               var next_wall = scene.getObjectByProperty( 'uuid', room.walls[i] );
+              if( obj.isCollinear( wall, next_wall ) ){
+                current_number++;
+              }
+              wall = next_wall;
               next_wall.number = current_number;
               current_number--;
             }
@@ -3375,22 +3395,41 @@ function initWallEditor( obj ){
             if(index > 0)
             for (y = index - 1; y >= 0; y--) {
               var next_wall = scene.getObjectByProperty( 'uuid', room.walls[y] );
+              if( obj.isCollinear( wall, next_wall ) ){
+                current_number--;
+              }
+              wall = next_wall;
               next_wall.number = current_number;
+
               current_number++;
             }
+
+          }
+
+          var first = scene.getObjectByProperty( 'uuid', room.walls[0] );
+          var last = scene.getObjectByProperty( 'uuid', room.walls[room.walls.length-1] );
+          if( obj.isCollinear( first, last ) ){
+
+            last.number = first.number;
 
           }
 
           return;
 
         } else {
-          wall.number = index + 1;
+
+          if( obj.isCollinear( wall, next_wall ) ){
+            current_number--;
+          } 
+          wall.number = current_number;
+          wall = next_wall;
+          current_number++;
+              
         }
 
       }
 
     })
-
 
 
   };
@@ -3409,6 +3448,17 @@ function initWallEditor( obj ){
     return false;
 
   };
+  obj.isCollinear = function( w1, w2 ){
+
+    if( w1 && w2 )
+    if( Math.abs(w1.direction.clone().dot( w2.direction.clone() )) > 0.999 && w1.isNeighbor(w2) ){
+
+      return true;
+
+    }
+
+    return false;
+  }
   obj.defineFreeRoom = function( rooms ){
 
     var walls = obj.walls.slice();
