@@ -3325,6 +3325,24 @@ function initWallEditor( obj ){
     })
 
   };
+  obj.nextNeighborsCount = function ( neighbors, room_walls ){
+
+    var neighbors = neighbors || [];
+    var room_walls = room_walls || [];
+    var result = 0;
+
+    neighbors.forEach( function( neighbor ){
+
+      if( room_walls.indexOf( neighbor.wall.uuid ) != -1 ){
+
+        result += 1;
+        
+      }
+
+    })
+    return result;
+
+  };
   obj.setRoomWallNumbers = function( rooms ){
 
     //очистка нумерации
@@ -3363,8 +3381,18 @@ function initWallEditor( obj ){
 
                   var search_wall = scene.getObjectByProperty( 'uuid', room.walls[ i ] );
 
-                  if( wall && wall.isCollinear( search_wall ) && wall.isNeighbor( search_wall ) ){
-                    search_wall.number[room_index] = wall.number[room_index];
+                  if( wall && wall.isCollinear( search_wall )  ){
+                    switch (wall.isNeighbor( search_wall )) {
+                      case 'v1':
+                        if( obj.nextNeighborsCount (wall.mover.v1_neighbors, room.walls) == 1 )
+                        search_wall.number[room_index] = wall.number[room_index];
+                        break;
+                      case 'v2':
+                        if( obj.nextNeighborsCount (wall.mover.v2_neighbors, room.walls) == 1 )
+                        search_wall.number[room_index] = wall.number[room_index];
+                        break;
+
+                    }
                   }
 
                 }
@@ -3392,8 +3420,21 @@ function initWallEditor( obj ){
 
                   var search_wall = scene.getObjectByProperty( 'uuid', room.walls[ i ] );
 
-                  if( wall && wall.isCollinear( search_wall ) && wall.isNeighbor( search_wall ) ){
-                    search_wall.number[room_index] = wall.number[room_index];
+                  if( wall && wall.isCollinear( search_wall ) ){
+
+                    switch (wall.isNeighbor( search_wall )) {
+                      case 'v1':
+
+                        if( obj.nextNeighborsCount (wall.mover.v1_neighbors, room.walls) == 1 )
+                        search_wall.number[room_index] = wall.number[room_index];
+                        break;
+                      case 'v2':
+                        if( obj.nextNeighborsCount (wall.mover.v2_neighbors, room.walls) == 1 )
+                        search_wall.number[room_index] = wall.number[room_index];
+                        break;
+
+                    }
+
                   }
 
                 }
@@ -3430,8 +3471,21 @@ function initWallEditor( obj ){
 
             var search_wall = scene.getObjectByProperty( 'uuid', room.walls[ i ] );
 
-            if( wall && wall.isCollinear( search_wall ) && wall.isNeighbor( search_wall ) ){
-              search_wall.number[room_index] = wall.number[room_index];
+            if( wall && wall.isCollinear( search_wall ) ){
+
+              switch (wall.isNeighbor( search_wall )) {
+                case 'v1':
+                  if( obj.nextNeighborsCount (wall.mover.v1_neighbors, room.walls) == 1 )
+                  search_wall.number[room_index] = wall.number[room_index];
+                  break;
+                case 'v2':
+                  if( obj.nextNeighborsCount (wall.mover.v2_neighbors, room.walls) == 1 )
+                  search_wall.number[room_index] = wall.number[room_index];
+                  break;
+
+              }
+
+              
             }
 
           }
@@ -3535,11 +3589,13 @@ function initWallEditor( obj ){
 
     //step1
     var outer_walls = [];
+    var outer_walls_uuids = [];
     
     obj.walls.forEach(function ( wall, index, arr ) {
 
       if( wall.external_wall ){
-        outer_walls.push(wall);
+        outer_walls.push( wall );
+        outer_walls_uuids = wall.uuid;
       }
 
     })
@@ -3558,8 +3614,19 @@ function initWallEditor( obj ){
 
       outer_walls.forEach(function (item, index, arr) {
 
-        if( Math.abs(current_wall.isCollinear(item)) > 0.999 && current_wall.isNeighbor(item) ) {
-          item.outer_wall_num = current_wall.outer_wall_num;
+        if( Math.abs(current_wall.isCollinear(item)) > 0.999  ) {
+          switch (current_wall.isNeighbor(item)) {
+            case 'v1':
+              if( obj.nextNeighborsCount (current_wall.mover.v1_neighbors, outer_walls_uuids) == 1 )
+              item.outer_wall_num = current_wall.outer_wall_num;
+              break;
+            case 'v2':
+              if( obj.nextNeighborsCount (current_wall.mover.v2_neighbors, outer_walls_uuids) == 1 )
+              item.outer_wall_num = current_wall.outer_wall_num;
+              break;
+
+          }
+          
         }
 
       })
