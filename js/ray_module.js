@@ -2790,7 +2790,7 @@ function initWallEditor( obj ){
                                           },
                                           openings: openings,
                                           external_wall: item.external_wall,
-                                          room_wall_num: item.number,
+                                          room_wall_num: item.number[room_index],
                                           outer_wall_num: item.outer_wall_num,
                                         }
                           )
@@ -2938,7 +2938,11 @@ function initWallEditor( obj ){
               walls.push( item.wall_uuid );
             } else {
 
-              external_walls[ item.wall_uuid ] = false;//в случае внутренней перегородки
+              var wall = scene.getObjectByProperty( 'uuid', item.wall_uuid )
+
+              //в случае внутренней перегородки (но не "толстой" стены)
+              if( wall.mover.v1_neighbors.length == 0 || wall.mover.v2_neighbors.length == 0)
+              external_walls[ item.wall_uuid ] = false;
 
             }
 
@@ -3323,115 +3327,120 @@ function initWallEditor( obj ){
   };
   obj.setRoomWallNumbers = function( rooms ){
 
-    rooms.forEach(function( room ){
+    //очистка нумерации
+    obj.walls.forEach(function(item){
+      item.number = {};
+    })
 
-      var index = room.walls.length;
-      var current_number = 1;
-      var wall = scene.getObjectByProperty( 'uuid', room.walls[ index-1 ] );
+    //нумерация, если в цепочке есть стены с проемом
+    rooms.forEach(function( room, room_index ){
+      
+      for ( var y = 0; y < room.walls.length; y++) {
+        
+        var wall = scene.getObjectByProperty( 'uuid', room.walls[ y ] );
+        
+       //стена с проемом
+        if( obj.isWallHasDoor( wall ) ){
 
-      while(index--){
+          var current_number = 1;
+          
+          
+          //после y
+          for ( var index = y; index < room.walls.length; index++) {
 
-        if(index)
-        var next_wall = scene.getObjectByProperty( 'uuid', room.walls[ index-1 ] );
+              var wall = scene.getObjectByProperty( 'uuid', room.walls[ index ] );
 
-        if(index == 0 && room.walls.length > 1)
-        var next_wall = scene.getObjectByProperty( 'uuid', room.walls[ room.walls.length-1 ] );
+              if( ! wall.number[room_index] || wall.number[room_index] == ''){
 
-
-        if( obj.isWallHasDoor(wall) ){
-
-          wall.number = 1;
-
-          if( room.isClockWise ){
-
-            //нумерация вперед
-            var current_number = 2;
-            var i;
-            for (i = index + 1; i < room.walls.length; i++) {
-              var next_wall = scene.getObjectByProperty( 'uuid', room.walls[i] );
-              if( obj.isCollinear( wall, next_wall ) ){
-                current_number--;
-              }
-              wall = next_wall;
-              next_wall.number = current_number;
-              current_number++;
-            }
-
-            //нумерация  назад
-            var current_number = room.walls.length - 1;
-            var y;
-            if(index > 0)
-            for (y = index - 1; y >= 0; y--) {
-              var next_wall = scene.getObjectByProperty( 'uuid', room.walls[y] );
-              if( obj.isCollinear( wall, next_wall ) ){
+                wall.number[room_index] = current_number;
                 current_number++;
+
+              }  
+
+              for (var i = 0; i < room.walls.length; i++) {
+
+                if( index != i ){
+
+                  var search_wall = scene.getObjectByProperty( 'uuid', room.walls[ i ] );
+
+                  if( obj.isCollinear( wall, search_wall ) ){
+                    search_wall.number[room_index] = wall.number[room_index];
+                  }
+
+                }
               }
-              wall = next_wall;
-              next_wall.number = current_number;
-              current_number--;
-            }
 
-
-
-
-          } else {
-
-              //нумерация вперед
-            var current_number = room.walls.length - 1;
-            var i;
-            for (i = index + 1; i < room.walls.length; i++) {
-              var next_wall = scene.getObjectByProperty( 'uuid', room.walls[i] );
-              if( obj.isCollinear( wall, next_wall ) ){
-                current_number++;
-              }
-              wall = next_wall;
-              next_wall.number = current_number;
-              current_number--;
-            }
-
-            //нумерация  назад
-            var current_number = 2;
-            var y;
-            if(index > 0)
-            for (y = index - 1; y >= 0; y--) {
-              var next_wall = scene.getObjectByProperty( 'uuid', room.walls[y] );
-              if( obj.isCollinear( wall, next_wall ) ){
-                current_number--;
-              }
-              wall = next_wall;
-              next_wall.number = current_number;
-
-              current_number++;
-            }
 
           }
+          
+          
+          //до y
+          for ( var index = 0; index < y; index++) {
 
-          var first = scene.getObjectByProperty( 'uuid', room.walls[0] );
-          var last = scene.getObjectByProperty( 'uuid', room.walls[room.walls.length-1] );
-          if( obj.isCollinear( first, last ) ){
+              var wall = scene.getObjectByProperty( 'uuid', room.walls[ index ] );
 
-            last.number = first.number;
+              if( ! wall.number[room_index] || wall.number[room_index] == ''){
+
+                wall.number[room_index] = current_number;
+                current_number++;
+
+              }  
+
+              for (var i = 0; i < room.walls.length; i++) {
+
+                if( index != i ){
+
+                  var search_wall = scene.getObjectByProperty( 'uuid', room.walls[ i ] );
+
+                  if( obj.isCollinear( wall, search_wall ) ){
+                    search_wall.number[room_index] = wall.number[room_index];
+                  }
+
+                }
+              }
+
 
           }
-
+          
           return;
+        }
+      }
 
-        } else {
+    })
 
-          if( obj.isCollinear( wall, next_wall ) ){
-            current_number--;
-          } 
-          wall.number = current_number;
-          wall = next_wall;
+    //нумерация, если в цепочке нет стен с проемом
+    rooms.forEach(function( room, room_index ){
+
+      var current_number = 1;
+
+      for ( var index = 0; index < room.walls.length; index++) {
+
+        var wall = scene.getObjectByProperty( 'uuid', room.walls[ index ] );
+
+        if( ! wall.number[room_index] || wall.number[room_index] == ''){
+
+          wall.number[room_index] = current_number;
           current_number++;
-              
+
+        }  
+
+        for (var i = 0; i < room.walls.length; i++) {
+
+          if( index != i ){
+
+            var search_wall = scene.getObjectByProperty( 'uuid', room.walls[ i ] );
+
+            if( obj.isCollinear( wall, search_wall ) ){
+              search_wall.number[room_index] = wall.number[room_index];
+            }
+
+          }
         }
 
       }
 
     })
-
-
+    
   };
   obj.isWallHasDoor = function( wall ){
     
@@ -3450,7 +3459,7 @@ function initWallEditor( obj ){
   };
   obj.isCollinear = function( w1, w2 ){
 
-    if( w1 && w2 )
+    if( (w1 && w2) && (w1.uuid != w2.uuid) )
     if( Math.abs(w1.direction.clone().dot( w2.direction.clone() )) > 0.999 && w1.isNeighbor(w2) ){
 
       return true;
@@ -3519,7 +3528,7 @@ function initWallEditor( obj ){
   };
   obj.resetOuterWallNumber = function(){
     obj.walls.forEach(function (item, index, arr) {
-      item.outer_wall_num = 0;
+      item.outer_wall_num = 0
     })
   };
   obj.setOuterWallNumbers = function( rooms ){
@@ -4539,6 +4548,7 @@ function Wall( vertices, parameters ){
   this.walls = []//заполнение при обновлении
 
   this._wall = null; // объект стены с проемами
+  this.number = {};
   this.index = '';//присваивается в редакторе
   this.external_wall = true; //исп в json
   this.editableFieldWrapper =  $( '.EditableField' );
@@ -8072,7 +8082,7 @@ function DoorblockFloor( wall, parameters ){
   var self = this;
 
   this.type = 'DoorblockFloor';
-  this.name = 'DoorblockFloor';
+  this.name = 'singleDoor';
 
   this.json_type = 'floorDoor';
   this.json_systype = 'floorDoor';
