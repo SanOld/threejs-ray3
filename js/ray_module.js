@@ -3363,7 +3363,7 @@ function initWallEditor( obj ){
 
                   var search_wall = scene.getObjectByProperty( 'uuid', room.walls[ i ] );
 
-                  if( obj.isCollinear( wall, search_wall ) ){
+                  if( wall && wall.isCollinear( search_wall ) && wall.isNeighbor( search_wall ) ){
                     search_wall.number[room_index] = wall.number[room_index];
                   }
 
@@ -3392,7 +3392,7 @@ function initWallEditor( obj ){
 
                   var search_wall = scene.getObjectByProperty( 'uuid', room.walls[ i ] );
 
-                  if( obj.isCollinear( wall, search_wall ) ){
+                  if( wall && wall.isCollinear( search_wall ) && wall.isNeighbor( search_wall ) ){
                     search_wall.number[room_index] = wall.number[room_index];
                   }
 
@@ -3430,7 +3430,7 @@ function initWallEditor( obj ){
 
             var search_wall = scene.getObjectByProperty( 'uuid', room.walls[ i ] );
 
-            if( obj.isCollinear( wall, search_wall ) ){
+            if( wall && wall.isCollinear( search_wall ) && wall.isNeighbor( search_wall ) ){
               search_wall.number[room_index] = wall.number[room_index];
             }
 
@@ -3546,31 +3546,26 @@ function initWallEditor( obj ){
 
     //step2
     var outer_wall_num = 1;
-    while(outer_walls.length){
+    outer_walls.forEach(function (wall) {
 
-      var current_wall = outer_walls[0];
+      var current_wall = wall;
       if( ! current_wall.outer_wall_num ){
 
         current_wall.outer_wall_num = outer_wall_num;
-        outer_walls.splice(0,1);
-
-        outer_walls.forEach(function (item, index, arr) {
-
-          if( Math.abs(current_wall.direction.clone().dot( item.direction.clone() )) > 0.999 && current_wall.isNeighbor(item) ){
-            item.outer_wall_num = outer_wall_num;
-          }
-            
-        })
-
         outer_wall_num++;
 
-      } else {
-        outer_walls.splice(0,1);
-      }
-      
+      } 
 
-    }
+      outer_walls.forEach(function (item, index, arr) {
 
+        if( Math.abs(current_wall.isCollinear(item)) > 0.999 && current_wall.isNeighbor(item) ) {
+          item.outer_wall_num = current_wall.outer_wall_num;
+        }
+
+      })
+
+    });
+    
   };
 
   //===========
@@ -5748,6 +5743,17 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     
     return false;
   },
+  isCollinear: function( w2 ){
+
+    if(  w2 && (this.uuid != w2.uuid) )
+    if( Math.abs(this.direction.clone().dot( w2.direction.clone() )) > 0.999 ){
+
+      return true;
+
+    }
+
+    return false;
+  },
 
   setFloorScale: function( event ){
 
@@ -6547,7 +6553,7 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             item.node11.id = $wallEditor.isPointsNeighboors( self.wall.v12, item.v11, 1 ) ? self.wall.node12.id : item.node11.id;
             item.node12.id = $wallEditor.isPointsNeighboors( self.wall.v11, item.v12, 1 ) ? self.wall.node11.id : item.node12.id;
             break;
-          case $wallEditor.isPointsNeighboors( self.wall.v1, item.v2, 1  ):
+          case $wallEditor.isPointsNeighboors( self.wall.v1, item.v2, 1 ):
             arr = 'v1_neighbors';
             arg1 = 'v1';
             arg2 = 'v2';
@@ -6557,7 +6563,7 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             item.node22.id = $wallEditor.isPointsNeighboors( self.wall.v12, item.v22, 1 ) ? self.wall.node12.id : item.node22.id;
 
             break;
-          case $wallEditor.isPointsNeighboors( self.wall.v2, item.v1, 1  ):
+          case $wallEditor.isPointsNeighboors( self.wall.v2, item.v1, 1 ):
             arr = 'v2_neighbors';
             arg1 = 'v2';
             arg2 = 'v1';
@@ -6566,7 +6572,7 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
             item.node11.id = $wallEditor.isPointsNeighboors( self.wall.v21, item.v11, 1 ) ? self.wall.node21.id : item.node11.id;
             item.node12.id = $wallEditor.isPointsNeighboors( self.wall.v22, item.v12, 1 ) ? self.wall.node22.id : item.node12.id;
             break;
-          case $wallEditor.isPointsNeighboors( self.wall.v2, item.v2, 1  ):
+          case $wallEditor.isPointsNeighboors( self.wall.v2, item.v2, 1 ):
             arr = 'v2_neighbors';
             arg1 = 'v2';
             arg2 = 'v2';
@@ -6582,10 +6588,10 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
           self[arr].push({
               wall: item,
               point: item[arg2],
-              opposite_point: item[opposite_point],
+              opposite_point: item[ opposite_point ],
               line_segment: {
-                start: item[arg1].clone().add( item.direction.clone().negate().multiplyScalar(100000) ),
-                end: item[arg1].clone().add( item.direction.clone().multiplyScalar(100000) )
+                start: item[ arg1 ].clone().add( item.direction.clone().negate().multiplyScalar( 100000 ) ),
+                end: item[ arg1 ].clone().add( item.direction.clone().multiplyScalar( 100000 ) )
               }
   //            angle: angle
             })
