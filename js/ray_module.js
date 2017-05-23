@@ -3385,11 +3385,19 @@ function initWallEditor( obj ){
                     switch (wall.isNeighbor( search_wall )) {
                       case 'v1':
                         if( obj.nextNeighborsCount (wall.mover.v1_neighbors, room.walls) == 1 )
-                        search_wall.number[room_index] = wall.number[room_index];
+                        if( ! search_wall.number[room_index] ) {
+                          search_wall.number[room_index] = wall.number[room_index];
+                        } else {
+                          wall.number[room_index] = search_wall.number[room_index] ;
+                        }
                         break;
                       case 'v2':
                         if( obj.nextNeighborsCount (wall.mover.v2_neighbors, room.walls) == 1 )
-                        search_wall.number[room_index] = wall.number[room_index];
+                        if( ! search_wall.number[room_index] ) {
+                          search_wall.number[room_index] = wall.number[room_index];
+                        } else {
+                          wall.number[room_index] = search_wall.number[room_index] ;
+                        }
                         break;
 
                     }
@@ -3426,11 +3434,19 @@ function initWallEditor( obj ){
                       case 'v1':
 
                         if( obj.nextNeighborsCount (wall.mover.v1_neighbors, room.walls) == 1 )
-                        search_wall.number[room_index] = wall.number[room_index];
+                        if( ! search_wall.number[room_index] ) {
+                          search_wall.number[room_index] = wall.number[room_index];
+                        } else {
+                          wall.number[room_index] = search_wall.number[room_index] ;
+                        }
                         break;
                       case 'v2':
                         if( obj.nextNeighborsCount (wall.mover.v2_neighbors, room.walls) == 1 )
-                        search_wall.number[room_index] = wall.number[room_index];
+                        if( ! search_wall.number[room_index] ) {
+                          search_wall.number[room_index] = wall.number[room_index];
+                        } else {
+                          wall.number[room_index] = search_wall.number[room_index] ;
+                        }
                         break;
 
                     }
@@ -3444,6 +3460,9 @@ function initWallEditor( obj ){
           }
           
           return;
+        }
+        else{
+
         }
       }
 
@@ -3476,20 +3495,29 @@ function initWallEditor( obj ){
               switch (wall.isNeighbor( search_wall )) {
                 case 'v1':
                   if( obj.nextNeighborsCount (wall.mover.v1_neighbors, room.walls) == 1 )
-                  search_wall.number[room_index] = wall.number[room_index];
+                  if( ! search_wall.number[room_index] ) {
+                    search_wall.number[room_index] = wall.number[room_index];
+                  } else {
+                    wall.number[room_index] = search_wall.number[room_index] ;
+                  }
+                  
                   break;
                 case 'v2':
                   if( obj.nextNeighborsCount (wall.mover.v2_neighbors, room.walls) == 1 )
-                  search_wall.number[room_index] = wall.number[room_index];
+                  if( ! search_wall.number[room_index] ) {
+                    search_wall.number[room_index] = wall.number[room_index];
+                  } else {
+                    wall.number[room_index] = search_wall.number[room_index] ;
+                  }
                   break;
 
               }
-
               
             }
 
           }
         }
+
 
       }
 
@@ -3582,7 +3610,7 @@ function initWallEditor( obj ){
   };
   obj.resetOuterWallNumber = function(){
     obj.walls.forEach(function (item, index, arr) {
-      item.outer_wall_num = 0
+      item.outer_wall_num = 0;
     })
   };
   obj.setOuterWallNumbers = function( rooms ){
@@ -3595,7 +3623,7 @@ function initWallEditor( obj ){
 
       if( wall.external_wall ){
         outer_walls.push( wall );
-        outer_walls_uuids = wall.uuid;
+        outer_walls_uuids.push( wall.uuid );
       }
 
     })
@@ -3618,11 +3646,21 @@ function initWallEditor( obj ){
           switch (current_wall.isNeighbor(item)) {
             case 'v1':
               if( obj.nextNeighborsCount (current_wall.mover.v1_neighbors, outer_walls_uuids) == 1 )
-              item.outer_wall_num = current_wall.outer_wall_num;
+              if( ! item.outer_wall_num ) {
+                item.outer_wall_num = current_wall.outer_wall_num;
+              } else {
+                current_wall.outer_wall_num = item.outer_wall_num ;
+              }
+        
               break;
             case 'v2':
               if( obj.nextNeighborsCount (current_wall.mover.v2_neighbors, outer_walls_uuids) == 1 )
-              item.outer_wall_num = current_wall.outer_wall_num;
+              if( ! item.outer_wall_num ) {
+                item.outer_wall_num = current_wall.outer_wall_num;
+              } else {
+                current_wall.outer_wall_num = item.outer_wall_num ;
+              }
+
               break;
 
           }
