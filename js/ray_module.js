@@ -863,7 +863,7 @@ function initProjection(obj){
 
     if (!obj.enabled)
       return false;
-    event.preventDefault();
+//    event.preventDefault();
 
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
@@ -2599,7 +2599,13 @@ function initWallEditor( obj ){
     return false;
 
   };
-
+  obj.getWallsLength = function(){
+    var result = 0
+    obj.walls.forEach(function( item ){
+      result += item.axisLength;
+    })
+    return result;
+  }
 
 
   obj.getJSON = function(callback){
@@ -2611,6 +2617,8 @@ function initWallEditor( obj ){
                 window.localStorage.setItem( 'cad5',  export_data.drawing  );
 
                 var rooms = obj.getRooms();
+                var total_area = 0;
+               
 
                 obj.defineExternalWall( rooms );
                 obj.defineFreeRoom( rooms );
@@ -2618,9 +2626,13 @@ function initWallEditor( obj ){
                 obj.resetOuterWallNumber();
                 obj.setOuterWallNumbers( rooms );
 
+
                 rooms.forEach(function( room, room_index ){
 
-                export_data.floors[0].rooms[ room_index ] =
+                  window.console.log('room: ' + room.area );
+
+                  total_area += +room.area;
+                  export_data.floors[0].rooms[ room_index ] =
                                                               {
                                                                 "id": room.uuid,
                                                                 "furniture": [],
@@ -2640,17 +2652,31 @@ function initWallEditor( obj ){
                   while (j--) {
 
                     var item = scene.getObjectByProperty( 'uuid', room.walls[j] );
-                    var next_item = scene.getObjectByProperty( 'uuid', room.walls[j-1] );
-                    var prev_item = scene.getObjectByProperty( 'uuid', room.walls[j+1] );
 
-                    next_item = next_item ? next_item : scene.getObjectByProperty( 'uuid', room.walls[ room.walls.length - 1 ] );
-                    prev_item = prev_item ? prev_item : scene.getObjectByProperty( 'uuid', room.walls[ 0 ] );
 
+
+
+                    if( j == 0 ){
+                      var next_item = scene.getObjectByProperty( 'uuid', room.walls[ room.walls.length - 1 ] );
+                    } else {
+                      var next_item = scene.getObjectByProperty( 'uuid', room.walls[ j-1 ] );
+                    }
+
+                    if( j == room.walls.length - 1 ){
+                      var prev_item = scene.getObjectByProperty( 'uuid', room.walls[ 0 ] );
+                    } else {
+                      var prev_item = scene.getObjectByProperty( 'uuid', room.walls[j+1] );
+                    }
+
+
+                    var inner = null;
+                    var outer = null;
                     if ( item.isNeighbor( next_item ) == 'v1' ) {
 
                         var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
 
-                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
+//                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
+                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
 
                           var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
                           var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
@@ -2667,7 +2693,8 @@ function initWallEditor( obj ){
                       
                         var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
 
-                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
+//                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
+                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
 
                           var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
                           var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
@@ -2684,7 +2711,8 @@ function initWallEditor( obj ){
 
                         var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
 
-                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
+//                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
+                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
 
                           var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
                           var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
@@ -2701,7 +2729,8 @@ function initWallEditor( obj ){
 
                         var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
 
-                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
+//                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
+                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
 
                           var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
                           var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
@@ -2794,99 +2823,18 @@ function initWallEditor( obj ){
                                           outer_wall_num: item.outer_wall_num,
                                         }
                           )
+                  window.console.log('id: ' + item.id);
+                  window.console.log('inner: start: ' + inner.start.x + ' ' +inner.start.y);
+                  window.console.log('inner: end: ' + inner.end.x + ' ' +inner.end.y);
+//                  window.console.log("v1 - x: "+(item.v1.x) + " z: "+(item.v1.z));
+//                  window.console.log("v2 - x: "+(item.v2.x) + " z: "+(item.v2.z));
 
                   }
 
-//                  room.walls.forEach(function(uuid){
-//
-//                  var item = scene.getObjectByProperty( 'uuid', uuid )
-//                  //координаты
-//                  if ( item.v11.distanceTo( item.v21 ) < item.v12.distanceTo( item.v22 ) ){
-//
-//                    var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-//                    var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-//
-//                  } else {
-//
-//                    var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-//                    var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-//
-//                  }
-//
-//                  var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
-//
-//                  //проемы
-//                  var openings = [];
-//                  item.doors.forEach(function(doorway){
-//
-//                    var doorway_inner = {start: {x: +doorway.p_11.x.toFixed(2), y: +doorway.p_11.z.toFixed(2) }, end: {x: +doorway.p_21.x.toFixed(2), y: +doorway.p_21.z.toFixed(2) } };
-//                    var doorway_outer = {start: {x: +doorway.p_12.x.toFixed(2), y: +doorway.p_12.z.toFixed(2) }, end: {x: +doorway.p_22.x.toFixed(2), y: +doorway.p_22.z.toFixed(2) } };
-//                    var cellAngle = 0;
-//                    if(doorway.location){
-//                      switch (doorway.location) {
-//                        case 1:
-//                          cellAngle = 0;
-//                          break;
-//                        case 2:
-//                          cellAngle = 90;
-//                          break;
-//                        case 3:
-//                          cellAngle = 180;
-//                          break;
-//                        case 4:
-//                          cellAngle = 270;
-//                          break;
-//
-//                      }
-//                    }
-//
-//                    openings.push(
-//                                  {
-//                                    id: doorway.id,
-//                                    inner: doorway_inner,
-//                                    outer: doorway_outer,
-//                                    cellPosition: {
-//                                      x: 0,
-//                                      y: 0
-//                                    },
-//                                    cellAngle: cellAngle,
-//                                    flipped: false,
-//                                    type: doorway.json_type,
-//                                    systype: doorway.json_systype,
-//                                    height: doorway.height,
-//                                    heightAboveFloor: doorway.elevation,
-//                                    width: doorway.width,
-//                                    slope: doorway.slope,
-//                                    obj_thickness: doorway.depObject_thickness
-//                                  }
-//                                );
-//                  })
-//
-//                  export_data.floors[0].rooms[ room_index ].walls.push(
-//                                          {
-//                                          id: item.id,
-//                                          inner: inner,
-//                                          outer: outer,
-//                                          center: center,
-//                                          arcPath: null,
-//                                          mount_type: "",
-//                                          wall_length_mm: +item.getCurrentDimValue().toFixed(2),
-//                                          width_px: item.width,
-//                                          width_units: +(item.width * current_unit.c).toFixed(2),
-//                                          type: "bearing_wall",
-//                                          height: {
-//                                            start: +item.height.toFixed(2),
-//                                            end: +item.height.toFixed(2)
-//                                          },
-//                                          openings: openings,
-//                                          external_wall: item.external_wall,
-//                                          room_wall_num: item.number,
-//                                          outer_wall_num: item.outer_wall_num,
-//                                        }
-//                          )
-//
-//                })
                 })
+
+                export_data.floors[0].total_area = total_area;
+                export_data.floors[0].all_walls_lengths = obj.getWallsLength().toFixed(2);
 
                 callback( JSON.stringify(export_data) );
             });
@@ -2925,6 +2873,8 @@ function initWallEditor( obj ){
 
           chain.forEach(function( item ){
 
+//            window.console.log('chain: ' + item.wall_id);
+
             if( countur.length == 0 ){
               countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
               countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
@@ -2936,9 +2886,10 @@ function initWallEditor( obj ){
 
             if( walls.indexOf( item.wall_uuid ) == -1 ){
               walls.push( item.wall_uuid );
+//              window.console.log(item.wall_id);
             } else {
 
-              var wall = scene.getObjectByProperty( 'uuid', item.wall_uuid )
+              var wall = scene.getObjectByProperty( 'uuid', item.wall_uuid );
 
               //в случае внутренней перегородки (но не "толстой" стены)
               if( wall.mover.v1_neighbors.length == 0 || wall.mover.v2_neighbors.length == 0)
@@ -2956,7 +2907,9 @@ function initWallEditor( obj ){
 
           rooms.push({
                       id: THREE.Math.generateUUID(),
+                      nodes: nodes,
                       walls: walls,
+                      chain: chain,
                       external_walls: external_walls,
                       area: objArea.area,
                       area_coords: {x: objArea.coord.x, y: objArea.coord.z},
@@ -3021,14 +2974,10 @@ function initWallEditor( obj ){
                     id: item.uuid + '_11',
                     wall_uuid:item.uuid,
                     source: { id: item.node11.id },
-                    target: { id: item.node21.id }
+                    target: { id: item.node21.id },
+                    wall_id: item.id
                   });
-      pathes.push({
-                    id: item.uuid + '_12',
-                    wall_uuid:item.uuid,
-                    source: { id: item.node12.id },
-                    target: { id: item.node22.id }
-                  });
+
       //из исключения толстая тонкая
       if(item._e_path11){
 
@@ -3040,6 +2989,16 @@ function initWallEditor( obj ){
         pathes.push(item._e_path12);
 
       };
+
+      pathes.push({
+                    id: item.uuid + '_12',
+                    wall_uuid:item.uuid,
+                    source: { id: item.node12.id },
+                    target: { id: item.node22.id },
+                    wall_id: item.id
+                  });
+
+      //из исключения толстая тонкая
       if(item._e_path21){
 
         pathes.push(item._e_path21);
@@ -3057,7 +3016,8 @@ function initWallEditor( obj ){
                     id: item.uuid + '_01',
                     wall_uuid:item.uuid,
                     source: { id: item.node11.id },
-                    target: { id: item.node12.id }
+                    target: { id: item.node12.id },
+                    wall_id: item.id
                   });
       }
 
@@ -3066,7 +3026,8 @@ function initWallEditor( obj ){
                     id: item.uuid + '_02',
                     wall_uuid:item.uuid,
                     source: { id: item.node21.id },
-                    target: { id: item.node22.id }
+                    target: { id: item.node22.id },
+                    wall_id: item.id
                   });
       }
 
@@ -3092,18 +3053,18 @@ function initWallEditor( obj ){
   };
   obj.getChain = function( pathes, search_id, unit ){
 
-    pathes.forEach(function(path, index){
+    pathes.forEach(function( path, index ){
 
       if( path.source.id == search_id ){
-        unit.push(path);
-        pathes.splice(index, 1);
-        obj.getChain(pathes, path.target.id, unit);
+        unit.push( path );
+        pathes.splice( index, 1 );
+        obj.getChain( pathes, path.target.id, unit );
         return;
       }
       if( path.target.id == search_id ){
-        unit.push(path);
-        pathes.splice(index, 1);
-        obj.getChain(pathes, path.source.id, unit);
+        unit.push( path );
+        pathes.splice( index, 1 );
+        obj.getChain( pathes, path.source.id, unit );
         return;
       }
 
@@ -3167,6 +3128,28 @@ function initWallEditor( obj ){
 
     return false;
   };
+  obj.isPointInCountur2 = function(chain, point, nodes){
+
+    var result = false;
+    point = point.clone().floor();
+    result = chain.some( function(item){
+
+//  window.console.log(nodes[item.source.id].position.clone().floor().x + ' ' + nodes[item.source.id].position.clone().floor().y + ' ' + nodes[item.source.id].position.clone().floor().z);
+//  window.console.log(point.x + ' ' + point.y + ' ' + point.z);
+//  window.console.log(point.equals(nodes[item.source.id].position.clone().floor()));
+//  window.console.log(nodes[item.target.id].position.clone().floor().x + ' ' + nodes[item.target.id].position.clone().floor().y + ' ' + nodes[item.target.id].position.clone().floor().z);
+//  window.console.log(point.x + ' ' + point.y + ' ' + point.z);
+//  window.console.log( point.equals( nodes[item.target.id].position.clone().floor() ) );
+
+    if( point.equals(nodes[item.source.id].position.clone().floor()) || point.equals(nodes[item.target.id].position.clone().floor()) ){
+      return true;
+    }
+
+    });
+
+    return result;
+
+  }
   obj.isPointInCountur = function(countur, point){
     var objects = [];
     // countur - массив wall uuid в комнате
@@ -3176,23 +3159,52 @@ function initWallEditor( obj ){
 
       var geometry = new THREE.Geometry();
 
-
         geometry.vertices.push( wall.v1, wall.v2 );
 
-        var line = new THREE.Line(geometry);
+        var material = new THREE.LineBasicMaterial({ color: 'green' });
+        var line = new THREE.Line(geometry, material);
         objects.push( line );
-
 
     })
 
+   
+
     //==========
       obj.raycaster.ray.origin = point.clone();
-      obj.raycaster.ray.direction.copy( new THREE.Vector3(0, 0, 1) );
+      obj.raycaster.far = 100000;
 
       //=====================
       //пересечение
+      var intersectObjects = [];
+      obj.raycaster.ray.direction.copy( new THREE.Vector3(0.65, 0, 1) );
       var intersectObjects = obj.raycaster.intersectObjects(objects);
-      if( (intersectObjects.length % 2) != 0){
+
+      
+//      if(objects.length == 5){
+//
+//        objects.forEach(function(item){
+//          scene.add(item);
+//
+//        })
+//
+//       }
+
+
+      if(objects.length == 5  && (intersectObjects.length % 2) != 0 ){
+        var geometry = new THREE.Geometry();
+        geometry.vertices.push( obj.raycaster.ray.origin.clone(), obj.raycaster.ray.origin.clone().add( obj.raycaster.ray.direction.clone().multiplyScalar(10000) ) );
+        var material = new THREE.LineBasicMaterial({ color: 'red' });
+        var line2 = new THREE.Line(geometry, material);
+        scene.add(line2);
+      }
+      
+
+
+
+      
+
+
+      if( (intersectObjects.length % 2) != 0  ){
         return true;
       }
 
@@ -3261,6 +3273,7 @@ function initWallEditor( obj ){
     })
   };
   obj.addCounturLine = function( chain, nodes ){
+
     chain.forEach(function(item){
 
       var geometry = new THREE.Geometry();
@@ -3273,6 +3286,7 @@ function initWallEditor( obj ){
       }
 
     })
+    
   };
   obj.removeCounturLine = function(){
     var _lines = [];
@@ -3908,6 +3922,10 @@ function initWallEditor( obj ){
     }
 
   });
+  $('.footer').on('click','[param]',function(event){
+    $(this).focus();
+    $(this).select();
+  })
 
 }
 $wallEditor = {};
@@ -4699,7 +4717,8 @@ function Wall( vertices, parameters ){
   scene.add( self.controlPoint1, self.controlPoint2 );
 
   //хелпер примечание id
-//  noteAdd( this.controlPoint1, this.id.toString(), null, {y: 3000} );
+  noteAdd( this, 'id: ' + this.id.toString(), null, {x: this.axisLine.getCenter().x, y: this.axisLine.getCenter().z} );
+  noteAdd( this, '(' + this.v1.x.toFixed(2) + ', \n' + this.v1.z.toFixed(2) + ')', null, {x: this.v1.x+300, y: this.v1.z} );
 
   //Ноды
   self.setDefaultNode();
@@ -4923,16 +4942,17 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
+      
+
+    }
+    if( target && Math.abs(angle_max ) < Math.PI/4 && self.width / target.width > 2 ){
+
+      angle_max = 0;
       exception = true;
 
     }
-    if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
-
-      angle_max = 0;
-
-    }
     //пересечение
-    if(angle_max > -Math.PI && angle_max != 0){
+    if( angle_max > -Math.PI && angle_max != 0 ){
 
       var ray = new THREE.Ray(self.v12, self.direction);
       ray.distanceSqToSegment ( segment_start, segment_end, result_point );
@@ -4944,7 +4964,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                   id: self.uuid + '_e22',
                   wall_uuid: self.uuid,
                   source: { id: self.node22.id },
-                  target: { id: target_foundation.node_id }
+                  target: { id: target_foundation.node_id },
+                  wall_id: this.id
                 };
     }
 
@@ -5007,12 +5028,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
-      exception = true;
+      
       
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
 
       angle_max = 0;
+      exception = true;
 
     }
     //пересечение
@@ -5028,7 +5050,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                   id: self.uuid + '_e21',
                   wall_uuid: self.uuid,
                   source: { id: self.node21.id },
-                  target: { id: target_foundation.node_id }
+                  target: { id: target_foundation.node_id },
+                  wall_id: this.id
                 };
     }
 
@@ -5089,12 +5112,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
-      exception = true;
+      
 
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
 
       angle_max = 0;
+      exception = true;
 
     }
     //пересечение
@@ -5110,7 +5134,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                     id: self.uuid + '_e12',
                     wall_uuid: self.uuid,
                     source: { id: self.node12.id },
-                    target: { id: target_foundation.node_id }
+                    target: { id: target_foundation.node_id },
+                    wall_id: this.id
                   };
       }
 
@@ -5172,7 +5197,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
-      exception = true;
+
       
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
@@ -5197,7 +5222,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                     id: self.uuid + '_e11',
                     wall_uuid: self.uuid,
                     source: { id: self.node11.id },
-                    target: { id: target_foundation.node_id }
+                    target: { id: target_foundation.node_id },
+                    wall_id: this.id
                   };
       }
 

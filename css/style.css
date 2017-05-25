@@ -16,7 +16,7 @@ html, body{
 }
 
 .footer .btn-default:hover, .footer .btn-default:active, .footer .btn-default.active{
-    color: #333;
+    color: #fff;
     background-color: #317BB2;
     border-color: #adadad;
 }
@@ -24,3 +24,4 @@ html, body{
 .no-close .ui-dialog-titlebar-close {
   display: none;
 }
+

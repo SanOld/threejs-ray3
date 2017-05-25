@@ -11,122 +11,121 @@
   <div class="container-fluid">
     
     <div class="row">
-        <div class="col-lg-6">
-          <div class="row">
-            <div class="col-lg-1">
-                <button type="button" class="btn btn-default" action="mode" title="Переключение режима отображения">2D</button>
-            </div> <!-- /.col-lg-1 -->
 
-            
+      <div class="col-lg-6">
+        <div class="row">
+          <div class="col-lg-3 objParams pull-left" style="display: none">
+            <div class="btn-group dropup wall_type">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Несущая <span class="caret"></span></button>
+              <ul class="dropdown-menu multi-level">
+                <li  data-type = "bear_wall"><a>Несущая</a></li>
+                <li  class="dropdown-submenu" data-type = "partition_wall">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Перегородка <span class="caret"></span></button>
+                  <ul class="dropdown-menu">
+                    <li data-type = "notChangable"><a>Не менять стену</a></li>
+                    <li data-type = "installation"><a>Монтаж</a></li>
+                    <li data-type = "deinstallation"><a>Демонтаж</a></li>
+                  </ul>
+                </li>
+                <!--<li  data-type = "divider"><a>Разделитель зон</a></li>-->
+              </ul>
+            </div>
 
-<!--            <div class="col-lg-2 mode2D">
-                <button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>
-                <img class = "localImage" style="display: none">
+<!--            <div class="btn-group dropup wall_action">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Не менять стену <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li data-type = "notChangable"><a>Не менять стену</a></li>
+                <li data-type = "installation"><a>Монтаж</a></li>
+                <li data-type = "deinstallation"><a>Демонтаж</a></li>
+              </ul>
             </div>-->
+          </div><!-- /.col-lg-3 -->
 
-            <div class="col-lg-5  mode2D">
-                
-                <button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>
-                <img class = "localImage" style="display: none">
-                
-                <div class="btn-group dropup wall_dim_type">
-                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Размер по осевой <span class="caret"></span></button>
-                    <ul class="dropdown-menu">
-                      <li class="without" data-type = "without"><a>Размер скрыть</a></li>
-                      <li class="center" data-type = "center"><a>Размер по осевой</a></li>
-                      <li class="inner" data-type = "inner"><a>Размер внутри</a></li>
-                      <li class="outer" data-type = "outer"><a>Размер снаружи</a></li>
-                    </ul>
-                </div><!-- /btn-group -->
-            </div><!-- /.col-lg-4 -->
-
-            <div class="col-lg-1 mode2D pull-right">
-              <div class="btn-group">
-                <button style=" display: none;" type="button" class="btn btn-default" action="modeE" title="Режим - редактирование">E</button>
-                <!--<button type="button" class="btn btn-default" action="modeD" title="Режим - размеры">Размеры <span class="fa fa-expand"></span></button>-->
-                <!--<button type="button" class="btn btn-default" action="sceneToConsole" title="">Scene <span class="fa fa-pencil"></span></button>-->
-                <button type="button" class="btn btn-default" action="modeC" title="Режим - создание стен">Стена <span class="fa fa-pencil"></span></button>
-              </div>
-            </div> <!-- /.col-lg-1 -->
-            
+          <div class="col-lg-6 input-group objParams pull-left" style="display: none">
+            <span class="input-group-addon  height" >Высота:</span>
+            <input type="dim" class="form-control height" pattern="^[0-9]+$" param="height" title="Высота">
+            <span class="input-group-addon width" >Ширина:</span>
+            <input type="dim" class="form-control  width" pattern="^[0-9]+$" param="width" title="Ширина">
+            <span class="input-group-addon length" >Длина:</span>
+            <input type="dim" class="form-control length" pattern="^[0-9]+$" param="length" title="Длина">
+            <span class="input-group-addon depObject_thickness" >Толщина:</span>
+            <input type="dim" class="form-control depObject_thickness" pattern="^[0-9]+$" param="depObject_thickness" title="Толщина">
+            <span class="input-group-addon thickness" >Толщина:</span>
+            <input type="dim" class="form-control thickness" pattern="^[0-9]+$" param="thickness" title="Толщина">
+            <span class="input-group-addon elevation" >От пола:</span>
+            <input type="dim" class="form-control elevation" pattern="^[0-9]+$" param="elevation" title="Высота от пола">
+            <span class="input-group-addon slope" >Ширина откоса:</span>
+            <input type="dim" class="form-control slope" pattern="^[0-9]+$" param="slope" title="Откос" disabled>
+          </div><!-- /.col-lg-4 -->
+          <div class="col-lg-1 input-group  objParams" style="display: none">
+              <input type="checkbox" class="form-control isEntryDoor"  param="isEntryDoor" title="Входная дверь" value="">
+              <span class="input-group-addon isEntryDoor " ></span>
           </div>
-        </div> <!-- /.col-lg-6 -->
-
-        <div class="col-lg-6">
-          
-	       <form name="floor_plan_form" onsubmit="return setFloorPlan(this);">
-            <div class="col-lg-2">
-                <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
-                <input type ="file" name="image_file" class = "floorLoader" style="display: none">
-                <input type="hidden" name="user_id" value="userID">
-                <img class = "localImage" style="display: none">
-            </div><!-- /.col-lg-2 -->
-	       </form>
-            <div class="col-lg-4">
-              <div class="input-group">
-                <span class="input-group-addon" >Высота стен:</span>
-                <input type="dim" class="form-control floorHeight" pattern="^[0-9]+$" action="floorHeight">
-                <span class="input-group-addon measure_unit" >мм</span>
-              </div>
-            </div><!-- /.col-lg-4 -->
-
-
-            
-
-        </div> <!-- /.col-lg-6 -->
+        </div>
       </div>
 
-    <div class="row">
 
-      <div class="col-lg-3 objParams pull-left" style="display: none">
-        <div class="btn-group dropup wall_type">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Несущая <span class="caret"></span></button>
-            <ul class="dropdown-menu">
-              <li  data-type = "bear_wall"><a>Несущая</a></li>
-              <li  data-type = "partition_wall"><a>Перегородка</a></li>
-              <!--<li  data-type = "divider"><a>Разделитель зон</a></li>-->
+      <div class="col-lg-4">
+      
+       <form name="floor_plan_form" onsubmit="return setFloorPlan(this);">
+      
+          <div class="btn-group">
+            <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
+
+            <input type ="file" name="image_file" class = "floorLoader" style="display: none">
+            <input type="hidden" name="user_id" value="userID">
+            <img class = "localImage" style="display: none">
+            
+            <button style=" display: none;" type="button" class="btn btn-default" action="modeE" title="Режим - редактирование">E</button>
+            <button type="button" class="btn btn-default" action="modeC" title="Режим - создание стен">Стена <span class="fa fa-pencil"></span></button>
+
+            <div class="input-group col-lg-2 ">
+              <span class="input-group-addon" >Высота стен:</span>
+              <input type="dim" class="form-control floorHeight" pattern="^[0-9]+$" action="floorHeight">
+              <span class="input-group-addon" >мм</span>
+            </div>
+
+        </div>
+
+       </form>
+
+      </div>
+
+      <div class=" col-lg-2 ">
+        <div class="btn-group dropup pull-left">
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"> <span  class="fa fa-cog" aria-hidden="true"></span></button>
+            <ul class="dropdown-menu multi-level">
+              <li class="" data-type = "without">
+                <button type="button" class="btn btn-default" action="mode" title="Переключение режима отображения">2D</button>
+              </li>
+              <li class="" data-type = "center">
+                <button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>
+                <img class = "localImage" style="display: none">
+              </li>
+              <li class="dropdown-submenu wall_dim_type" data-type = "inner">
+                <!--<div class="btn-group dropup wall_dim_type">-->
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Размер по осевой <span class="caret"></span></button>
+
+                  <ul class="dropdown-menu">
+                    <li class="without" data-type = "without"><a>Размер скрыть</a></li>
+                    <li class="center" data-type = "center"><a>Размер по осевой</a></li>
+                    <li class="inner" data-type = "inner"><a>Размер внутри</a></li>
+                    <li class="outer" data-type = "outer"><a>Размер снаружи</a></li>
+                  </ul>
+                <!--</div>-->
+              </li>
+
             </ul>
         </div>
 
-        <div class="btn-group dropup wall_action">
-          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Не менять стену <span class="caret"></span></button>
-          <ul class="dropdown-menu">
-            <li data-type = "notChangable"><a>Не менять стену</a></li>
-            <li data-type = "installation"><a>Монтаж</a></li>
-            <li data-type = "deinstallation"><a>Демонтаж</a></li>
-          </ul>
-        </div>
-      </div><!-- /.col-lg-3 -->
-      
-      <div class="col-lg-6 input-group objParams pull-left" style="display: none">
-        <span class="input-group-addon  height" >Высота:</span>
-        <input type="dim" class="form-control height" pattern="^[0-9]+$" param="height" title="Высота">
-        <span class="input-group-addon width" >Ширина:</span>
-        <input type="dim" class="form-control  width" pattern="^[0-9]+$" param="width" title="Ширина">
-        <span class="input-group-addon length" >Длина:</span>
-        <input type="dim" class="form-control length" pattern="^[0-9]+$" param="length" title="Длина">
-        <span class="input-group-addon depObject_thickness" >Толщина:</span>
-        <input type="dim" class="form-control depObject_thickness" pattern="^[0-9]+$" param="depObject_thickness" title="Толщина">
-        <span class="input-group-addon thickness" >Толщина:</span>
-        <input type="dim" class="form-control thickness" pattern="^[0-9]+$" param="thickness" title="Толщина">
-        <span class="input-group-addon elevation" >От пола:</span>
-        <input type="dim" class="form-control elevation" pattern="^[0-9]+$" param="elevation" title="Высота от пола">
-        <span class="input-group-addon slope" >Ширина откоса:</span>
-        <input type="dim" class="form-control slope" pattern="^[0-9]+$" param="slope" title="Откос" disabled>
-      </div><!-- /.col-lg-4 -->
-        <div class="col-lg-1 input-group  objParams" style="display: none">
-            <input type="checkbox" class="form-control isEntryDoor"  param="isEntryDoor" title="Входная дверь" value="">
-            <span class="input-group-addon isEntryDoor " ></span>
-        </div>
-      </div>
-
-      <div class="col-lg-2 pull-right">
+        <div class="pull-right">
           <button type="button" class="btn btn-default pull-right" action="cancel">Отмена</button>
           <button type="button" class="btn btn-default pull-right" action="exportJSON">Ок</button>
-      </div><!-- /.col-lg-2 -->
+        </div><!-- /.col-lg-2 -->
+      </div> <!-- /.col-lg-6 -->
 
-    </div>
   </div>
+
 
 </nav>
 </body>
