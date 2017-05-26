@@ -188,7 +188,7 @@ li a {
     color: #015C99;
 }
 
-.btn-default.active, .btn-default:active,  .open>.dropdown-toggle.btn-default:hover, .open>.dropdown-toggle.btn-default {
+.btn-default.active, .btn-default:active, .btn-default:hover,  .btn-default:focus,  .open>.dropdown-toggle.btn-default:hover, .open>.dropdown-toggle.btn-default {
     color: #015C99;
 }
 
@@ -199,17 +199,3 @@ li a {
   padding-left: 2px
 }
 
-
-/*.btn-default[action=cancel].active, .btn-default[action=exportJSON].active,
-.btn-default[action=cancel]:active, .btn-default[action=exportJSON]:active,
-.btn-default[action=cancel]:hover, .btn-default[action=exportJSON]:hover{
-
-  color: #015C99;
-  background-color: #fff;
-}*/
-
-/*.footer .btn-default:hover, .footer .btn-default:active, .footer .btn-default.active{
-    color: #fff;
-    background-color: #317BB2;
-    border-color: #adadad;
-}*/
