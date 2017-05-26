@@ -877,7 +877,7 @@ function initProjection(obj){
 
     if (!obj.enabled)
       return false;
-//    event.preventDefault();
+    event.preventDefault();
 
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
