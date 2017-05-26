@@ -787,13 +787,25 @@ function initProjection(obj){
 
   }
 
-  obj.setWallBearingTypeValue = function( type ){
+  obj.setWallBearingTypeValue = function( type, action ){
 
     if( type && type != '' ){
 
       $('.wall_type').show();
 
-      var part = $('.wall_type').find('[data-type = ' + type + ']').find('a').text();
+      switch ( type ) {
+        case 'partition_wall':
+        case 'notChangable':
+        case 'installation':
+        case 'deinstallation':
+          var part = $('.wall_type').find('[data-type = ' + type + ']').find('[data-type =' + action + ']').find('a').text();
+          var part = part.split(':')[0];
+          break;
+        default:
+          var part = $('.wall_type').find('[data-type = ' + type + ']').find('a').text();
+          break;
+      }
+
       $('.wall_type').find('button').html( part + ' <span class="caret"></span>' );
 
     }
@@ -849,6 +861,8 @@ function initProjection(obj){
   obj.hideObjParams = function( parameters ){
 
     $('.objParams').hide();
+    $('div.wall_type').closest('div').css('display','none');
+
 
   }
 
@@ -1021,12 +1035,27 @@ function initProjection(obj){
   
 
 
-  $('.wall_type').on('click','li',function(){
+  $('.wall_type').on('click','li.wall_type',function(){
 
     if($wallEditor.selected && $wallEditor.selected.type == 'Wall'){
 
       $wallEditor.selected.changeBearingType( $(this).attr('data-type') );
-      $('.wall_type').find('button').html($(this).find('a').text() + ' <span class="caret"></span>');
+      switch ($(this).attr('data-type')) {
+        case 'partition_wall':
+        case 'notChangable':
+        case 'installation':
+        case 'deinstallation':
+          part = $(this).find('button').text()
+          var part = part.split(':')[0];
+          $('.wall_type').find('button.wall_type').html(part + ' <span class="caret"></span>');
+          break;
+
+        default:
+          $('.wall_type').find('button.wall_type').html($(this).find('a').text() + ' <span class="caret"></span>');
+          $wallEditor.selected.changeAction( 'notChangable' );
+          break;
+      }
+      
 
     }
 
@@ -1036,7 +1065,7 @@ function initProjection(obj){
 		if($wallEditor.selected && $wallEditor.selected.type == 'Wall'){
 
       $wallEditor.selected.changeAction( $(this).attr('data-type') );
-      $('.wall_action').find('button').html($(this).find('a').text() + ' <span class="caret"></span>');
+      $('.wall_action').find('button.wall_action').html($(this).find('a').text() + ' <span class="caret"></span>');
 
     }    
 
@@ -2505,6 +2534,7 @@ function initWallEditor( obj ){
     event.object.select(event);
     obj.selected = event.object;
 
+    
 
     if( obj.selected.type == 'Wall'){
 
@@ -2515,7 +2545,9 @@ function initWallEditor( obj ){
         wall_action: {}
       })
 
-      $projection.setWallBearingTypeValue( obj.selected.bearingType );
+      $('div.wall_type').parents('div').css('display','block');
+
+      $projection.setWallBearingTypeValue( obj.selected.bearingType, obj.selected.action );
       $projection.setWallAction( obj.selected.action );
 
     } else if( obj.selected.type == 'WindowBlock'){
@@ -2536,7 +2568,7 @@ function initWallEditor( obj ){
         depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
         elevation: {val: obj.selected.elevation, label: 'От пола'},
         slope: {val: obj.selected.slope, label: 'Откос'},
-        isEntryDoor: {checked: obj.selected.isEntryDoor, label: 'Входная дверь'}
+        isEntryDoor: {checked: obj.selected.isEntryDoor, label: 'Входная'}
       })
 
     } else if( obj.selected.type == 'Doorway' || obj.selected.type == 'Niche' ){
@@ -4717,8 +4749,8 @@ function Wall( vertices, parameters ){
   scene.add( self.controlPoint1, self.controlPoint2 );
 
   //хелпер примечание id
-  noteAdd( this, 'id: ' + this.id.toString(), null, {x: this.axisLine.getCenter().x, y: this.axisLine.getCenter().z} );
-  noteAdd( this, '(' + this.v1.x.toFixed(2) + ', \n' + this.v1.z.toFixed(2) + ')', null, {x: this.v1.x+300, y: this.v1.z} );
+//  noteAdd( this, 'id: ' + this.id.toString(), null, {x: this.axisLine.getCenter().x, y: this.axisLine.getCenter().z} );
+//  noteAdd( this, '(' + this.v1.x.toFixed(2) + ', \n' + this.v1.z.toFixed(2) + ')', null, {x: this.v1.x+300, y: this.v1.z} );
 
   //Ноды
   self.setDefaultNode();

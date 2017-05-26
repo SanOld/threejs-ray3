@@ -86,10 +86,14 @@ nav input{
 }
 
 .input-group[class*=col-] {
-    
+    height: 20px;
     float: none;
     padding-right: 0;
     padding-left: 0;
+}
+
+input.isEntryDoor{
+  margin: 0;
 }
 
 input[type=checkbox] {
@@ -163,3 +167,49 @@ input[type=checkbox] {
   -moz-border-radius: 6px 0 6px 6px;
   border-radius: 6px 0 6px 6px;
 }
+li a {
+    background-color: #fff;
+}
+
+
+
+.dropdown-submenu>.dropdown-menu.dimension {
+  top: -80%;
+  left: -100%;
+}
+
+
+.dropdown-menu>li>a:focus, .dropdown-menu>li>a:hover {
+    color: #fff;
+    background-color: #015C99;
+}
+
+.dropdown-menu>li>a {
+    color: #015C99;
+}
+
+.btn-default.active, .btn-default:active,  .open>.dropdown-toggle.btn-default:hover, .open>.dropdown-toggle.btn-default {
+    color: #015C99;
+}
+
+.btn-default[action=cancel], .btn-default[action=exportJSON]{
+  width: 80px;
+  color: #fff;
+  background-color: #015C99;
+  padding-left: 2px
+}
+
+
+/*.btn-default[action=cancel].active, .btn-default[action=exportJSON].active,
+.btn-default[action=cancel]:active, .btn-default[action=exportJSON]:active,
+.btn-default[action=cancel]:hover, .btn-default[action=exportJSON]:hover{
+
+  color: #015C99;
+  background-color: #fff;
+}*/
+
+/*.footer .btn-default:hover, .footer .btn-default:active, .footer .btn-default.active{
+    color: #fff;
+    background-color: #317BB2;
+    border-color: #adadad;
+}*/

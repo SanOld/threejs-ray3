@@ -14,32 +14,27 @@
 
       <div class="col-lg-6">
         <div class="row">
-          <div class="col-lg-3 objParams pull-left" style="display: none">
+          <div class="col-lg-3  pull-left" style="display: none">
             <div class="btn-group dropup wall_type">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Несущая <span class="caret"></span></button>
+              <button type="button" class="btn btn-default dropdown-toggle wall_type" data-toggle="dropdown">Несущая <span class="caret" ></span></button>
               <ul class="dropdown-menu multi-level">
-                <li  data-type = "bear_wall"><a>Несущая</a></li>
-                <li  class="dropdown-submenu" data-type = "partition_wall">
-                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Перегородка <span class="caret"></span></button>
-                  <ul class="dropdown-menu">
-                    <li data-type = "notChangable"><a>Не менять стену</a></li>
-                    <li data-type = "installation"><a>Монтаж</a></li>
-                    <li data-type = "deinstallation"><a>Демонтаж</a></li>
-                  </ul>
+                <li  class="wall_type" data-type = "bear_wall"><a>Несущая</a></li>
+                <li  class="dropdown-submenu wall_type wall_action " data-type = "partition_wall">
+                  <!--<div class=" wall_action">-->
+                    <button type="button" class="btn btn-default dropdown-toggle wall_action" data-toggle="dropdown">Перегородка <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                      <li data-type = "notChangable"><a>Перегородка: не менять</a></li>
+                      <li data-type = "installation"><a>Перегородка: монтаж</a></li>
+                      <li data-type = "deinstallation"><a>Перегородка: демонтаж</a></li>
+                    </ul>
+                  <!--</div>-->
                 </li>
+                <li  class="wall_type" data-type = "pillar"><a>Колонна</a></li>
                 <!--<li  data-type = "divider"><a>Разделитель зон</a></li>-->
               </ul>
             </div>
 
-<!--            <div class="btn-group dropup wall_action">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Не менять стену <span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li data-type = "notChangable"><a>Не менять стену</a></li>
-                <li data-type = "installation"><a>Монтаж</a></li>
-                <li data-type = "deinstallation"><a>Демонтаж</a></li>
-              </ul>
-            </div>-->
-          </div><!-- /.col-lg-3 -->
+          </div> 
 
           <div class="col-lg-6 input-group objParams pull-left" style="display: none">
             <span class="input-group-addon  height" >Высота:</span>
@@ -70,17 +65,17 @@
        <form name="floor_plan_form" onsubmit="return setFloorPlan(this);">
       
           <div class="btn-group">
-            <button type="button" class="btn btn-default" action="loadFloor">Подложка <i class="fa fa-file-image-o" aria-hidden="true"></i></span></button>
+            <button type="button" class="btn btn-default" action="loadFloor"><i class="fa fa-file-image-o" aria-hidden="true"></i> Подложка </button>
 
             <input type ="file" name="image_file" class = "floorLoader" style="display: none">
             <input type="hidden" name="user_id" value="userID">
             <img class = "localImage" style="display: none">
             
             <button style=" display: none;" type="button" class="btn btn-default" action="modeE" title="Режим - редактирование">E</button>
-            <button type="button" class="btn btn-default" action="modeC" title="Режим - создание стен">Стена <span class="fa fa-pencil"></span></button>
+            <button type="button" class="btn btn-default" action="modeC" title="Режим - создание стен"><span class="fa fa-pencil"></span> Стена </button>
 
             <div class="input-group col-lg-2 ">
-              <span class="input-group-addon" >Высота стен:</span>
+              <span class="input-group-addon" >Высота этажа:</span>
               <input type="dim" class="form-control floorHeight" pattern="^[0-9]+$" action="floorHeight">
               <span class="input-group-addon" >мм</span>
             </div>
@@ -92,7 +87,7 @@
       </div>
 
       <div class=" col-lg-2 ">
-        <div class="btn-group dropup pull-left">
+        <div class="row btn-group dropup pull-left">
           <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"> <span  class="fa fa-cog" aria-hidden="true"></span></button>
             <ul class="dropdown-menu multi-level">
               <li class="" data-type = "without">
@@ -102,11 +97,10 @@
                 <button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>
                 <img class = "localImage" style="display: none">
               </li>
-              <li class="dropdown-submenu wall_dim_type" data-type = "inner">
+              <li class="dropdown-submenu  wall_dim_type" data-type = "inner">
                 <!--<div class="btn-group dropup wall_dim_type">-->
                   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Размер по осевой <span class="caret"></span></button>
-
-                  <ul class="dropdown-menu">
+                  <ul class="dropdown-menu dimension">
                     <li class="without" data-type = "without"><a>Размер скрыть</a></li>
                     <li class="center" data-type = "center"><a>Размер по осевой</a></li>
                     <li class="inner" data-type = "inner"><a>Размер внутри</a></li>
@@ -119,8 +113,8 @@
         </div>
 
         <div class="pull-right">
-          <button type="button" class="btn btn-default pull-right" action="cancel">Отмена</button>
-          <button type="button" class="btn btn-default pull-right" action="exportJSON">Ок</button>
+          <button type="button" class="btn btn-default pull-right" action="cancel"><i class="fa fa-times" aria-hidden="true"></i> Отмена </button>
+          <button type="button" class="btn btn-default pull-right" action="exportJSON"><i class="fa fa-check" aria-hidden="true"></i> Ок </button>
         </div><!-- /.col-lg-2 -->
       </div> <!-- /.col-lg-6 -->
 
