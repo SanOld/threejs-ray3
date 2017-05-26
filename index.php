@@ -91,15 +91,20 @@
           <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"> <span  class="fa fa-cog" aria-hidden="true"></span></button>
             <ul class="dropdown-menu multi-level">
               <li class="" data-type = "without">
-                <button type="button" class="btn btn-default" action="mode" title="Переключение режима отображения">2D</button>
+                <a action="mode" title="Переключение режима отображения">2D</a>
               </li>
               <li class="" data-type = "center">
-                <button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>
+                <!--<button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>-->
+                <a  action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></a>
                 <img class = "localImage" style="display: none">
               </li>
               <li class="dropdown-submenu  wall_dim_type" data-type = "inner">
                 <!--<div class="btn-group dropup wall_dim_type">-->
-                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Размер по осевой <span class="caret"></span></button>
+                  <!--<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Размер по осевой <span class="caret"></span></button>-->
+                  <a  data-toggle="dropdown">Размер по осевой </a>
+                  <!--<a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#" href="#">-->
+<!--                    Размер по осевой <span class="caret"></span>
+                  </a>-->
                   <ul class="dropdown-menu dimension">
                     <li class="without" data-type = "without"><a>Размер скрыть</a></li>
                     <li class="center" data-type = "center"><a>Размер по осевой</a></li>

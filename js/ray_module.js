@@ -933,7 +933,8 @@ function initProjection(obj){
 		obj.wallDimensionType = $(this).attr('data-type');
     $wallEditor.showWallDimensions();
 
-    $('.wall_dim_type').find('button').html($(this).find('a').text() + ' <span class="caret"></span>');
+    $('.wall_dim_type').find('a').first().text( $(this).find('a').text() );
+    
 
 	});
   $('.footer').on('click','[action = loadFloor]',function(){
