@@ -105,7 +105,7 @@ function Editor(obj){
   obj.wallColors = {
     notChangable: projectionWallMaterial_black,
     installation: projectionWallMaterial_green,
-    deinstallation: projectionWallMaterial_red,
+    deinstallation: projectionWallMaterial_red
   }
 
   obj.on = function(){
