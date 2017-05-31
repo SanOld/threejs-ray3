@@ -2712,12 +2712,17 @@ function initWallEditor( obj ){
                         if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
 
                           var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+                          var v12 = item.getV12([next_item]);
+                          var v22 = item.getV22([prev_item]);
+                          var outer = {start: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) }, end: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) } };
 
 //                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
                         } else {
-
-                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+                          var v11 = item.getV11([next_item]);
+                          var v21 = item.getV21([prev_item]);
+                          var outer = {start: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) }, end: {x: + v11.x.toFixed(2), y: + v11.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
                           var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
 
                         }
@@ -2729,13 +2734,20 @@ function initWallEditor( obj ){
 //                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
                         if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
 
-                          var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+
+                          var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: + item.v21.x.toFixed(2), y: + item.v21.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+                          var v22 = item.getV22([next_item]);
+                          var v12 = item.getV12([prev_item]);
+                          var outer = {start: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) }, end: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) } };
 
 //                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
                         } else {
 
-                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+                          var v21 = item.getV21([next_item]);
+                          var v11 = item.getV11([prev_item]);
+                          var outer = {start: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) }, end: {x: + v21.x.toFixed(2), y: + v21.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
                           var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
 
                         }
@@ -2748,12 +2760,18 @@ function initWallEditor( obj ){
                         if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
 
                           var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+                          var v22 = item.getV22([next_item]);
+                          var v12 = item.getV12([prev_item]);
+                          var outer = {start: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) }, end: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) } };
 
 //                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
                         } else {
 
-                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+                          var v21 = item.getV21([next_item]);
+                          var v11 = item.getV11([prev_item]);
+                          var outer = {start: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) }, end: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
                           var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
 
                         }
@@ -2766,12 +2784,17 @@ function initWallEditor( obj ){
                         if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
 
                           var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+                          var v12 = item.getV12([next_item]);
+                          var v22 = item.getV22([prev_item]);
+                          var outer = {start: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) }, end: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) } };
 
 //                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
                         } else {
-
-                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+                          var v11 = item.getV11([next_item]);
+                          var v21 = item.getV21([prev_item]);
+                          var outer = {start: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) }, end: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
                           var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
 
                         }
@@ -2833,32 +2856,45 @@ function initWallEditor( obj ){
                                 );
                   })
 
-                  export_data.floors[0].rooms[ room_index ].walls.push(
-                                          {
-                                          id: item.id,
-                                          inner: inner,
-                                          outer: outer,
-                                          center: center,
-                                          arcPath: null,
-                                          mount_type: "",
-                                          wall_length_mm: +item.getCurrentDimValue().toFixed(2),
-                                          width_px: item.width,
-                                          width_units: +(item.width * current_unit.c).toFixed(2),
-                                          type: item.bearingType,
-                                          wall_action: item.wallAction,
-                                          height: {
-                                            start: +item.height.toFixed(2),
-                                            end: +item.height.toFixed(2)
-                                          },
-                                          openings: openings,
-                                          external_wall: item.external_wall,
-                                          room_wall_num: item.number[room_index],
-                                          outer_wall_num: item.outer_wall_num,
-                                        }
-                          )
-                  window.console.log('id: ' + item.id);
-                  window.console.log('inner: start: ' + inner.start.x + ' ' +inner.start.y);
-                  window.console.log('inner: end: ' + inner.end.x + ' ' +inner.end.y);
+                  var arrWalls = export_data.floors[0].rooms[ room_index ].walls;
+
+                  if( arrWalls.length != 0 && arrWalls[ arrWalls.length - 1 ].room_wall_num == item.number[room_index] ){
+                    arrWalls[ arrWalls.length - 1 ].inner.end = inner.end;
+                    arrWalls[ arrWalls.length - 1 ].center.end = center.end;
+                    arrWalls[ arrWalls.length - 1 ].outer.end = outer.end;
+                    arrWalls[ arrWalls.length - 1 ].wall_length_mm +=  +item.getCurrentDimValue().toFixed(2);
+                  } else {
+                    arrWalls.push({
+                      id: item.id,
+                      inner: inner,
+                      outer: outer,
+                      center: center,
+                      arcPath: null,
+                      mount_type: "",
+                      wall_length_mm: +item.getCurrentDimValue().toFixed(2),
+                      width_px: item.width,
+                      width_units: +(item.width * current_unit.c).toFixed(2),
+                      type: item.bearingType,
+                      wall_action: item.wallAction,
+                      height: {
+                        start: +item.height.toFixed(2),
+                        end: +item.height.toFixed(2)
+                      },
+                      openings: openings,
+                      external_wall: item.external_wall,
+                      room_wall_num: item.number[room_index]
+//                      outer_wall_num: item.outer_wall_num
+                    })
+
+                    item.outer_wall_num ? arrWalls[ arrWalls.length - 1 ].outer_wall_num = item.outer_wall_num : '';
+                  }
+
+
+//                window.console.log('id: ' + item.id);
+                  window.console.log('room_wall_num: ' + item.number[room_index]);
+                  window.console.log('axisLength: ' + item.axisLength.toFixed(2) );
+                  window.console.log('outer: start: ' + outer.start.x + ' ' +outer.start.y);
+                  window.console.log('outer: end: ' + outer.end.x + ' ' +outer.end.y);
 //                  window.console.log("v1 - x: "+(item.v1.x) + " z: "+(item.v1.z));
 //                  window.console.log("v2 - x: "+(item.v2.x) + " z: "+(item.v2.z));
 
@@ -2947,7 +2983,7 @@ function initWallEditor( obj ){
                       area: objArea.area,
                       area_coords: {x: objArea.coord.x, y: objArea.coord.z},
                       area_coords_3D: objArea.coord,
-                      isClockWise: isClockWise
+                      isClockWise: !isClockWise
                     })
 
           if( Areas.children.length < rooms.length && objArea.area){
@@ -4933,7 +4969,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     var self = this;
 
     walls.forEach(function(item, i){
-      if(self.index != i){
+      if(self.uuid != item.uuid){
         if( $wallEditor.isPointsNeighboors( self.v2, item.v1 ) ){
 
           var angle = self.direction.angleTo(item.direction) ;
@@ -5018,7 +5054,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     var self = this;
 
     walls.forEach(function(item, i){
-      if(self.index != i){
+      if(self.uuid != item.uuid){
         if( $wallEditor.isPointsNeighboors( self.v2, item.v1 ) ){
 
           var angle = self.direction.angleTo(item.direction) ;
@@ -5103,7 +5139,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     var self = this;
 
     walls.forEach(function(item, i){
-      if(self.index != i){
+      if(self.uuid != item.uuid){
         if( $wallEditor.isPointsNeighboors( self.v1, item.v2 ) ){
 
           var angle = self.direction.clone().negate().angleTo(item.direction.clone().negate()) ;
@@ -5188,7 +5224,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     walls.forEach(function(item, i){
       
-      if(self.index != i){
+      if(self.uuid != item.uuid){
         if($wallEditor.isPointsNeighboors( self.v1, item.v2 ) ){
 
           var angle = self.direction.clone().negate().angleTo(item.direction.clone().negate()) ;

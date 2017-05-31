@@ -118,8 +118,8 @@
         </div>
 
         <div class="pull-right">
-          <button type="button" class="btn btn-default pull-right" action="cancel"><i class="fa fa-times" aria-hidden="true"></i> Отмена </button>
-          <button type="button" class="btn btn-default pull-right" action="exportJSON"><i class="fa fa-check" aria-hidden="true"></i> Ок </button>
+          <button type="button" class="btn btn-default pull-right" action="cancel"> Отмена </button>
+          <button type="button" class="btn btn-default pull-right" action="exportJSON"> ОК </button>
         </div><!-- /.col-lg-2 -->
       </div> <!-- /.col-lg-6 -->
 
