@@ -16,13 +16,13 @@
         <div class="row">
           <div class="col-lg-3  pull-left" style="display: none">
             <div class="btn-group dropup wall_type">
-              <button type="button" class="btn btn-default dropdown-toggle wall_type" data-toggle="dropdown">Несущая <span class="caret" ></span></button>
-              <ul class="dropdown-menu multi-level">
+              <button type="button" class="btn btn-default dropdown-toggle wall_type btn_default_custom" data-toggle="dropdown">Несущая <span class="caret" ></span></button>
+              <ul class="dropdown-menu multi-level ul_drop_menu_custom">
                 <li  class="wall_type" data-type = "bear_wall"><a>Несущая</a></li>
-                <li  class="dropdown-submenu wall_type wall_action " data-type = "partition_wall">
+                <li  class="dropdown-submenu wall_type wall_action dropdown-toggle " data-type = "partition_wall" data-toggle="dropdown">
                   <!--<div class=" wall_action">-->
-                    <button type="button" class="btn btn-default dropdown-toggle wall_action" data-toggle="dropdown">Перегородка <span class="caret"></span></button>
-                    <ul class="dropdown-menu">
+                    <a  data-toggle="dropdown">Перегородка</a>
+                    <ul class="dropdown-menu ul_drop_menu_custom" style="height:87px;">
                       <li data-type = "notChangable"><a>Перегородка: не менять</a></li>
                       <li data-type = "installation"><a>Перегородка: монтаж</a></li>
                       <li data-type = "deinstallation"><a>Перегородка: демонтаж</a></li>
@@ -44,7 +44,7 @@
             <input type="dim" class="form-control  width" pattern="^[0-9]+$" param="width" title="Ширина">
             <span class="input-group-addon length" >Длина:</span>
             <input type="dim" class="form-control length" pattern="^[0-9]+$" param="length" title="Длина">
-            <span class="input-group-addon depObject_thickness" >Толщина:</span>
+            <span class="input-group-addon depObject_thickness">Толщина:</span>
             <input type="dim" class="form-control depObject_thickness" pattern="^[0-9]+$" param="depObject_thickness" title="Толщина">
             <span class="input-group-addon thickness" >Толщина:</span>
             <input type="dim" class="form-control thickness" pattern="^[0-9]+$" param="thickness" title="Толщина">
@@ -66,14 +66,14 @@
        <form name="floor_plan_form" onsubmit="return setFloorPlan(this);">
       
           <div class="btn-group">
-            <button type="button" class="btn btn-default" action="loadFloor"><i class="fa fa-file-image-o" aria-hidden="true"></i> Подложка </button>
+            <button type="button" class="btn btn-default btn_default_custom" action="loadFloor"><i class="fa fa-file-image-o btn_icon_custom" aria-hidden="true"></i> Подложка </button>
 
             <input type ="file" name="image_file" class = "floorLoader" style="display: none">
             <input type="hidden" name="user_id" value="userID">
             <img class = "localImage" style="display: none">
             
             <button style=" display: none;" type="button" class="btn btn-default" action="modeE" title="Режим - редактирование">E</button>
-            <button type="button" class="btn btn-default" action="modeC" title="Режим - создание стен"><span class="fa fa-pencil"></span> Стена </button>
+            <button type="button" class="btn btn-default btn_default_custom btn_wall_custom" action="modeC" title="Режим - создание стен"><span class="fa fa-pencil"></span> Стена </button>
 
             <div class="input-group col-lg-2 ">
               <span class="input-group-addon" >Высота этажа:</span>
@@ -89,8 +89,8 @@
 
       <div class=" col-lg-2 ">
         <div class="row btn-group dropup pull-left">
-          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"> <span  class="fa fa-cog" aria-hidden="true"></span></button>
-            <ul class="dropdown-menu multi-level">
+          <span  class="fa fa-cog dropdown-toggle cog_icon_custom" aria-hidden="true"  data-toggle="dropdown"></span>
+            <ul class="dropdown-menu multi-level ul_drop_menu_custom">
               <li class="" data-type = "without">
                 <a action="mode" title="Переключение режима отображения">2D</a>
               </li>
@@ -106,7 +106,7 @@
                   <!--<a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#" href="#">-->
 <!--                    Размер по осевой <span class="caret"></span>
                   </a>-->
-                  <ul class="dropdown-menu dimension">
+                  <ul class="dropdown-menu dimension ul_drop_menu_custom" style="height:112px">
                     <li class="without" data-type = "without"><a>Размер скрыть</a></li>
                     <li class="center" data-type = "center"><a>Размер по осевой</a></li>
                     <li class="inner" data-type = "inner"><a>Размер внутри</a></li>
@@ -119,8 +119,8 @@
         </div>
 
         <div class="pull-right">
-          <button type="button" class="btn btn-default pull-right" action="cancel"> Отмена </button>
-          <button type="button" class="btn btn-default pull-right" action="exportJSON"> ОК </button>
+          <button type="button"  class="btn btn-default pull-right btn_default_custom" action="cancel"><i class="fa fa-times btn_icon_custom" aria-hidden="true"></i> Отмена </button>
+          <button type="button" class="btn btn-default pull-right btn_default_custom" action="exportJSON"><i class="fa fa-check btn_icon_custom" aria-hidden="true"></i> Ок </button>
         </div><!-- /.col-lg-2 -->
       </div> <!-- /.col-lg-6 -->
 

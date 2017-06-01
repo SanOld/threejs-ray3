@@ -15,6 +15,8 @@
 <link href="css/menu.css?<?php echo $hash;?>" rel="stylesheet">
 <link href="css/style.css?<?php echo $hash;?>" rel="stylesheet">
 
+<link href="css/main.css?<?php echo $hash;?>" rel="stylesheet" >
+
 <script src="js/lib/jquery-latest.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <!--<script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>-->

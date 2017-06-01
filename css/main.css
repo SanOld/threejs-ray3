@@ -1,0 +1,52 @@
+.btn_default_custom{
+    border-color: #015C99!important;
+    color: #015C99!important;
+    padding: 6px;
+    background-color: white!important;
+    margin: 0 2px;
+    border-radius: 5px!important;
+}
+
+.btn_default_custom:hover{
+    background-color: #e6e6e6!important;
+}
+
+.btn_icon_custom{
+	font-size: medium!important;
+}
+
+.cog_icon_custom{
+	font-size: x-large;
+	padding-top: 6px;
+	cursor: pointer;
+}
+
+.cog_icon_custom:hover{
+	color:#747574;
+}
+
+.ul_drop_menu_custom{
+	background-color: rgba(0,0,0,.8);
+    color: white;
+    border-radius: 5px;
+}
+
+.ul_drop_menu_custom>li>a{
+	color: white;
+    background-color: inherit;
+}
+
+.ul_drop_menu_custom>li>a:hover{
+    background: #e6e6e6;
+    color: #747574!important;
+}
+
+.btn_wall_custom.active{
+	background-color: #e6e6e6!important;
+}
+/*
+.input-group-addon {
+	background-color: white!important;
+	border: 1px solid #015c99;
+}
+*/
