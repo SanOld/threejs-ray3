@@ -103,8 +103,7 @@ function Editor(obj){
   obj.timeStamp = 0;
 
   obj.wallAction = [ 'notChangable', 'installation', 'deinstallation' ];
-//  obj.wallBearingType = [ 'main' , 'partition', 'divider' ];
-  obj.wallBearingType = [ 'bear_wall' , 'partition_wall', 'pillar'];
+  obj.wallBearingType = [ 'bear_wall' , 'partition_wall', 'pillar', 'stairs'/*,'divider'*/];
 
   obj.wallColors = {
     notChangable: projectionWallMaterial_black,
@@ -2676,7 +2675,7 @@ function initWallEditor( obj ){
                                                       {
                                                         "id": room.uuid,
                                                         "furniture": [],
-                                                        "closedRoom": true,
+                                                        "closedRoom": room.closedRoom,
                                                         "roomID": "",
                                                         "room_type": room._type,
                                                         "room_name": "",
@@ -2685,7 +2684,7 @@ function initWallEditor( obj ){
                                                         "room_area": ( room.area * area_unit.c ).toFixed( area_accuracy_measurements ),
                                                         "area_coords": room.area_coords,
                                                         "walls": [],
-                                                        "elements": []
+                                                        "elements": room.getElements()
                                                       };
           room.defineWallsParams();
 

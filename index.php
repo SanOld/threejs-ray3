@@ -30,6 +30,7 @@
                   <!--</div>-->
                 </li>
                 <li  class="wall_type" data-type = "pillar"><a>Колонна</a></li>
+                <li  class="wall_type" data-type = "stairs"><a>Лестница</a></li>
                 <!--<li  data-type = "divider"><a>Разделитель зон</a></li>-->
               </ul>
             </div>

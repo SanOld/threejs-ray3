@@ -9,6 +9,8 @@ function Room( parameters ){
   this.type = 'Room';
   this.name = 'room';
 
+  this.closedRoom = true;
+
   this._type = parameters.hasOwnProperty("_type") ? parameters["_type"] : 'closedRoom';
 
   this.nodes = parameters.hasOwnProperty("nodes") ? parameters["nodes"] : [];
@@ -16,7 +18,7 @@ function Room( parameters ){
   this.walls =  [];
   this.wallsParams =  [];
   this.external_walls = [];
-
+  this.elements = [];
   this.isClockWise = parameters.hasOwnProperty("isClockWise") ? parameters["isClockWise"] : false;
 
 
@@ -37,11 +39,14 @@ Room.prototype = Object.assign( {}, {
       this.area_coords = { x: objArea.coord.x, y: objArea.coord.z },
       this.area_coords_3D = objArea.area.coord;
 
+
       //отрисовка контура комнаты
       this.drawCounturLine( this.chain, this.nodes );
 
     } else {
 
+      this.closedRoom = false
+      this.walls = this.getWalls( this.chain );
       this.area = 0;
       this.area_coords = {x: 0, y: 0};
       this.area_coords_3D = 0;
@@ -102,10 +107,57 @@ Room.prototype = Object.assign( {}, {
   externalWallsAdd: function(uuid, value){
     this.external_walls.push(uuid);
   },
+  getElements: function(){
+
+    var self = this;
+    var elements = [];
+
+    //исключаем площадь колонн, лестниц?
+    $wallEditor.walls.forEach(function( item ){
+
+      if( self.walls.indexOf( item.uuid) == -1)
+      switch ( item.bearingType ) {
+        case 'stairs':
+
+          if( $wallEditor.isPointInCountur( self.walls, item.v1) || $wallEditor.isPointInCountur( self.walls, item.v2 ) ){
+
+            var position = item.axisLine.getCenter();
+            elements.push({
+              position: {
+                x: position.x,
+                y: position.z
+              },
+              size: {
+                width: item.axisLength,
+                height: item.width
+              },
+              angle: 0,
+              id: item.uuid,
+              basic_class: "plan",
+              sysname: "stairs2"
+            });
+          }
+
+          break;
+
+        case 'something else':
+        break;
+      }
+
+
+    })
+
+
+    this.elements = elements;
+    return elements;
+  },
   getArea: function( countur ){
+
     return $wallEditor.getArea( countur );
+
   },
   getAreaWithoutOpenings: function(){
+
     var self = this;
     var area = this.getArea( this.countur ).area;
     var countur = this.getCountur( this.chain );
@@ -116,14 +168,16 @@ Room.prototype = Object.assign( {}, {
       if( self.walls.indexOf( item.uuid) == -1)
       switch ( item.bearingType ) {
         case 'pillar':
+        case 'partition_wall':
+        case 'stairs':
 
-          if( $wallEditor.isPointInCountur( self.walls, item.v1) && $wallEditor.isPointInCountur( self.walls, item.v2 ) ){
+          if( $wallEditor.isPointInCountur( self.walls, item.v1) || $wallEditor.isPointInCountur( self.walls, item.v2 ) ){
             area -= item.getPlanArea();
           }
 
           break;
 
-        case 'TODO stair':
+        case 'something else':
         break;
       }
 
@@ -149,162 +203,162 @@ Room.prototype = Object.assign( {}, {
   defineWallsParams: function(){
 
     var j = this.walls.length;
-      while (j--) {
+    while (j--) {
 
-        var item = scene.getObjectByProperty( 'uuid', this.walls[j] );
+      var item = scene.getObjectByProperty( 'uuid', this.walls[j] );
 
-        if( j == 0 ){
-          var next_item = scene.getObjectByProperty( 'uuid', this.walls[ this.walls.length - 1 ] );
-        } else {
-          var next_item = scene.getObjectByProperty( 'uuid', this.walls[ j-1 ] );
-        }
+      if( j == 0 ){
+        var next_item = scene.getObjectByProperty( 'uuid', this.walls[ this.walls.length - 1 ] );
+      } else {
+        var next_item = scene.getObjectByProperty( 'uuid', this.walls[ j-1 ] );
+      }
 
-        if( j == this.walls.length - 1 ){
-          var prev_item = scene.getObjectByProperty( 'uuid', this.walls[ 0 ] );
-        } else {
-          var prev_item = scene.getObjectByProperty( 'uuid', this.walls[j+1] );
-        }
+      if( j == this.walls.length - 1 ){
+        var prev_item = scene.getObjectByProperty( 'uuid', this.walls[ 0 ] );
+      } else {
+        var prev_item = scene.getObjectByProperty( 'uuid', this.walls[j+1] );
+      }
 
-        var inner = null;
-        var outer = null;
-        var inner_wall_area_without_openings = 0;
-        var outer_wall_area_without_openings = 0;
-        var volume = 0
+      var inner = null;
+      var outer = null;
+      var inner_wall_area_without_openings = 0;
+      var outer_wall_area_without_openings = 0;
+      var volume = 0;
 
-        if ( item.isNeighbor( next_item ) == 'v1' ) {
-
-            var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
-
-  //                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
-            if ( $wallEditor.isPointInCountur2( this.chain, item.v11, this.nodes ) ){
-
-              var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-  //                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-              var v12 = item.getV12([next_item]); v12 ? '' : v12 =  item.v12;
-              var v22 = item.getV22([prev_item]); v22 ? '' : v22 =  item.v22;
-              var outer = {start: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) }, end: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) } };
-
-              inner_wall_area_without_openings = item.getFirstSideArea();
-              outer_wall_area_without_openings = item.getSecondSideArea();
-
-  //                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
-            } else {
-              var v11 = item.getV11([next_item]); v11 ? '' : v11 =  item.v11;
-              var v21 = item.getV21([prev_item]); v21 ? '' : v21 =  item.v21;
-              var outer = {start: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) }, end: {x: + v11.x.toFixed(2), y: + v11.z.toFixed(2) } };
-  //                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-              var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-
-
-              inner_wall_area_without_openings = item.getSecondSideArea();
-              outer_wall_area_without_openings = item.getFirstSideArea();
-
-            }
-
-        } else if ( item.isNeighbor( next_item ) == 'v2' ) {
-
-            var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
-
-  //                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
-            if ( $wallEditor.isPointInCountur2( this.chain, item.v11, this.nodes ) ){
-
-
-              var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: + item.v21.x.toFixed(2), y: + item.v21.z.toFixed(2) } };
-  //                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-              var v22 = item.getV22([next_item]); v22 ? '' : v22 =  item.v22;
-              var v12 = item.getV12([prev_item]); v12 ? '' : v12 =  item.v12;
-              var outer = {start: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) }, end: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) } };
-
-              inner_wall_area_without_openings = item.getFirstSideArea();
-              outer_wall_area_without_openings = item.getSecondSideArea();
-
-  //                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
-            } else {
-
-              var v21 = item.getV21([next_item]);  v21 ? '' : v21 =  item.v21;
-              var v11 = item.getV11([prev_item]);  v11 ? '' : v11 =  item.v11;
-              var outer = {start: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) }, end: {x: + v21.x.toFixed(2), y: + v21.z.toFixed(2) } };
-  //                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-              var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-
-              inner_wall_area_without_openings = item.getSecondSideArea();
-              outer_wall_area_without_openings = item.getFirstSideArea();
-
-            }
-
-        } else if ( item.isNeighbor( prev_item ) == 'v1' ) {
-
-            var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
-
-  //                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
-            if ( $wallEditor.isPointInCountur2( this.chain, item.v11, this.nodes ) ){
-
-              var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-  //                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-              var v22 = item.getV22([next_item]); v22 ? '' : v22 =  item.v22;
-              var v12 = item.getV12([prev_item]); v12 ? '' : v12 =  item.v12;
-              var outer = {start: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) }, end: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) } };
-
-              inner_wall_area_without_openings = item.getFirstSideArea();
-              outer_wall_area_without_openings = item.getSecondSideArea();
-
-  //                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
-            } else {
-
-              var v21 = item.getV21([next_item]); v21 ? '' : v21 =  item.v21;
-              var v11 = item.getV11([prev_item]); v11 ? '' : v11 =  item.v11;
-              var outer = {start: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) }, end: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) } };
-  //                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-              var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-
-              inner_wall_area_without_openings = item.getSecondSideArea();
-              outer_wall_area_without_openings = item.getFirstSideArea();
-
-            }
-
-        } else if ( item.isNeighbor( prev_item ) == 'v2' ) {
-
-            var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
-
-  //                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
-            if ( $wallEditor.isPointInCountur2( this.chain, item.v11, this.nodes ) ){
-
-              var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-  //                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-              var v12 = item.getV12([next_item]); v12 ? '' : v12 =  item.v12;
-              var v22 = item.getV22([prev_item]); v22 ? '' : v22 =  item.v22;
-              var outer = {start: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) }, end: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) } };
-
-              inner_wall_area_without_openings = item.getFirstSideArea();
-              outer_wall_area_without_openings = item.getSecondSideArea();
-
-  //                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
-            } else {
-              var v11 = item.getV11([next_item]); v11 ? '' : v11 =  item.v11;
-              var v21 = item.getV21([prev_item]); v21 ? '' : v21 =  item.v21;
-              var outer = {start: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) }, end: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) } };
-  //                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-              var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-
-              inner_wall_area_without_openings = item.getSecondSideArea();
-              outer_wall_area_without_openings = item.getFirstSideArea();
-
-            }
-
-        } else  {
+      if ( item.isNeighbor( next_item ) == 'v1' ) {
 
           var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
-          var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
 
-          inner_wall_area_without_openings = item.getFirstSideArea();
-          outer_wall_area_without_openings = item.getSecondSideArea();
+//                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
+          if ( $wallEditor.isPointInCountur2( this.chain, item.v11, this.nodes ) ){
 
-        }
+            var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+            var v12 = item.getV12([next_item]); v12 ? '' : v12 =  item.v12;
+            var v22 = item.getV22([prev_item]); v22 ? '' : v22 =  item.v22;
+            var outer = {start: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) }, end: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) } };
+
+            inner_wall_area_without_openings = item.getFirstSideArea();
+            outer_wall_area_without_openings = item.getSecondSideArea();
+
+//                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
+          } else {
+            var v11 = item.getV11([next_item]); v11 ? '' : v11 =  item.v11;
+            var v21 = item.getV21([prev_item]); v21 ? '' : v21 =  item.v21;
+            var outer = {start: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) }, end: {x: + v11.x.toFixed(2), y: + v11.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+            var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+
+
+            inner_wall_area_without_openings = item.getSecondSideArea();
+            outer_wall_area_without_openings = item.getFirstSideArea();
+
+          }
+
+      } else if ( item.isNeighbor( next_item ) == 'v2' ) {
+
+          var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
+
+//                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
+          if ( $wallEditor.isPointInCountur2( this.chain, item.v11, this.nodes ) ){
+
+
+            var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: + item.v21.x.toFixed(2), y: + item.v21.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+            var v22 = item.getV22([next_item]); v22 ? '' : v22 =  item.v22;
+            var v12 = item.getV12([prev_item]); v12 ? '' : v12 =  item.v12;
+            var outer = {start: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) }, end: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) } };
+
+            inner_wall_area_without_openings = item.getFirstSideArea();
+            outer_wall_area_without_openings = item.getSecondSideArea();
+
+//                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
+          } else {
+
+            var v21 = item.getV21([next_item]);  v21 ? '' : v21 =  item.v21;
+            var v11 = item.getV11([prev_item]);  v11 ? '' : v11 =  item.v11;
+            var outer = {start: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) }, end: {x: + v21.x.toFixed(2), y: + v21.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+            var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+
+            inner_wall_area_without_openings = item.getSecondSideArea();
+            outer_wall_area_without_openings = item.getFirstSideArea();
+
+          }
+
+      } else if ( item.isNeighbor( prev_item ) == 'v1' ) {
+
+          var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
+
+//                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
+          if ( $wallEditor.isPointInCountur2( this.chain, item.v11, this.nodes ) ){
+
+            var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+            var v22 = item.getV22([next_item]); v22 ? '' : v22 =  item.v22;
+            var v12 = item.getV12([prev_item]); v12 ? '' : v12 =  item.v12;
+            var outer = {start: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) }, end: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) } };
+
+            inner_wall_area_without_openings = item.getFirstSideArea();
+            outer_wall_area_without_openings = item.getSecondSideArea();
+
+//                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
+          } else {
+
+            var v21 = item.getV21([next_item]); v21 ? '' : v21 =  item.v21;
+            var v11 = item.getV11([prev_item]); v11 ? '' : v11 =  item.v11;
+            var outer = {start: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) }, end: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+            var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+
+            inner_wall_area_without_openings = item.getSecondSideArea();
+            outer_wall_area_without_openings = item.getFirstSideArea();
+
+          }
+
+      } else if ( item.isNeighbor( prev_item ) == 'v2' ) {
+
+          var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
+
+//                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
+          if ( $wallEditor.isPointInCountur2( this.chain, item.v11, this.nodes ) ){
+
+            var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+            var v12 = item.getV12([next_item]); v12 ? '' : v12 =  item.v12;
+            var v22 = item.getV22([prev_item]); v22 ? '' : v22 =  item.v22;
+            var outer = {start: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) }, end: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) } };
+
+            inner_wall_area_without_openings = item.getFirstSideArea();
+            outer_wall_area_without_openings = item.getSecondSideArea();
+
+//                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
+          } else {
+            var v11 = item.getV11([next_item]); v11 ? '' : v11 =  item.v11;
+            var v21 = item.getV21([prev_item]); v21 ? '' : v21 =  item.v21;
+            var outer = {start: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) }, end: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) } };
+//                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+            var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+
+            inner_wall_area_without_openings = item.getSecondSideArea();
+            outer_wall_area_without_openings = item.getFirstSideArea();
+
+          }
+
+      } else  {
+
+        var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
+        var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+        var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+
+        inner_wall_area_without_openings = item.getFirstSideArea();
+        outer_wall_area_without_openings = item.getSecondSideArea();
+
+      }
 
 
 
-        //проемы
+      //проемы
       var openings = [];
       item.doors.forEach(function(doorway){
 
@@ -355,6 +409,7 @@ Room.prototype = Object.assign( {}, {
 
 
       this.wallsParams [ this.walls[j] ] =  {
+
         center: center,
         inner: inner,
         outer: outer,
@@ -363,8 +418,9 @@ Room.prototype = Object.assign( {}, {
         inner_wall_area_without_openings: inner_wall_area_without_openings,
         outer_wall_area_without_openings: outer_wall_area_without_openings,
         volume: volume
-      }
-      }
+      };
+
+    }
 
   },
 
