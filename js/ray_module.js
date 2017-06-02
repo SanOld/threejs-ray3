@@ -75,6 +75,7 @@ var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
 var measure_unit = {
   'm':  {full_name: 'метр',           short_name: 'м',  c: 0.001 },
   'm2': {full_name: 'квадратный метр',short_name: 'м2', c: 0.000001 },
+  'm3': {full_name: 'кубический метр',short_name: 'м3', c: 0.000000001 },
   'cm': {full_name: 'сантиметр',      short_name: 'см', c: 0.1 },
   'mm': {full_name: 'миллиметр',      short_name: 'мм', c: 1 },
   'ft': {full_name: 'фут',            short_name: 'ft', c: 0.003281 },
@@ -85,6 +86,9 @@ var accuracy_measurements = 0;
 
 var area_unit = measure_unit.m2;
 var area_accuracy_measurements = 2;
+
+var volume_unit = measure_unit.m3;
+var volume_accuracy_measurements = 2;
 
 
 //Редактор
@@ -100,7 +104,7 @@ function Editor(obj){
 
   obj.wallAction = [ 'notChangable', 'installation', 'deinstallation' ];
 //  obj.wallBearingType = [ 'main' , 'partition', 'divider' ];
-  obj.wallBearingType = [ 'bear_wall' , 'partition_wall'];
+  obj.wallBearingType = [ 'bear_wall' , 'partition_wall', 'pillar'];
 
   obj.wallColors = {
     notChangable: projectionWallMaterial_black,
@@ -471,14 +475,14 @@ function Editor(obj){
 
   return response;
 
-  }
+  };
   obj.getMagnitVerticies = function(data, callback){
     $.get( "classes/getMagnitVerticies.php", {data: JSON.stringify(data)} )
     .done(function( response ) {
       var response = JSON.parse(response);
       callback( response );
     });
-  }
+  };
   obj.getPointerHelperPosition = function(data, callback){
 
     $.ajax({
@@ -496,7 +500,7 @@ function Editor(obj){
       }
     });
 
-  }
+  };
 
   obj.isEmptyObject = function (obj) {
     for (var i in obj) {
@@ -505,7 +509,7 @@ function Editor(obj){
         }
     }
     return true;
-  }
+  };
 
 }
 var $Editor = {};
@@ -1046,7 +1050,7 @@ function initProjection(obj){
         case 'notChangable':
         case 'installation':
         case 'deinstallation':
-          part = $(this).find('button').text()
+          part = $(this).find('button').text();
           var part = part.split(':')[0];
           $('.wall_type').find('button.wall_type').html(part + ' <span class="caret"></span>');
           break;
@@ -2632,281 +2636,150 @@ function initWallEditor( obj ){
     return false;
 
   };
-  obj.getWallsLength = function(){
-    var result = 0;
-    obj.walls.forEach(function( item ){
-      result += item.axisLength;
-    });
-    return result;
-  };
-
 
   obj.getJSON = function(callback){
     var export_data;
     $.getJSON("data/export_example.json", function(data) {
 
-                export_data = data;
-                export_data.drawing = $Editor.prepareDataToSave();
-                window.localStorage.setItem( 'cad5',  export_data.drawing  );
+        export_data = data;
+        export_data.drawing = $Editor.prepareDataToSave();
+        window.localStorage.setItem( 'cad5',  export_data.drawing  );
 
-                var rooms = obj.getRooms();
-                var total_area = 0;
+        var rooms = obj.getRooms();
+        var all_walls_lengths = 0
+        var total_area = 0;
+        var total_inner_wall_area_without_openings = 0;
+        var total_outer_wall_area_without_openings  = 0;
+        var total_walls_volume_without_openings = 0;
+        var total_floor_area_without_openings = 0;
 
+        obj.defineExternalWall( rooms );
+        obj.defineFreeRoom( rooms );
+        obj.setRoomWallNumbers( rooms );
+        obj.resetOuterWallNumber();
+        obj.setOuterWallNumbers( rooms );
 
-                obj.defineExternalWall( rooms );
-                obj.defineFreeRoom( rooms );
-                obj.setRoomWallNumbers( rooms );
-                obj.resetOuterWallNumber();
-                obj.setOuterWallNumbers( rooms );
+        rooms.forEach(function( room, room_index ){
 
+          window.console.log('room: ' + room.area );
 
-                rooms.forEach(function( room, room_index ){
+          if( room._type != 'freeRoom'){
+            total_area += +room.area;
+            all_walls_lengths += +room.getWallslength();
+            total_inner_wall_area_without_openings += +room.getInnerWallsArea();
+            total_outer_wall_area_without_openings += +room.getOuterWallsArea();
+            total_walls_volume_without_openings  += +room.getWallsVolume();
+            total_floor_area_without_openings += +room.getAreaWithoutOpenings();
+          }
 
-                  window.console.log('room: ' + room.area );
+          export_data.floors[0].rooms[ room_index ] =
+                                                      {
+                                                        "id": room.uuid,
+                                                        "furniture": [],
+                                                        "closedRoom": true,
+                                                        "roomID": "",
+                                                        "room_type": room._type,
+                                                        "room_name": "",
+                                                        "room_number": "",
+                                                        "room_zone": "",
+                                                        "room_area": ( room.area * area_unit.c ).toFixed( area_accuracy_measurements ),
+                                                        "area_coords": room.area_coords,
+                                                        "walls": [],
+                                                        "elements": []
+                                                      };
+          room.defineWallsParams();
 
-                  total_area += +room.area;
-                  export_data.floors[0].rooms[ room_index ] =
-                                                              {
-                                                                "id": room.uuid,
-                                                                "furniture": [],
-                                                                "closedRoom": true,
-                                                                "roomID": "",
-                                                                "room_type": "undefined",
-                                                                "room_name": "",
-                                                                "room_number": "",
-                                                                "room_zone": "",
-                                                                "room_area": room.area,
-                                                                "area_coords": room.area_coords,
-                                                                "walls": [],
-                                                                "elements": []
-                                                              };
+          var j = room.walls.length;
+          while (j--) {
 
-                  var j = room.walls.length;
-                  while (j--) {
+            var item = scene.getObjectByProperty( 'uuid', room.walls[j] );
 
-                    var item = scene.getObjectByProperty( 'uuid', room.walls[j] );
+            var inner = room.wallsParams[ room.walls[j] ].inner;
+            var outer = room.wallsParams[ room.walls[j] ].outer;
+            var center = room.wallsParams[ room.walls[j] ].center;
+            var openings = room.wallsParams[ room.walls[j] ].openings;
 
+            var arrWalls = export_data.floors[0].rooms[ room_index ].walls;
 
+            //свертывание стен с одним номером
 
+//            if( arrWalls.length != 0 && arrWalls[ arrWalls.length - 1 ].room_wall_num == item.number[room_index] ){
+//
+//            arrWalls[ arrWalls.length - 1 ].inner.end = inner.end;
+//            arrWalls[ arrWalls.length - 1 ].center.end = center.end;
+//            arrWalls[ arrWalls.length - 1 ].outer.end = outer.end;
+//            arrWalls[ arrWalls.length - 1 ].wall_length_mm +=  +item.getCurrentDimValue().toFixed(2);
+//
+//            } else {
+//              arrWalls.push({
+//                id: item.id,
+//                inner: inner,
+//                outer: outer,
+//                center: center,
+//                arcPath: null,
+//                mount_type: "",
+//                wall_length_mm: +item.getCurrentDimValue().toFixed(2),
+//                width_px: item.width,
+//                width_units: +(item.width * current_unit.c).toFixed(2),
+//                type: item.bearingType,
+//                wall_action: item.wallAction,
+//                height: {
+//                  start: +item.height.toFixed(2),
+//                  end: +item.height.toFixed(2)
+//                },
+//                openings: openings,
+//                external_wall: item.external_wall,
+//                room_wall_num: item.number[room_index]
+//  //                      outer_wall_num: item.outer_wall_num
+//              })
+//
+//              item.outer_wall_num ? arrWalls[ arrWalls.length - 1 ].outer_wall_num = item.outer_wall_num : '';
+//            }
 
-                    if( j == 0 ){
-                      var next_item = scene.getObjectByProperty( 'uuid', room.walls[ room.walls.length - 1 ] );
-                    } else {
-                      var next_item = scene.getObjectByProperty( 'uuid', room.walls[ j-1 ] );
-                    }
+            arrWalls.push({
+                id: item.id,
+                inner: inner,
+                outer: outer,
+                center: center,
+                arcPath: null,
+                mount_type: "",
+                wall_length_mm: +item.getCurrentDimValue().toFixed(2),
+                width_px: item.width,
+                width_units: +(item.width * current_unit.c).toFixed(2),
+                type: item.bearingType,
+                wall_action: item.wallAction,
+                height: {
+                  start: +item.height.toFixed(2),
+                  end: +item.height.toFixed(2)
+                },
+                openings: openings,
+                external_wall: item.external_wall,
+                room_wall_num: item.number[room_index],
+                outer_wall_num: item.outer_wall_num
+              });
 
-                    if( j == room.walls.length - 1 ){
-                      var prev_item = scene.getObjectByProperty( 'uuid', room.walls[ 0 ] );
-                    } else {
-                      var prev_item = scene.getObjectByProperty( 'uuid', room.walls[j+1] );
-                    }
-
-
-                    var inner = null;
-                    var outer = null;
-                    if ( item.isNeighbor( next_item ) == 'v1' ) {
-
-                        var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
-
-//                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
-                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
-
-                          var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-//                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-                          var v12 = item.getV12([next_item]); v12 ? '' : v12 =  item.v12;
-                          var v22 = item.getV22([prev_item]); v22 ? '' : v22 =  item.v22;
-                          var outer = {start: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) }, end: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) } };
-
-//                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
-                        } else {
-                          var v11 = item.getV11([next_item]); v11 ? '' : v11 =  item.v11;
-                          var v21 = item.getV21([prev_item]); v21 ? '' : v21 =  item.v21;
-                          var outer = {start: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) }, end: {x: + v11.x.toFixed(2), y: + v11.z.toFixed(2) } };
-//                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-                          var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-
-                        }
-
-                    } else if ( item.isNeighbor( next_item ) == 'v2' ) {
-
-                        var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
-
-//                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
-                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
-
-
-                          var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: + item.v21.x.toFixed(2), y: + item.v21.z.toFixed(2) } };
-//                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-                          var v22 = item.getV22([next_item]); v22 ? '' : v22 =  item.v22;
-                          var v12 = item.getV12([prev_item]); v12 ? '' : v12 =  item.v12;
-                          var outer = {start: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) }, end: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) } };
-
-//                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
-                        } else {
-
-                          var v21 = item.getV21([next_item]);  v21 ? '' : v21 =  item.v21;
-                          var v11 = item.getV11([prev_item]);  v11 ? '' : v11 =  item.v11;
-                          var outer = {start: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) }, end: {x: + v21.x.toFixed(2), y: + v21.z.toFixed(2) } };
-//                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-                          var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-
-                        }
-
-                    } else if ( item.isNeighbor( prev_item ) == 'v1' ) {
-
-                        var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
-
-//                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
-                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
-
-                          var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-//                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-                          var v22 = item.getV22([next_item]); v22 ? '' : v22 =  item.v22;
-                          var v12 = item.getV12([prev_item]); v12 ? '' : v12 =  item.v12;
-                          var outer = {start: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) }, end: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) } };
-
-//                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
-                        } else {
-
-                          var v21 = item.getV21([next_item]); v21 ? '' : v21 =  item.v21;
-                          var v11 = item.getV11([prev_item]); v11 ? '' : v11 =  item.v11;
-                          var outer = {start: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) }, end: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) } };
-//                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-                          var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-
-                        }
-
-                    } else if ( item.isNeighbor( prev_item ) == 'v2' ) {
-
-                        var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
-
-//                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
-                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
-
-                          var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-//                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-                          var v12 = item.getV12([next_item]); v12 ? '' : v12 =  item.v12;
-                          var v22 = item.getV22([prev_item]); v22 ? '' : v22 =  item.v22;
-                          var outer = {start: {x: +v22.x.toFixed(2), y: +v22.z.toFixed(2) }, end: {x: +v12.x.toFixed(2), y: +v12.z.toFixed(2) } };
-
-//                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
-                        } else {
-                          var v11 = item.getV11([next_item]); v11 ? '' : v11 =  item.v11;
-                          var v21 = item.getV21([prev_item]); v21 ? '' : v21 =  item.v21;
-                          var outer = {start: {x: +v21.x.toFixed(2), y: +v21.z.toFixed(2) }, end: {x: +v11.x.toFixed(2), y: +v11.z.toFixed(2) } };
-//                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-                          var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-
-                        }
-
-                    } else  {
-
-                      var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
-                      var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-                      var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-
-                    }
-
-
-
-                    //проемы
-                  var openings = [];
-                  item.doors.forEach(function(doorway){
-
-                    var doorway_inner = {start: {x: +doorway.p_11.x.toFixed(2), y: +doorway.p_11.z.toFixed(2) }, end: {x: +doorway.p_21.x.toFixed(2), y: +doorway.p_21.z.toFixed(2) } };
-                    var doorway_outer = {start: {x: +doorway.p_12.x.toFixed(2), y: +doorway.p_12.z.toFixed(2) }, end: {x: +doorway.p_22.x.toFixed(2), y: +doorway.p_22.z.toFixed(2) } };
-                    var cellAngle = 0;
-                    if(doorway.location){
-                      switch (doorway.location) {
-                        case 1:
-                          cellAngle = 0;
-                          break;
-                        case 2:
-                          cellAngle = 90;
-                          break;
-                        case 3:
-                          cellAngle = 180;
-                          break;
-                        case 4:
-                          cellAngle = 270;
-                          break;
-
-                      }
-                    }
-
-                    openings.push(
-                                  {
-                                    id: doorway.id,
-                                    inner: doorway_inner,
-                                    outer: doorway_outer,
-                                    cellPosition: {
-                                      x: 0,
-                                      y: 0
-                                    },
-                                    cellAngle: cellAngle,
-                                    flipped: false,
-                                    type: doorway.json_type,
-                                    systype: doorway.json_systype,
-                                    height: doorway.height,
-                                    heightAboveFloor: doorway.elevation,
-                                    width: doorway.width,
-                                    slope: doorway.slope,
-                                    obj_thickness: doorway.depObject_thickness
-                                  }
-                                );
-                  })
-
-                  var arrWalls = export_data.floors[0].rooms[ room_index ].walls;
-
-                  if( arrWalls.length != 0 && arrWalls[ arrWalls.length - 1 ].room_wall_num == item.number[room_index] ){
-                    arrWalls[ arrWalls.length - 1 ].inner.end = inner.end;
-                    arrWalls[ arrWalls.length - 1 ].center.end = center.end;
-                    arrWalls[ arrWalls.length - 1 ].outer.end = outer.end;
-                    arrWalls[ arrWalls.length - 1 ].wall_length_mm +=  +item.getCurrentDimValue().toFixed(2);
-                  } else {
-                    arrWalls.push({
-                      id: item.id,
-                      inner: inner,
-                      outer: outer,
-                      center: center,
-                      arcPath: null,
-                      mount_type: "",
-                      wall_length_mm: +item.getCurrentDimValue().toFixed(2),
-                      width_px: item.width,
-                      width_units: +(item.width * current_unit.c).toFixed(2),
-                      type: item.bearingType,
-                      wall_action: item.wallAction,
-                      height: {
-                        start: +item.height.toFixed(2),
-                        end: +item.height.toFixed(2)
-                      },
-                      openings: openings,
-                      external_wall: item.external_wall,
-                      room_wall_num: item.number[room_index]
-//                      outer_wall_num: item.outer_wall_num
-                    })
-
-                    item.outer_wall_num ? arrWalls[ arrWalls.length - 1 ].outer_wall_num = item.outer_wall_num : '';
-                  }
-
-
-//                window.console.log('id: ' + item.id);
-                  window.console.log('room_wall_num: ' + item.number[room_index]);
-                  window.console.log('axisLength: ' + item.axisLength.toFixed(2) );
-                  window.console.log('outer: start: ' + outer.start.x + ' ' +outer.start.y);
-                  window.console.log('outer: end: ' + outer.end.x + ' ' +outer.end.y);
+//                  window.console.log('id: ' + item.id);
+//                  window.console.log('room_wall_num: ' + item.number[room_index]);
+//                  window.console.log('axisLength: ' + item.axisLength.toFixed(2) );
+//                  window.console.log('outer: start: ' + outer.start.x + ' ' +outer.start.y);
+//                  window.console.log('outer: end: ' + outer.end.x + ' ' +outer.end.y);
 //                  window.console.log("v1 - x: "+(item.v1.x) + " z: "+(item.v1.z));
 //                  window.console.log("v2 - x: "+(item.v2.x) + " z: "+(item.v2.z));
 
-                  }
+          }
 
-                })
+        });
 
-                export_data.floors[0].total_area = total_area;
-                export_data.floors[0].all_walls_lengths = obj.getWallsLength().toFixed(2);
+        export_data.floors[0].total_area = ( total_area * area_unit.c ).toFixed( area_accuracy_measurements );
+        export_data.floors[0].all_walls_lengths = all_walls_lengths.toFixed( accuracy_measurements );
 
-                callback( JSON.stringify(export_data) );
-            });
+        export_data.floors[0].total_inner_wall_area_without_openings = (total_inner_wall_area_without_openings * area_unit.c ).toFixed( area_accuracy_measurements );;
+        export_data.floors[0].total_outer_wall_area_without_openings = (total_outer_wall_area_without_openings * area_unit.c ).toFixed( area_accuracy_measurements );;
+        export_data.floors[0].total_walls_volume_without_openings = (total_walls_volume_without_openings * volume_unit.c ).toFixed( volume_accuracy_measurements );;
+        export_data.floors[0].total_floor_area_without_openings = (total_floor_area_without_openings * area_unit.c ).toFixed( area_accuracy_measurements );;
+
+        callback( JSON.stringify(export_data) );
+    });
 
 
   };
@@ -2936,55 +2809,20 @@ function initWallEditor( obj ){
       var countur = [];
 
       if( chain ){
-          //отрисовка контура комнаты
-           obj.addCounturLine( chain, nodes );
-          //=================
-
-          chain.forEach(function( item ){
-
-//            window.console.log('chain: ' + item.wall_id);
-
-            if( countur.length == 0 ){
-              countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
-              countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
-            } else if(countur[countur.length-1].x == nodes[item.target.id].position.x && countur[countur.length-1].y == nodes[item.target.id].position.z ){
-              countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
-            } else {
-              countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
-            }
-
-            if( walls.indexOf( item.wall_uuid ) == -1 ){
-              walls.push( item.wall_uuid );
-//              window.console.log(item.wall_id);
-            } else {
-
-              var wall = scene.getObjectByProperty( 'uuid', item.wall_uuid );
-
-              //в случае внутренней перегородки (но не "толстой" стены)
-              if( wall.mover.v1_neighbors.length == 0 || wall.mover.v2_neighbors.length == 0)
-              external_walls[ item.wall_uuid ] = false;
-
-            }
-
-          });
-          countur.length = countur.length - 1;
 
 
           var isClockWise = ! THREE.ShapeUtils.isClockWise(countur) ;
 
-          var objArea = obj.getArea( countur );
+          var  room = new Room({
+                                nodes: nodes,
+                                chain: chain,
+                                isClockWise: !isClockWise
+                              })
+          rooms.push( room );
 
-          rooms.push({
-                      id: THREE.Math.generateUUID(),
-                      nodes: nodes,
-                      walls: walls,
-                      chain: chain,
-                      external_walls: external_walls,
-                      area: objArea.area,
-                      area_coords: {x: objArea.coord.x, y: objArea.coord.z},
-                      area_coords_3D: objArea.coord,
-                      isClockWise: !isClockWise
-                    })
+
+          var objArea = room.getArea( room.countur ) ;
+          objArea.area = ( objArea.area * area_unit.c ).toFixed( area_accuracy_measurements );
 
           if( Areas.children.length < rooms.length && objArea.area){
 
@@ -3002,7 +2840,7 @@ function initWallEditor( obj ){
 
       }
 
-    })
+    });
 
 //    window.console.timeEnd('t');
 
@@ -3160,6 +2998,7 @@ function initWallEditor( obj ){
     })
 
   };
+
   obj.isWallInRoom = function( nodes, wall, chain ){
 
     //массив диний для проверки пересечения
@@ -3282,7 +3121,8 @@ function initWallEditor( obj ){
   obj.getArea = function( countur ){
 
     var result = {};
-    result.area = Math.abs( THREE.ShapeUtils.area( countur )* area_unit.c ).toFixed( area_accuracy_measurements );
+    result.nativeArea = THREE.ShapeUtils.area( countur );
+    result.area = Math.abs( result.nativeArea );
 
     var area_coord = new THREE.Vector3();
     var max_area = 0;
@@ -3295,7 +3135,7 @@ function initWallEditor( obj ){
                                     new THREE.Vector3(item2[0].x, 0, item2[0].y),
                                     new THREE.Vector3(item2[1].x, 0, item2[1].y),
                                     new THREE.Vector3(item2[2].x, 0, item2[2].y)
-                                    )
+                                    );
 
 
       var current_area = triangle.area();
@@ -3340,22 +3180,6 @@ function initWallEditor( obj ){
     Areas.children.forEach(function(item){
       item.material.visible = false;
     })
-  };
-  obj.addCounturLine = function( chain, nodes ){
-
-    chain.forEach(function(item){
-
-      var geometry = new THREE.Geometry();
-      if(nodes[item.source.id] && nodes[item.target.id]){
-        geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
-        var line = new THREE.Line(geometry, LineBasicMaterialRed);
-        line.name = 'room_line';
-
-        AreaCounturs.add( line );
-      }
-
-    })
-
   };
   obj.removeCounturLine = function(){
     var _lines = [];
@@ -3675,15 +3499,22 @@ function initWallEditor( obj ){
 
           });
 
-          rooms.push({
-                      id: THREE.Math.generateUUID(),
-                      walls: walls,
-                      external_walls: true,
-                      area: 0,
-                      area_coords: {x: 0, y: 0},
-                      area_coords_3D: 0,
-                      isClockWise: 0
-                    })
+//          rooms.push({
+//                      id: THREE.Math.generateUUID(),
+//                      walls: walls,
+//                      external_walls: true,
+//                      area: 0,
+//                      area_coords: {x: 0, y: 0},
+//                      area_coords_3D: 0,
+//                      isClockWise: 0
+//                    })
+          var  room = new Room({
+                                nodes: nodes,
+                                chain: chain,
+                                isClockWise: 0,
+                                _type: 'freeRoom'
+                              })
+          rooms.push( room );
 
 
       }
@@ -4788,6 +4619,8 @@ function Wall( vertices, parameters ){
   //хелпер примечание id
 //  noteAdd( this, 'id: ' + this.id.toString(), null, {x: this.axisLine.getCenter().x, y: this.axisLine.getCenter().z} );
 //  noteAdd( this, '(' + this.v1.x.toFixed(2) + ', \n' + this.v1.z.toFixed(2) + ')', null, {x: this.v1.x+300, y: this.v1.z} );
+
+//noteAdd( this,  this.getFirstSideArea().toFixed(2) , null, {x: this.v1.x+300, y: this.v1.z} );
 
   //Ноды
   self.setDefaultNode();
@@ -6097,8 +5930,83 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       $wallCreator.updateWalls();
     }
 
-  }
+  },
 
+  getPlanArea: function(){
+
+    var result  = { area: 0 };
+    var countur = [];
+
+    countur.push( new THREE.Vector2( this.v1.x,  this.v1.z ) );
+    countur.push( new THREE.Vector2( this.v11.x, this.v11.z ) );
+    countur.push( new THREE.Vector2( this.v21.x, this.v21.z ) );
+    countur.push( new THREE.Vector2( this.v2.x,  this.v2.z ) );
+    countur.push( new THREE.Vector2( this.v22.x, this.v22.z ) );
+    countur.push( new THREE.Vector2( this.v12.x, this.v12.z ) );
+
+    result = $wallEditor.getArea( countur );
+
+    return result.area;
+  },
+  getFirstSideArea: function(){
+
+    var area  = 0;
+    var openingsArea = 0;
+
+    var line = new THREE.Line3(this.v11, this.v21);
+
+    area = line.distance() * this.height;
+
+    //
+    this.doors.forEach(function(item){
+
+      openingsArea += item.getArea();
+
+      if( item.name = 'niche' && item.location == 3){
+        openingsArea -= item.getArea();
+      }
+
+    });
+
+    return area - openingsArea ;
+  },
+  getSecondSideArea: function(){
+
+    var area  = 0;
+    var openingsArea = 0;
+
+    var line = new THREE.Line3(this.v12, this.v22);
+
+    area = line.distance() * this.height;
+
+
+
+    this.doors.forEach(function(item){
+
+      openingsArea += item.getArea();
+
+      if( item.name = 'niche' && item.location == 1){
+        openingsArea -= item.getArea();
+      }
+
+    });
+
+    return area - openingsArea ;
+  },
+  getVolume: function(){
+
+    var planArea = this.getPlanArea();
+    var volume =  planArea * this.height ;
+    var openingsVolume = 0;
+
+    this.doors.forEach(function(item){
+
+      openingsVolume += item.getVolume();
+
+    });
+
+    return ( volume - openingsVolume );
+  }
 
 });
 
@@ -7186,6 +7094,8 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
 
 });
 
+
+
 //Проем
 function Doorway( wall, parameters ){
 
@@ -7742,6 +7652,16 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
       item.removeEventListener( 'edit', self.changeDoorwayDim );
       scene.remove( item );
     })
+  },
+
+
+  getArea: function(){
+    return  this.width * this.height;
+  },
+  getVolume: function(){
+
+    return  this.width * this.height * this.thickness;
+
   }
 
 });
