@@ -1270,7 +1270,7 @@ function initDimensionEditorMode(obj){
   obj.edgesAdd = function(){
 
     scene.traverse(function(item, idx) {
-      if(item.name == 'wall'){
+      if(item.type == 'Wall'){
         var edges = new THREE.EdgesGeometry( item.geometry );
         var positions = edges.attributes.position.array;
         for(var i = 0; i < positions.length;i+=2)
@@ -1298,7 +1298,7 @@ function initDimensionEditorMode(obj){
     scene.add( obj.currentPoint );
 
     scene.traverse(function(item, idx) {
-      if(item.name == 'wall'){
+      if(item.type == 'Wall'){
 
           var material2 = new THREE.PointsMaterial({
             color: 'red',
@@ -1749,13 +1749,17 @@ function initWallCreator(obj){
     obj.rooms = $wallEditor.getRooms();
   };
 
-  obj.removeWall = function(wall){
+  obj.removeWall = function( wall ){
 
-      if(wall.parent){
-        wall.parent.remove(wall);
+      if( wall.parent ){
+
+        wall.parent.remove( wall );
+
       } else {
+
         delete wall;
         return;
+
       }
 
 
@@ -1773,6 +1777,7 @@ function initWallCreator(obj){
     var parameters = parameters || {};
 
     var needUpdate = parameters.hasOwnProperty("needUpdate") ? parameters["needUpdate"] : true;
+    var isRadial = parameters.hasOwnProperty("isRadial") ? parameters["isRadial"] : false;
 
     vertices[0] = parameters.hasOwnProperty("v1") ? parameters["v1"] : vertices[0].clone();
     vertices[1] = parameters.hasOwnProperty("v2") ? parameters["v2"] : vertices[1].clone();
@@ -1787,7 +1792,16 @@ function initWallCreator(obj){
 
     }
 
-    var wall = new Wall( vertices, parameters );
+    if ( isRadial ){
+
+      var wall = new RadialWall( vertices, parameters );
+
+    } else {
+
+      var wall = new Wall( vertices, parameters );
+
+    }
+
     if( wall ){
 
 //Простой вариант построения по типу размера
@@ -2091,7 +2105,7 @@ function initWallCreator(obj){
     //наполнение массива точек
     scene.children.forEach(function(item, idx) {
 
-      if(item.name == 'wall'){
+      if(item.type == 'Wall'){
 
         $Editor.getMagnitVerticies({ v1: item.v1, v2: item.v2 }, function(response){
           if(response){
@@ -3896,14 +3910,19 @@ function initWallEditor( obj ){
     obj.lastDoorway.type = $(this).data('type');
     obj.lastDoorway.doorway = obj.selected.uuid;
 	});
-  $('.ActiveElementMenu').on('click', '[action = scaleFloor]', function(event){
+  $('.ActiveElementMenu').on('click', '[action = scaleFloor]', function( event ){
 
 		obj.selected.setFloorScale(event);
 
 	});
-  $('.ActiveElementMenu').on('click', '[action = changeWidth]', function(event){
+  $('.ActiveElementMenu').on('click', '[action = changeWidth]', function( event ){
 
 		obj.selected.changeWidth(event);
+
+	});
+  $('.ActiveElementMenu').on('click', '[action = changeRadial]', function( event ){
+
+		obj.selected.changeRadial();
 
 	});
 
@@ -3947,7 +3966,6 @@ function initWallEditor( obj ){
 		obj.selected.remove();
 
 	});
-
 
   $('.footer').on('keydown','[action = floorHeight]',function(event){
 
@@ -4755,6 +4773,9 @@ function Wall( vertices, parameters ){
 
   this.uuid = parameters.hasOwnProperty("uuid") ? parameters["uuid"]:this.uuid;
   this.width = parameters.hasOwnProperty("width") ? parameters["width"] : $Editor.default_params.wallWidth;
+  this.isRadial = false;
+
+  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 100;
   this.height = parameters.hasOwnProperty("height") ? parameters["height"] : floorHeight;
   this.v1 = parameters.hasOwnProperty("v1") ? parameters["v1"] : vertices[0].clone();
   this.v2 = parameters.hasOwnProperty("v2") ? parameters["v2"] : vertices[1].clone();
@@ -4817,11 +4838,9 @@ function Wall( vertices, parameters ){
   self.controlPoint2 = new WallControlPoint( self, 'v2' );
   scene.add( self.controlPoint1, self.controlPoint2 );
 
-  //хелпер примечание id
+//хелпер - примечание
 //  noteAdd( this, 'id: ' + this.id.toString(), null, {x: this.axisLine.getCenter().x, y: this.axisLine.getCenter().z} );
 //  noteAdd( this, '(' + this.v1.x.toFixed(2) + ', \n' + this.v1.z.toFixed(2) + ')', null, {x: this.v1.x+300, y: this.v1.z} );
-//noteAdd( this,  this.getFirstSideArea().toFixed(2) , null, {x: this.v1.x+300, y: this.v1.z} );
-
   //Ноды
   self.setDefaultNode();
 
@@ -4915,7 +4934,6 @@ function Wall( vertices, parameters ){
     return parent_toJson.call(this);
 
   };
-
 
 }
 Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
@@ -6208,6 +6226,41 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       }
     }
   }
+  changeRadial: function(){
+
+    var v1 = this.v1.clone();
+    var v2 = this.v2.clone();
+    var isRadial = this.isRadial;
+
+    this.remove();
+    $wallEditor.removeWall( this );
+
+    $wallCreator.addWall( [ v1, v2 ], { isRadial: !isRadial});
+    window.console.log($wallEditor.walls);
+
+  }
+
+
+});
+
+//объект радиусной стены
+function RadialWall( vertices, parameters ){
+  Wall.apply( this, [vertices, parameters] );
+
+//  this.type = 'Wall';
+  this.name = 'radial_wall';
+  this.subtype = 'RadialWall';
+
+  var self = this;
+
+  this.isRadial = true;
+
+  alert('new RadialWall create!')
+
+}
+RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
+
+  constructor: RadialWall
 
 });
 
@@ -6746,6 +6799,7 @@ function WallMover( wall ){
   this.hoveron =    function ( event ) {
 
     self.material.visible = true;
+    window.console.log(self.wall.parent);
 
   };
   this.hoveroff =   function ( event ) {
