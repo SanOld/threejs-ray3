@@ -50,3 +50,47 @@
 	border: 1px solid #015c99;
 }
 */
+
+.left_panel_custom{
+    border: 1px solid;
+    position: absolute;
+    bottom: 10px;
+    left:5px;
+    /*border-radius: 5px;*/
+    width: 230px;
+    height: 400px;
+    background: rgba(0,0,0,.8);
+    padding: 0 10px 0 5px!important;
+}
+
+.label_custom{
+    color: white!important;
+    display: inline;
+}
+
+.div_labels_custom{
+    display: flex;
+}
+
+.div_labels_custom > input{
+    position: relative!important;
+}
+
+.door_div_custom{
+    width: 230px;
+    background: rgba(0,0,0,.8);
+    position: absolute;
+    left: 5px;
+    bottom: -10px;
+}
+
+.door_div_custom input{
+    float: left;
+    margin-left: 5px;
+}
+
+.door_div_custom span{
+    float: right;
+    color: white!important;
+    margin-right: 24px;
+}

@@ -74,16 +74,21 @@
 
 nav input{
     padding: 2px 0px;
-    position: absolute;
-    display: block;
+    /*position: absolute;*/
+    /*display: block;*/
     width: 65px !important;
     height: 20px;
+    float: right;
     line-height: 20px;
     font-size: 14px;
     text-indent: 0;
     text-align: center;
     z-index: 90;
+    clear: both;
+    margin-right: 10px;
 }
+
+
 
 .input-group[class*=col-] {
     height: 20px;

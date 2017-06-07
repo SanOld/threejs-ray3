@@ -7391,7 +7391,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     })
 
     //отображаем меню
-    $( self.rkmMenu ).css('display','block');
+    // $( self.rkmMenu ).css('display','block');
     $( self.rkmMenu ).offset({top:center.y, left:center.x});
 
     //отображаем пункты меню
@@ -8833,7 +8833,7 @@ function noteMaker( obj, message, parameters )
     var parent = document.createElement("span");
     parent.appendChild(document.createTextNode("height"));
     document.body.appendChild(parent);
-    parent.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;";
+    parent.style.cssText = "font: " + font + "; white-space: nowrap; ";
     var height = parent.offsetHeight;
     document.body.removeChild(parent);
     return height;

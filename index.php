@@ -13,10 +13,13 @@
     <div class="row">
 
       <div class="col-lg-6">
+<!-- left panel -->
+
         <div class="row">
-          <div class="col-lg-3  pull-left" style="display: none">
-            <div class="btn-group dropup wall_type">
-              <button type="button" class="btn btn-default dropdown-toggle wall_type btn_default_custom" data-toggle="dropdown">Несущая <span class="caret" ></span></button>
+
+          <div class="col-lg-3  pull-left " style="display: none">
+            <div class="btn dropup wall_type">
+              <button type="button" class="btn  dropdown-toggle wall_type btn_default_custom" data-toggle="dropdown">Несущая <span class="caret" ></span></button>
               <ul class="dropdown-menu multi-level ul_drop_menu_custom">
                 <li  class="wall_type" data-type = "bear_wall"><a>Несущая</a></li>
                 <li  class="dropdown-submenu wall_type wall_action dropdown-toggle " data-type = "partition_wall" data-toggle="dropdown">
@@ -37,29 +40,58 @@
 
           </div> 
 
-          <div class="col-lg-6 input-group objParams pull-left" style="display: none">
-            <span class="input-group-addon  height" >Высота:</span>
-            <input type="dim" class="form-control height" pattern="^[0-9]+$" param="height" title="Высота">
-            <span class="input-group-addon width" >Ширина:</span>
-            <input type="dim" class="form-control  width" pattern="^[0-9]+$" param="width" title="Ширина">
-            <span class="input-group-addon length" >Длина:</span>
-            <input type="dim" class="form-control length" pattern="^[0-9]+$" param="length" title="Длина">
-            <span class="input-group-addon depObject_thickness">Толщина:</span>
-            <input type="dim" class="form-control depObject_thickness" pattern="^[0-9]+$" param="depObject_thickness" title="Толщина">
-            <span class="input-group-addon thickness" >Толщина:</span>
-            <input type="dim" class="form-control thickness" pattern="^[0-9]+$" param="thickness" title="Толщина">
-            <span class="input-group-addon elevation" >От пола:</span>
-            <input type="dim" class="form-control elevation" pattern="^[0-9]+$" param="elevation" title="Высота от пола">
-            <span class="input-group-addon slope" >Ширина откоса:</span>
-            <input type="dim" class="form-control slope" pattern="^[0-9]+$" param="slope" title="Откос" disabled>
+          <div class="col-lg-6 input-group objParams pull-left left_panel_custom" style="display: none">
+            <!-- <p class="div_labels_custom"> -->
+            <p></p>
+              <span class="label_custom  height" >Высота:</span>
+              <input type="dim" class="height" pattern="^[0-9]+$" param="height" title="Высота">
+            <!-- </p> -->
+            
+            <!-- <p class="div_labels_custom"> -->
+            <p></p>
+              <span class="label_custom width" >Ширина:</span>
+              <input type="dim" class="  width" pattern="^[0-9]+$" param="width" title="Ширина">
+            <!-- </p> -->
+
+            <!-- <p class="div_labels_custom"> -->
+            <p></p>
+              <span class="label_custom length" >Длина:</span>
+              <input type="dim" class="length" pattern="^[0-9]+$" param="length" title="Длина">
+            <!-- </p> -->
+
+            <!-- <p class="div_labels_custom"> -->
+            <p></p>
+              <span class="label_custom depObject_thickness">Толщина:</span>
+              <input type="dim" class="depObject_thickness" pattern="^[0-9]+$" param="depObject_thickness" title="Толщина">
+            <!-- </p> -->
+
+            <!-- <p class="div_labels_custom"> -->
+            <p></p>
+              <span class="label_custom thickness" >Толщина:</span>
+              <input type="dim" class=" thickness" pattern="^[0-9]+$" param="thickness" title="Толщина">
+            <!-- </p> -->
+
+            <!-- <p class="div_labels_custom"> -->
+            <p></p>
+              <span class="label_custom elevation" >От пола:</span>
+              <input type="dim" class="elevation" pattern="^[0-9]+$" param="elevation" title="Высота от пола">
+            <!-- </p> -->
+            
+            <!-- <p class="div_labels_custom"> -->
+            <p></p>
+              <span class="label_custom slope" >Ширина откоса:</span>
+              <input type="dim" class="slope" pattern="^[0-9]+$" param="slope" title="Откос" disabled>
+            <!-- </p> -->
           </div><!-- /.col-lg-4 -->
-          <div class="col-lg-1 input-group  objParams" style="display: none">
-              <input type="checkbox" class="form-control isEntryDoor"  param="isEntryDoor" title="Входная дверь" value="">
-              <span class="input-group-addon isEntryDoor " ></span>
+
+          <div class="col-lg-1 input-group  objParams door_div_custom" style="display: none">
+              <input type="checkbox" class="isEntryDoor"  param="isEntryDoor" title="Входная дверь" value="">
+              <span class="label_custom isEntryDoor " ></span>
           </div>
         </div>
       </div>
 
+<!-- left panel end -->
 
       <div class="col-lg-4">
       
