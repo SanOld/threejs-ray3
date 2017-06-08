@@ -103,7 +103,8 @@ function Editor(obj){
   obj.timeStamp = 0;
 
   obj.default_params = {
-    wallWidth: 100
+    wallWidth: 100,
+    opacity: 0.8
   };
 
 
@@ -123,6 +124,9 @@ function Editor(obj){
   };
 
   obj.on = function(){
+
+
+    obj.addPropGui();
 
     obj.addFloor();
     obj.addLight();
@@ -154,6 +158,27 @@ function Editor(obj){
   obj.off = function(){
     obj.deactivate();
     obj.localSavingOff();
+  };
+
+  obj.addPropGui = function(){
+
+    var gui = new dat.GUI();
+				gui.add( obj.default_params, 'opacity', 0, 1 ).onChange( function () {
+					acsWallMaterial.opacity = obj.default_params.opacity;
+					acsWallMaterial2.opacity = obj.default_params.opacity;
+				} );
+				gui.open();
+
+  };
+  obj.showPropGui = function(){
+
+    $('div.dg.main.a').show();
+
+  };
+  obj.hidePropGui = function(){
+
+    $('div.dg.main.a').hide();
+
   };
 
   obj.activate = function(){
@@ -571,7 +596,9 @@ function initProjection(obj){
 
     $wallEditor.on();
 
-  }
+    $Editor.hidePropGui();
+
+  };
   obj.off = function(){
 
     obj.enabled = !obj.enabled;
@@ -597,7 +624,9 @@ function initProjection(obj){
     $wallEditor.off();
     $dimensionEditorMode.off();
 
-  }
+    $Editor.showPropGui();
+
+  };
   obj.cameraAdd = function(){
      camera = new THREE.OrthographicCamera(
                                           frustumSize * ASPECT / - 2,
