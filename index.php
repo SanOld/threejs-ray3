@@ -26,9 +26,30 @@
                   <!--<div class=" wall_action">-->
                     <a  data-toggle="dropdown">Перегородка</a>
                     <ul class="dropdown-menu ul_drop_menu_custom" style="height:87px;">
-                      <li data-type = "notChangable"><a>Перегородка: не менять</a></li>
-                      <li data-type = "installation"><a>Перегородка: монтаж</a></li>
-                      <li data-type = "deinstallation"><a>Перегородка: демонтаж</a></li>
+                      <li data-type = "notChangable">
+                        <div class="radio">
+                          <label>
+                              <input type="radio" name="wall_action" id="notChangable" >
+                              Не менять
+                            </label>
+                        </div>
+                      </li>
+                      <li data-type = "installation">
+                        <div class="radio">
+                          <label>
+                              <input type="radio" name="wall_action" id="installation" >
+                              Монтаж
+                            </label>
+                        </div>
+                      </li>
+                      <li data-type = "deinstallation">
+                        <div class="radio">
+                          <label>
+                              <input type="radio" name="wall_action" id="deinstallation" >
+                              Демонтаж
+                            </label>
+                        </div>
+                      </li>
                     </ul>
                   <!--</div>-->
                 </li>

@@ -103,7 +103,12 @@ function Editor(obj){
   obj.timeStamp = 0;
 
   obj.wallAction = [ 'notChangable', 'installation', 'deinstallation' ];
-  obj.wallBearingType = [ 'bear_wall' , 'partition_wall', 'pillar', 'stairs'/*,'divider'*/];
+  obj.wallBearingType = {
+                          'bear_wall': 'Несущая',
+                          'partition_wall': 'Перегородка',
+                          'pillar': 'Колонна',
+                          'stairs': 'Лестница'
+                        };
 
   obj.wallColors = {
     notChangable: projectionWallMaterial_black,
@@ -797,6 +802,8 @@ function initProjection(obj){
 
   obj.setWallBearingTypeValue = function( type, action ){
 
+    var part = '';
+
     if( type && type != '' ){
 
       $('.wall_type').show();
@@ -806,13 +813,11 @@ function initProjection(obj){
         case 'notChangable':
         case 'installation':
         case 'deinstallation':
-          var part = $('.wall_type').find('[data-type = ' + type + ']').find('[data-type =' + action + ']').find('a').text();
-          var part = part.split(':')[0];
-          break;
-        default:
-          var part = $('.wall_type').find('[data-type = ' + type + ']').find('a').text();
+              type = 'partition_wall';
           break;
       }
+
+      part = $Editor.wallBearingType[ type ];
 
       $('.wall_type').find('button').html( part + ' <span class="caret"></span>' );
 
@@ -823,7 +828,7 @@ function initProjection(obj){
 
     if( action && action != '' ){
 
-      $('.wall_action').show();
+      $('#' + action).prop('checked', 'checked' );
 
       var part = $('.wall_action').find('[data-type =' + action + ']').find('a').text();
       $('.wall_action').find('button').html( part + ' <span class="caret"></span>' );
@@ -1046,21 +1051,25 @@ function initProjection(obj){
 
   $('.wall_type').on('click','li.wall_type',function(){
 
+    var part = '';
+
     if($wallEditor.selected && $wallEditor.selected.type == 'Wall'){
 
       $wallEditor.selected.changeBearingType( $(this).attr('data-type') );
+
       switch ($(this).attr('data-type')) {
         case 'partition_wall':
         case 'notChangable':
         case 'installation':
         case 'deinstallation':
-          part = $(this).find('button').text();
-          var part = part.split(':')[0];
+
+          part = $Editor.wallBearingType[ $(this).attr('data-type') ]
           $('.wall_type').find('button.wall_type').html(part + ' <span class="caret"></span>');
           break;
 
         default:
-          $('.wall_type').find('button.wall_type').html($(this).find('a').text() + ' <span class="caret"></span>');
+          part = $Editor.wallBearingType[ $(this).attr('data-type') ]
+          $('.wall_type').find('button.wall_type').html(part + ' <span class="caret"></span>');
           $wallEditor.selected.changeAction( 'notChangable' );
           break;
       }
@@ -1069,14 +1078,17 @@ function initProjection(obj){
     }
 
 	});
-  $('.wall_action').on('click','li',function(){
+  $('[name = wall_action]').on('click',function(){
 
 		if($wallEditor.selected && $wallEditor.selected.type == 'Wall'){
 
-      $wallEditor.selected.changeAction( $(this).attr('data-type') );
-      $('.wall_action').find('button.wall_action').html($(this).find('a').text() + ' <span class="caret"></span>');
+      $wallEditor.selected.changeAction( $(this).attr('id') );
 
+      $(this).prop('checked', 'checked' );
+
+      obj.hideObjParams();
     }
+
 
 	});
 
@@ -2765,11 +2777,164 @@ function initWallEditor( obj ){
                 outer_wall_num: item.outer_wall_num
               });
 
-//                  window.console.log('id: ' + item.id);
-//                  window.console.log('room_wall_num: ' + item.number[room_index]);
-//                  window.console.log('axisLength: ' + item.axisLength.toFixed(2) );
-//                  window.console.log('outer: start: ' + outer.start.x + ' ' +outer.start.y);
-//                  window.console.log('outer: end: ' + outer.end.x + ' ' +outer.end.y);
+
+                    var inner = null;
+                    var outer = null;
+                    if ( item.isNeighbor( next_item ) == 'v1' ) {
+
+                        var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
+
+//                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
+                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
+
+                          var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+
+//                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
+                        } else {
+
+                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+                          var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+
+                        }
+
+                    } else if ( item.isNeighbor( next_item ) == 'v2' ) {
+
+                        var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
+
+//                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
+                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
+
+                          var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+
+//                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
+                        } else {
+
+                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+                          var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+
+                        }
+
+                    } else if ( item.isNeighbor( prev_item ) == 'v1' ) {
+
+                        var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
+
+//                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
+                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
+
+                          var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+
+//                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
+                        } else {
+
+                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
+                          var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
+
+                        }
+
+                    } else if ( item.isNeighbor( prev_item ) == 'v2' ) {
+
+                        var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
+
+//                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
+                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
+
+                          var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+
+//                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
+                        } else {
+
+                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+                          var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+
+                        }
+
+                    } else  {
+
+                      var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
+                      var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
+                      var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
+
+                    }
+
+
+
+                    //проемы
+                  var openings = [];
+                  item.doors.forEach(function(doorway){
+
+                    var doorway_inner = {start: {x: +doorway.p_11.x.toFixed(2), y: +doorway.p_11.z.toFixed(2) }, end: {x: +doorway.p_21.x.toFixed(2), y: +doorway.p_21.z.toFixed(2) } };
+                    var doorway_outer = {start: {x: +doorway.p_12.x.toFixed(2), y: +doorway.p_12.z.toFixed(2) }, end: {x: +doorway.p_22.x.toFixed(2), y: +doorway.p_22.z.toFixed(2) } };
+                    var cellAngle = 0;
+                    if(doorway.location){
+                      switch (doorway.location) {
+                        case 1:
+                          cellAngle = 0;
+                          break;
+                        case 2:
+                          cellAngle = 90;
+                          break;
+                        case 3:
+                          cellAngle = 180;
+                          break;
+                        case 4:
+                          cellAngle = 270;
+                          break;
+
+                      }
+                    }
+
+                    openings.push(
+                                  {
+                                    id: doorway.id,
+                                    inner: doorway_inner,
+                                    outer: doorway_outer,
+                                    cellPosition: {
+                                      x: 0,
+                                      y: 0
+                                    },
+                                    cellAngle: cellAngle,
+                                    flipped: false,
+                                    type: doorway.json_type,
+                                    systype: doorway.json_systype,
+                                    height: doorway.height,
+                                    heightAboveFloor: doorway.elevation,
+                                    width: doorway.width,
+                                    slope: doorway.slope,
+                                    obj_thickness: doorway.depObject_thickness
+                                  }
+                                );
+                  })
+
+                  export_data.floors[0].rooms[ room_index ].walls.push(
+                                          {
+                                          id: item.id,
+                                          inner: inner,
+                                          outer: outer,
+                                          center: center,
+                                          arcPath: null,
+                                          mount_type: "",
+                                          wall_length_mm: +item.getCurrentDimValue().toFixed(2),
+                                          width_px: item.width,
+                                          width_units: +(item.width * current_unit.c).toFixed(2),
+                                          type: item.bearingType,
+                                          wall_action: item.wallAction,
+                                          height: {
+                                            start: +item.height.toFixed(2),
+                                            end: +item.height.toFixed(2)
+                                          },
+                                          openings: openings,
+                                          external_wall: item.external_wall,
+                                          room_wall_num: item.number[room_index],
+                                          outer_wall_num: item.outer_wall_num,
+                                        }
+                          )
+                  window.console.log('id: ' + item.id);
+                  window.console.log('inner: start: ' + inner.start.x + ' ' +inner.start.y);
+                  window.console.log('inner: end: ' + inner.end.x + ' ' +inner.end.y);
 //                  window.console.log("v1 - x: "+(item.v1.x) + " z: "+(item.v1.z));
 //                  window.console.log("v2 - x: "+(item.v2.x) + " z: "+(item.v2.z));
 
@@ -2830,6 +2995,32 @@ function initWallEditor( obj ){
 
           var objArea = room.getArea( room.countur ) ;
           objArea.area = ( objArea.area * area_unit.c ).toFixed( area_accuracy_measurements );
+
+              //в случае внутренней перегородки (но не "толстой" стены)
+              if( wall.mover.v1_neighbors.length == 0 || wall.mover.v2_neighbors.length == 0)
+              external_walls[ item.wall_uuid ] = false;
+
+            }
+
+          });
+          countur.length = countur.length - 1;
+
+
+          var isClockWise = ! THREE.ShapeUtils.isClockWise(countur) ;
+
+          var objArea = obj.getArea( countur );
+
+          rooms.push({
+                      id: THREE.Math.generateUUID(),
+                      nodes: nodes,
+                      walls: walls,
+                      chain: chain,
+                      external_walls: external_walls,
+                      area: objArea.area,
+                      area_coords: {x: objArea.coord.x, y: objArea.coord.z},
+                      area_coords_3D: objArea.coord,
+                      isClockWise: isClockWise
+                    })
 
           if( Areas.children.length < rooms.length && objArea.area){
 
@@ -3187,6 +3378,22 @@ function initWallEditor( obj ){
     Areas.children.forEach(function(item){
       item.material.visible = false;
     })
+  };
+  obj.addCounturLine = function( chain, nodes ){
+
+    chain.forEach(function(item){
+
+      var geometry = new THREE.Geometry();
+      if(nodes[item.source.id] && nodes[item.target.id]){
+        geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
+        var line = new THREE.Line(geometry, LineBasicMaterialRed);
+        line.name = 'room_line';
+
+        AreaCounturs.add( line );
+      }
+
+    })
+
   };
   obj.removeCounturLine = function(){
     var _lines = [];
@@ -4570,7 +4777,7 @@ function Wall( vertices, parameters ){
   this.v1 = parameters.hasOwnProperty("v1") ? parameters["v1"] : vertices[0].clone();
   this.v2 = parameters.hasOwnProperty("v2") ? parameters["v2"] : vertices[1].clone();
   this.doors = parameters.hasOwnProperty("doors") ? parameters["doors"] : [];
-  this.bearingType = parameters.hasOwnProperty("bearingType") ? parameters["bearingType"] : $Editor.wallBearingType[0];
+  this.bearingType = parameters.hasOwnProperty("bearingType") ? parameters["bearingType"] : 'bear_wall';
   this.action = parameters.hasOwnProperty("action") ? parameters["action"] : $Editor.wallAction[0];
 
   this.doors = []
