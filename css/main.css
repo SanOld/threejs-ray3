@@ -63,9 +63,51 @@
     padding: 0 10px 0 5px!important;
 }
 
+.left_panel_custom_nemu{
+    border: 1px solid;
+    position: absolute;
+    left: -11px;
+    bottom: 20px;
+    width: 230px;
+    height: 241px;
+    background: rgba(0,0,0,.8);
+    padding: 0 10px 0 5px!important;
+}
+
+.menu_label_position_custom{
+    color: white;
+}
+
+.menu_text_custom{
+    color: white!important;
+    cursor: pointer;
+    display: flex;
+    margin:0 0 10px 0px;
+}
+
+.radio_menu_custom{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-left: -26px;
+}
+
 .label_custom{
     color: white!important;
     display: inline;
+}
+
+.wall_len_custom{
+    color: white!important;
+    margin: 0px 0 10px -40px;
+    display: inline-flex;
+
+}
+
+.hover_label_custom:hover{
+    background: #e6e6e6;
+    color: #747574!important;
 }
 
 .div_labels_custom{
