@@ -1827,7 +1827,7 @@ function initWallCreator(obj){
 
       }
 
-  }
+  };
 
   //добавление точки для построения линии по кликам
   obj.lineHelperPointAdd = function( isMove ) {
@@ -2276,16 +2276,16 @@ function initWallCreator(obj){
   }
   obj.createDimensions = function(){
 
-    var params = {direction: obj.dimHelper.direction, offset_direction: 200, editable: true, noteState: 'hide'}
+    var params = {direction: obj.dimHelper.direction, offset_direction: 200, editable: true, noteState: 'hide'};
 
     obj.dimensions.push( new Dimension( obj.dimHelper.p1,   obj.dimHelper.p2, $projection.plane, params ) );
 
     obj.dimensions.forEach(function(item){
       scene.add( item );
-    })
+    });
 
 
-  }
+  };
   obj.updateDimensions = function(){
     //перерасчет размеров
     obj.calcDimensionsPoints();
@@ -2317,12 +2317,14 @@ function initWallCreator(obj){
   obj.activateDimensions = function(){
 
     obj.dimensions.forEach(function(item){
+
       item.addEventListener( 'edit', onChangeDim );
       item.addEventListener( 'keydown', onKeydownDim );
       item.addEventListener( 'esc', onEscDim );
-    })
 
-  }
+    });
+
+  };
   obj.deactivateDimensions = function(){
 
     obj.dimensions.forEach(function(item){
@@ -2354,10 +2356,12 @@ function initWallCreator(obj){
             obj.lineHelperAdd();
 
           } else {
+
             isChanged = false;
+
           }
 
-        })
+        });
 
           break;
     }
@@ -4889,7 +4893,7 @@ function Wall( vertices, parameters ){
       var left_point;
       var right_point;
       var dimension = null;
-      var index = self.dimensions.indexOf( event.target )
+      var index = self.dimensions.indexOf( event.target );
 
       //расчитываем смещение
       dimension = self.dimensions[index];
@@ -5784,7 +5788,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       }
 
-    })
+    });
 
     //    this.dimensions.forEach(function(item, i, arr){
 //
