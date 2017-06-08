@@ -2567,6 +2567,7 @@ function initWallEditor( obj ){
       })
 
       $('div.wall_type').parents('div').css('display','block');
+      $('.left_panel_custom').css({'bottom':'200px'});
 
       $projection.setWallBearingTypeValue( obj.selected.bearingType, obj.selected.action );
       $projection.setWallAction( obj.selected.action );
@@ -2578,8 +2579,9 @@ function initWallEditor( obj ){
         width: {val: obj.selected.width, label: 'Ширина'},
         depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
         elevation: {val: obj.selected.elevation, label: 'От пола'},
-        slope: {val: obj.selected.slope, label: 'Откос'}
+        slope: {val: obj.selected.slope, label: 'Откос'},
       });
+      $('.left_panel_custom').css({'bottom':'10px'});
 
     } else if( obj.selected.type == 'DoorblockFloor' || obj.selected.type == 'DoubleDoorBlockFloor' ){
 
@@ -2591,6 +2593,7 @@ function initWallEditor( obj ){
         slope: {val: obj.selected.slope, label: 'Откос'},
         isEntryDoor: {checked: obj.selected.isEntryDoor, label: 'Входная'}
       });
+      $('.left_panel_custom').css({'bottom':'10px'});
 
     } else if( obj.selected.type == 'Doorway' || obj.selected.type == 'Niche' ){
       $projection.showObjParams({
@@ -2600,6 +2603,7 @@ function initWallEditor( obj ){
         elevation: {val: obj.selected.elevation, label: 'От пола'}
 
       });
+      $('.left_panel_custom').css({'bottom':'10px'});
     }
 
   };

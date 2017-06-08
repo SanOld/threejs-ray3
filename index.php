@@ -25,12 +25,12 @@
                 <li  class="dropdown-submenu wall_type wall_action dropdown-toggle " data-type = "partition_wall" data-toggle="dropdown">
                   <!--<div class=" wall_action">-->
                     <a  data-toggle="dropdown">Перегородка</a>
-                    <ul class="dropdown-menu ul_drop_menu_custom" style="height:87px;">
+                    <ul class="dropdown-menu ul_drop_menu_custom" style="height:107px;">
                       <li data-type = "notChangable">
                         <div class="radio">
                           <label>
                               <input type="radio" name="wall_action" id="notChangable" >
-                              Не менять
+                              <span class="menu_label_position_custom">Не менять</span>
                             </label>
                         </div>
                       </li>
@@ -38,7 +38,7 @@
                         <div class="radio">
                           <label>
                               <input type="radio" name="wall_action" id="installation" >
-                              Монтаж
+                              <span class="menu_label_position_custom">Монтаж</span>
                             </label>
                         </div>
                       </li>
@@ -46,7 +46,7 @@
                         <div class="radio">
                           <label>
                               <input type="radio" name="wall_action" id="deinstallation" >
-                              Демонтаж
+                              <span class="menu_label_position_custom">Демонтаж</span>
                             </label>
                         </div>
                       </li>
@@ -146,6 +146,11 @@
             <ul class="dropdown-menu multi-level ul_drop_menu_custom">
               <li class="" data-type = "without">
                 <a action="mode" title="Переключение режима отображения">2D</a>
+              </li>
+              <li class="" data-type = "center">
+                <!--<button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>-->
+                <a  action="">Подложка <i class="fa fa-eye" aria-hidden=""></i></span></a>
+                <img class = "" style="display: none">
               </li>
               <li class="" data-type = "center">
                 <!--<button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>-->

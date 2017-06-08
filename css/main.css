@@ -94,3 +94,9 @@
     color: white!important;
     margin-right: 24px;
 }
+
+.menu_label_position_custom{
+    position: relative!important;
+    left: 30px!important;
+    top: 3px!important;
+}
