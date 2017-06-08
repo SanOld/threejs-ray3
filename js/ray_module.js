@@ -102,6 +102,12 @@ function Editor(obj){
   obj.floor = null; //подложка
   obj.timeStamp = 0;
 
+  obj.default_params = {
+    wallWidth: 100
+  };
+
+
+
   obj.wallAction = [ 'notChangable', 'installation', 'deinstallation' ];
   obj.wallBearingType = {
                           'bear_wall': 'Несущая',
@@ -1022,6 +1028,12 @@ function initProjection(obj){
     })
 
   });
+  $('.footer').on('click','[action = changeFloorVisible]',function(){
+
+    $Editor.changeFloorVisible();
+
+  });
+
   $('.footer').on('click','[action = modeC]',function(event){
 
     event.preventDefault();
@@ -1642,7 +1654,7 @@ function initWallCreator(obj){
   }
   obj.addWall = function( vertices, parameters ){
     var vertices = vertices || [];
-    var parameters = parameters || {width: obj.wall_width};
+    var parameters = parameters || {};
 
     var needUpdate = parameters.hasOwnProperty("needUpdate") ? parameters["needUpdate"] : true;
 
@@ -4004,6 +4016,15 @@ function initWallEditor( obj ){
             obj.selected.setDepObjectThickness( val );
 
             break;
+          case 'width':
+
+            if ( obj.selected.type == 'Wall' ){
+
+              obj.selected.setWidth( val );
+
+            }
+
+            break;
           default:
 
             obj.selected[ param ] = val;
@@ -4752,7 +4773,7 @@ function Wall( vertices, parameters ){
 
   var self = this;
 
-  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 100;
+  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : $Editor.default_params.wallWidth;
   this.height = parameters.hasOwnProperty("height") ? parameters["height"] : floorHeight;
   this.v1 = parameters.hasOwnProperty("v1") ? parameters["v1"] : vertices[0].clone();
   this.v2 = parameters.hasOwnProperty("v2") ? parameters["v2"] : vertices[1].clone();
@@ -4760,7 +4781,7 @@ function Wall( vertices, parameters ){
   this.bearingType = parameters.hasOwnProperty("bearingType") ? parameters["bearingType"] : 'bear_wall';
   this.action = parameters.hasOwnProperty("action") ? parameters["action"] : $Editor.wallAction[0];
 
-  this.doors = []
+  this.doors = [];
   this.dimensions = []; //массив хранения объектов размеров стены
   this.walls = []//заполнение при обновлении
 
@@ -6064,7 +6085,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   },
   changeWidth: function( event ){
 
-    var self = this
+    var self = this;
 
     var element = this.editableFieldWrapper;
     element.find('button').hide();
@@ -6086,31 +6107,18 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       //TODO value validate
 
-      self.width = val;
+      self.setWidth( val );
       self.update();
       $wallCreator.updateWalls();
       element.css('display', 'none');
 
     });
+  },
+  setWidth: function( width ){
+    var width = +width || $Editor.default_params.wallWidth;
 
-//    this.editableField.off('keydown');
-//    this.editableField.on('keydown', function( event ){
-//
-//      if(event.ctrlKey || event.altKey) {
-//        event.preventDefault();
-//        return;
-//      }
-//
-//      if( event.keyCode == 13 ){
-//
-//        element.css('display', 'none');
-//
-//      } else if( event.keyCode == 27 ){
-//
-//        element.css('display', 'none');
-//      }
-//
-//    });
+    this.width = width;
+    $Editor.default_params.wallWidth = this.width;
 
   },
 
@@ -6901,12 +6909,12 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
                 end: item[ arg1 ].clone().add( item.direction.clone().multiplyScalar( 100000 ) )
               }
   //            angle: angle
-            })
+            });
         }
 
       }
 
-    })
+    });
 
   },
   updateNeighborsWalls: function (){
@@ -6939,13 +6947,13 @@ WallMover.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
       if( index != -1){
         wallsWithoutNeighbors.splice( index, 1 );
       }
-    })
+    });
     this.v2_neighbors.forEach(function(item){
       var index = wallsWithoutNeighbors.indexOf(item.wall);
       if( index != -1){
         wallsWithoutNeighbors.splice( index, 1 );
       }
-    })
+    });
 
 
     //вычисление пересечения
