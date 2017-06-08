@@ -70,6 +70,7 @@ var acsWallMaterial2 = new THREE.MeshLambertMaterial({
       color: '#d5c7ac'
     });
 
+
 var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
 
 var measure_unit = {
@@ -389,7 +390,7 @@ function Editor(obj){
     var light2 = new THREE.PointLight(0xffffff);
     light2.position.set(-10000, 5000, 10000);
     var light3 = new THREE.PointLight(0xffffff);
-    light3.position.set(10000, 5000, 10000);
+    light3.position.set(10000,5000, 10000);
     var light4 = new THREE.PointLight(0xffffff);
     light4.position.set(10000, 5000, -10000);
     var light5 = new THREE.PointLight(0xffffff);
@@ -397,6 +398,13 @@ function Editor(obj){
 
     obj.lights.push(light1, light2, light3, light4, light5);
     scene.add(light1, light3);
+
+//    light1.shadowMapWidth = 1024; // default is 512
+//    light1.shadowMapHeight = 1024; // default is 512
+//
+//    light3.shadowMapWidth = 1024; // default is 512
+//    light3.shadowMapHeight = 1024; // default is 512
+
   };
   obj.addFloor = function(){
 
@@ -634,7 +642,7 @@ function initProjection(obj){
                                           frustumSize / 2,
                                           frustumSize / - 2,
                                           1,
-                                          50000
+                                          100000
                                         );
 
 
@@ -4792,7 +4800,7 @@ Floor.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
   }
 
-})
+});
 
 //Объект стены
 function Wall( vertices, parameters ){
