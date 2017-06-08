@@ -219,12 +219,12 @@ function Editor(obj){
 
     return JSON.stringify( cad5 );
 
-  }
+  };
   obj.saveOnLocalStorage = function(){
 
     window.localStorage.setItem( 'cad5',  obj.prepareDataToSave() );
 
-  }
+  };
 
   obj.loadData = function(){
 
@@ -266,7 +266,7 @@ function Editor(obj){
     }
 
 
-  }
+  };
   obj.getLocalData = function(){
     if(obj.storageEnabled){
       if (obj.storageAvailable('localStorage') && window.localStorage['cad5']) {
@@ -281,14 +281,14 @@ function Editor(obj){
     }
 
     return false;
-  }
+  };
   obj.getServerData = function(){
     if( !obj.isEmptyObject( serverData ) ){
       var data = JSON.parse( serverData );
       return data;
     }
     return false;
-  }
+  };
 
   obj.parseData = function( cad5 ){
 
@@ -345,7 +345,7 @@ function Editor(obj){
       $wallCreator.updateWalls();
     })
 
-  }
+  };
   obj.addLight = function(){
 
     var light1 = new THREE.PointLight(0xffffff);
@@ -361,7 +361,7 @@ function Editor(obj){
 
     obj.lights.push(light1, light2, light3, light4, light5);
     scene.add(light1, light3);
-  }
+  };
   obj.addFloor = function(){
 
     obj.floor = new Floor();
@@ -369,7 +369,12 @@ function Editor(obj){
 
     obj.floor.setLocation();
 
-  }
+  };
+  obj.changeFloorVisible = function(){
+    if( obj.floor ){
+      obj.floor.visible = !obj.floor.visible;
+    }
+  };
   obj.setPositionLight = function(){
 
 
@@ -380,7 +385,7 @@ function Editor(obj){
     obj.lights[3].position.set( 0, floorHeight * 2 , obj.floor.width );
 
     obj.lights[4].position.set( obj.floor.length/2, floorHeight  , obj.floor.width/2 );
-  }
+  };
 
 
   function onKeyDownEditor ( event ){
@@ -3685,6 +3690,11 @@ function initWallEditor( obj ){
   /**
 	 * удаление стены
 	 */
+  $('.ActiveElementMenu').on('click', function(){
+
+    $(this).css('display', 'none');
+    
+  })
 	$('.ActiveElementMenu').on('click', '[action = remove]', function(){
 		obj.selected.remove();
 	});
@@ -9920,7 +9930,6 @@ function toggleMode( mode ){
       if( ! $projection.enabled){
 
         $projection.on('top');
-//        $projection.toggleModeIn2D('edition');
 
         $('.mode2D').show();
         $('.footer').find('[action = mode]').text('3D');
