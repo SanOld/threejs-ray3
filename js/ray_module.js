@@ -2960,7 +2960,9 @@ function initWallEditor( obj ){
 
   };
 
-  //комнаты TODO перенести в объект
+
+//    window.console.timeEnd('t');
+
   obj.getRooms = function(){
 
 //    window.console.time('t');
@@ -2999,32 +3001,6 @@ function initWallEditor( obj ){
 
           var objArea = room.getArea( room.countur ) ;
           objArea.area = ( objArea.area * area_unit.c ).toFixed( area_accuracy_measurements );
-
-              //в случае внутренней перегородки (но не "толстой" стены)
-              if( wall.mover.v1_neighbors.length == 0 || wall.mover.v2_neighbors.length == 0)
-              external_walls[ item.wall_uuid ] = false;
-
-            }
-
-          });
-          countur.length = countur.length - 1;
-
-
-          var isClockWise = ! THREE.ShapeUtils.isClockWise(countur) ;
-
-          var objArea = obj.getArea( countur );
-
-          rooms.push({
-                      id: THREE.Math.generateUUID(),
-                      nodes: nodes,
-                      walls: walls,
-                      chain: chain,
-                      external_walls: external_walls,
-                      area: objArea.area,
-                      area_coords: {x: objArea.coord.x, y: objArea.coord.z},
-                      area_coords_3D: objArea.coord,
-                      isClockWise: isClockWise
-                    })
 
           if( Areas.children.length < rooms.length && objArea.area){
 
@@ -3904,7 +3880,7 @@ function initWallEditor( obj ){
   $('.ActiveElementMenu').on('click', function(){
 
     $(this).css('display', 'none');
-    
+
   })
 	$('.ActiveElementMenu').on('click', '[action = remove]', function(){
 		obj.selected.remove();
