@@ -6348,14 +6348,14 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     var angle_max = - Math.PI;
 
     var segment_start = new THREE.Vector3();
-    var segment_end = new THREE.Vector3();
 
     var target = null;
+    var target_point = new THREE.Vector3();
+    var target_direction = new THREE.Vector3();
     var target_foundation = null;
     var self = this;
-    var neighboor = null;
-    var ellipse;
-    var material = new THREE.LineBasicMaterial( { color : 'red' } );
+
+    var sphere;
 
     walls.forEach(function(item, i){
       if(self.uuid != item.uuid){
@@ -6368,27 +6368,15 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           if(angle > angle_max) {
             angle_max = angle;
             segment_start = item.v22;
-            segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
             target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
+            target_point = item.v1;
+            target_direction = item.direction.clone().negate();
 
 
-            var curve = new THREE.EllipseCurve(
-                self.center.x,  self.center.z,            // ax, aY
-                self.radius - self.width/2, self.radius - self.width/2,           // xRadius, yRadius
-                0,  2 * Math.PI,  // aStartAngle, aEndAngle
-                false,            // aClockwise
-                0                 // aRotation
-              );
-
-              var path = new THREE.Path( curve.getPoints( 50 ) );
-              var geometry = path.createPointsGeometry( 50 );
-
-
-              // Create the final object to add to the scene
-              ellipse = new THREE.Line( geometry, material );
-              ellipse.rotation.copy(self.rotation);
-              neighboor = item;
+            var geometry = new THREE.SphereBufferGeometry( self.radius - self.width/2, 32, 32 );
+            sphere = new THREE.Mesh( geometry, wallControlPointMaterial );
+            sphere.geometry.translate (self.center.x, 0, self.center.z);
 
           }
         }
@@ -6402,14 +6390,20 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           if(angle > angle_max) {
             angle_max = angle;
             segment_start = item.v11;
-            segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
             target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
+            target_point = item.v2;
+            target_direction = item.direction.clone();
+
+            var geometry = new THREE.SphereBufferGeometry( self.radius - self.width/2, 32, 32 );
+            sphere = new THREE.Mesh( geometry, wallControlPointMaterial );
+            sphere.geometry.translate (self.center.x, 0, self.center.z);
+
           }
         }
       }
 
-    })
+    });
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
     var exception = false;
@@ -6417,8 +6411,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
 
       segment_start = target_foundation.p1;
-      segment_end = target_foundation.p2;
-
+//      segment_end = target_foundation.p2;
 
     }
     if( target && Math.abs(angle_max ) < Math.PI/4 && self.width / target.width > 2 ){
@@ -6430,29 +6423,29 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     //пересечение
     if( angle_max > -Math.PI && angle_max != 0 ){
 
-//      var ray = new THREE.Ray(neighboor.v22, neighboor.direction.clone().negate());
-//      ray.distanceSqToSegment ( segment_start, segment_end, result_point );
-
-var geometry = new THREE.Geometry();
-geometry.vertices.push(neighboor.v22);
-geometry.vertices.push( neighboor.v22.clone().add( neighboor.direction.clone().negate().multiplyScalar(neighboor.axisLength * 2)) );
-var line = new THREE.Line(geometry, material);
-
-      var raycaster = new THREE.Raycaster();
-      raycaster.set ( neighboor.v22, neighboor.direction.clone().negate() );
-      scene.add( ellipse );
-      scene.add( line );
+      var raycaster = new THREE.Raycaster( segment_start, target_direction );
       var intersects = [];
-      var result_point2 = ellipse.raycast( raycaster, intersects );
 
+      if( sphere )
+      sphere.raycast( raycaster, intersects );
 
-      window.console.log(intersects);
-      window.console.log(result_point2);
+      if( intersects.length == 1 ){
 
+        result_point = intersects[0].point;
 
-      intersects = raycaster.intersectObject(ellipse)
-      window.console.log(intersects);
+      } else if( intersects.length > 1 ){
 
+        var i = intersects.length;
+        var dist_min = Infinity;
+        while(i--){
+            var dist = intersects[i].point.distanceToSquared( target_point );
+            if(dist < dist_min){
+              dist_min = dist;
+              result_point = intersects[i].point;
+            }
+        }
+
+      }
 
     }
 
@@ -6514,7 +6507,7 @@ var line = new THREE.Line(geometry, material);
         }
       }
 
-    })
+    });
 
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
