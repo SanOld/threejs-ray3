@@ -20,7 +20,7 @@
           <div class="col-lg-3  pull-left " style="display: none">
             <div class="btn dropup wall_type">
               <div class="left_panel_custom_nemu">
-                   <div  class="wall_type" ><span class="wall_len_custom">Толщина стены</span ><input type="text"></div>
+                   <!-- <div  class="wall_type" ><span class="wall_len_custom">Толщина стены</span ><input type="text"></div> -->
                   <div  class="wall_type" data-type = "bear_wall"><span class="menu_text_custom hover_label_custom" >Несущая</span ></div>
                   <div  class="wall_type" data-type = "pillar"><span class="menu_text_custom hover_label_custom" >Колонна</span ></div>
                   <span class="menu_text_custom">Перегородка:</span>
