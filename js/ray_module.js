@@ -105,7 +105,12 @@ function Editor(obj){
 
   obj.default_params = {
     wallWidth: 100,
-    opacity: 0.8
+    opacity: 0.8,
+    Doorway:{
+      width: 100,
+      height: 2100,
+      elevation: 0
+    }
   };
 
 
@@ -2406,6 +2411,7 @@ function initWallEditor( obj ){
   obj.enabled = false;
   obj.currentWall = null;
   obj.selected = null;
+  obj.lastDoorway = {};// объект с информацией о последнем добавленом проеме
 
   obj.maxNeighboorsDistance = 0.5;
   obj.wallMenuCoord = [];
@@ -3938,29 +3944,57 @@ function initWallEditor( obj ){
 	$('.ActiveElementMenu').on('click', '[action = remove]', function(){
 		obj.selected.remove();
 	});
+  $('.ActiveElementMenu').on('click', '[action = addCopy]', function(){
+
+		if( obj.lastDoorway.doorway ){
+
+      var element = scene.getObjectByProperty('uuid', obj.lastDoorway.doorway);
+      var params = {
+        width: element.hasOwnProperty("width") ? element["width"] : $Editor.default_params[ obj.lastDoorway.type ].width,
+        height: element.hasOwnProperty("height") ? element["height"] : $Editor.default_params[ obj.lastDoorway.type ].height,
+        thickness: element.hasOwnProperty("thickness") ? element["thickness"] : $Editor.default_params[ obj.lastDoorway.type ].thickness,
+        elevation: element.hasOwnProperty("elevation") ? element["elevation"] : $Editor.default_params[ obj.lastDoorway.type ].elevation,
+        offset: element.hasOwnProperty("offset") ? element["offset"] : $Editor.default_params[ obj.lastDoorway.type ].offset,
+        depObject_thickness: element.hasOwnProperty("depObject_thickness") ? element["depObject_thickness"] : $Editor.default_params[ obj.lastDoorway.type ].depObject_thickness,
+        slope: element.hasOwnProperty("slope") ? element["slope"] : $Editor.default_params[ obj.lastDoorway.type ].slope,
+        location: element.hasOwnProperty("location") ? element["location"] : $Editor.default_params[ obj.lastDoorway.type ].location
+      };
+      obj.selected.addDoorway( obj.lastDoorway.type, params );
+
+    }
+
+	});
   $('.ActiveElementMenu').on('click', '[action = addDoorway]', function(){
-		obj.selected.addDoorway('Doorway');
+
+		obj.selected.addDoorway( $(this).data('type') );
+
+    obj.lastDoorway.type = $(this).data('type');
+    obj.lastDoorway.doorway = obj.selected.uuid;
+
 	});
-  $('.ActiveElementMenu').on('click', '[action = addSingleDoorblock]', function(){
-		obj.selected.addDoorway('DoorblockFloor');
+  $('.ActiveElementMenu').on('click', '[action = addDoorblockFloor]', function(){
+		obj.selected.addDoorway( $(this).data('type') );
+
+    obj.lastDoorway.type = $(this).data('type');
+    obj.lastDoorway.doorway = obj.selected.uuid;
 	});
-  $('.ActiveElementMenu').on('click', '[action = addDoubleDoorblock]', function(){
-		obj.selected.addDoorway('DoubleDoorBlockFloor');
-	});
-  $('.ActiveElementMenu').on('click', '[action = addSingleEntryDoorblock]', function(){
-		obj.selected.addDoorway('Doorblock');
-	});
-  $('.ActiveElementMenu').on('click', '[action = addDoubleEntryDoorblock]', function(){
-		obj.selected.addDoorway('DoubleDoorBlock');
+  $('.ActiveElementMenu').on('click', '[action = addDoubleDoorBlockFloor]', function(){
+		obj.selected.addDoorway( $(this).data('type') );
+
+    obj.lastDoorway.type = $(this).data('type');
+    obj.lastDoorway.doorway = obj.selected.uuid;
 	});
   $('.ActiveElementMenu').on('click', '[action = addWindow]', function(){
-		obj.selected.addDoorway('WindowBlock');
-	});
-  $('.ActiveElementMenu').on('click', '[action = addArch]', function(){
-		obj.selected.addDoorway('arch');
+		obj.selected.addDoorway( $(this).data('type') );
+
+    obj.lastDoorway.type = $(this).data('type');
+    obj.lastDoorway.doorway = obj.selected.uuid;
 	});
   $('.ActiveElementMenu').on('click', '[action = addNiche]', function(){
-		obj.selected.addDoorway('Niche');
+		obj.selected.addDoorway( $(this).data('type') );
+
+    obj.lastDoorway.type = $(this).data('type');
+    obj.lastDoorway.doorway = obj.selected.uuid;
 	});
   $('.ActiveElementMenu').on('click', '[action = scaleFloor]', function(event){
 
@@ -7390,7 +7424,7 @@ function Doorway( wall, parameters ){
     new THREE.Line3(this.p_11, this.p_21),
     new THREE.Line3(this.p12, this.p_12),
     new THREE.Line3(this.p_22, this.p22)
-  ]
+  ];
 
   this.geometry = new THREE.BoxBufferGeometry( this.width, this.thickness+1, 1 );
   this.material = doorwayMaterial;
