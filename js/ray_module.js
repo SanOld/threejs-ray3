@@ -2722,7 +2722,7 @@ function initWallEditor( obj ){
       });
 
       $('div.wall_type').parents('div').css('display','block');
-      $('.left_panel_custom').css({'bottom':'262px'});
+      $('.left_panel_custom').css({'bottom':'213px'});
 
       $projection.setWallBearingTypeValue( obj.selected.bearingType, obj.selected.action );
       $projection.setWallAction( obj.selected.action );
