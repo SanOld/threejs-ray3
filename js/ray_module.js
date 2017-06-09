@@ -581,6 +581,8 @@ function initProjection(obj){
   obj.type = false;
   obj.plane = null;
 
+  obj.copied = null; //объект скопированный посредством ctrl+c
+
   obj.walls = [];//массив установленных стен TODO - заполнить при инициализации редактора
 
   obj.wallDimensionType = 'center';
@@ -670,7 +672,7 @@ function initProjection(obj){
 
 
 
-  }
+  };
   obj.planeHelperAdd = function(){
     var geometry = new THREE.PlaneGeometry( 100000, 100000, 1 );
     obj.plane = new THREE.Mesh( geometry );
@@ -678,7 +680,7 @@ function initProjection(obj){
     obj.plane.translateZ ( -5 );
     obj.plane.material.visible = false;
     scene.add( obj.plane );
-  }
+  };
 
   obj.getWalls = function(){
 
@@ -720,7 +722,7 @@ function initProjection(obj){
     }
 
 
-  }
+  };
   obj.doorways3DMode = function(){
 
     $wallCreator.walls.forEach(function(item){
@@ -734,7 +736,7 @@ function initProjection(obj){
       item.doorwayProjectionMode();
     })
 
-  }
+  };
 
   obj.activateSelectControls = function(){
     var objects = [];
@@ -772,7 +774,7 @@ function initProjection(obj){
     obj.selectControls.addEventListener( 'hoveron', obj.hoveron );
     obj.selectControls.addEventListener( 'hoveroff', obj.hoveroff );
     obj.selectControls.addEventListener( 'select_contextmenu', obj.select_contextmenu );
-  }
+  };
   obj.deactivateSelectControls = function(){
 
     if(obj.selectControls ){
@@ -787,16 +789,16 @@ function initProjection(obj){
       obj.selectControls = null;
     }
 
-  }
+  };
   obj.select = function(event){
 
 //    obj.hideAllMenu();
-    obj.selected = event.object;
-    if( 'select' in event.object )
-    event.object.select(event);
+//    obj.selected = event.object;
+//    if( 'select' in event.object )
+//    event.object.select(event);
 
 
-  }
+  };
   obj.select_contextmenu = function(event){
     obj.hideAllMenu();
     if('select_contextmenu' in event.object){
@@ -804,7 +806,7 @@ function initProjection(obj){
     obj.selected = event.object;
     }
 
-  }
+  };
 
   obj.toggleModeIn2D = function( mode ){
 
@@ -846,7 +848,7 @@ function initProjection(obj){
 
     }
 
-  }
+  };
 
   obj.setWallBearingTypeValue = function( type, action ){
 
@@ -871,7 +873,7 @@ function initProjection(obj){
 
     }
 
-  }
+  };
   obj.setWallAction = function( action ){
 
     if( action && action != '' ){
@@ -883,7 +885,7 @@ function initProjection(obj){
 
     }
 
-  }
+  };
 
   obj.showObjParams = function( parameters ){
 
@@ -918,14 +920,40 @@ function initProjection(obj){
 
 
 
-  }
+  };
   obj.hideObjParams = function( parameters ){
 
     $('.objParams').hide();
     $('div.wall_type').closest('div').css('display','none');
 
 
-  }
+  };
+
+  obj.copySelected = function(){
+    obj.copied = $wallEditor.selected;
+  };
+  obj.pasteToSelected = function(){
+
+    if( $wallEditor.selected && obj.copied ){
+
+      switch ($wallEditor.selected.type) {
+        case 'Wall':
+          if( obj.copied.parent && obj.copied.parent.type == 'Wall'){
+
+            var params = $wallEditor.getMainDoorwayParams( obj.copied );
+            $wallEditor.selected.addDoorway( obj.copied.type, params);
+
+          }
+          break;
+
+        default:
+
+          break;
+      }
+
+    }
+
+  };
 
 
   /*===================*/
@@ -943,7 +971,7 @@ function initProjection(obj){
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-  }
+  };
   function onDocumentMouseMoveProjection(event){
     if (!obj.enabled)
       return false;
@@ -952,42 +980,49 @@ function initProjection(obj){
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 		mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-  }
+  };
   function onKeyDownProjection ( event ){
 
     if (!obj.enabled)
       return false;
-    if(event.ctrlKey || event.altKey) {
+    if( event.ctrlKey || event.altKey ) {
       event.preventDefault();
     }
 
     switch( event.keyCode ) {
       case 27: /*esc*/
-        scene.remove(obj.selected1,obj.selected2);
+        scene.remove( obj.selected1,obj.selected2 );
         obj.toggleModeIn2D('edition');
         break;
       case 67: /*c*/
-        if(event.altKey){
+        if( event.altKey ){
           obj.toggleModeIn2D('creation');
+        } else if(event.ctrlKey){
+          obj.copySelected();
         }
         break;
       case 68: /*d*/
-        if(event.altKey){
+        if( event.altKey ){
           obj.toggleModeIn2D('dimension');
         }
         break;
       case 69: /*e*/
-        if(event.altKey){
+        if( event.altKey ){
           obj.toggleModeIn2D('edition');
         }
         break;
+      case 86: /*v*/
+        if(event.ctrlKey){
+          obj.pasteToSelected();
+        }
+        break;
     }
-  }
+  };
   function onKeyUpProjection ( event ){
   if (!obj.enabled)
         return false;
 //      event.preventDefault();
-    }
+    };
 
   $('.wall_dim_type').on('click','li',function(){
 
@@ -3840,6 +3875,23 @@ function initWallEditor( obj ){
 
   };
 
+  obj.getMainDoorwayParams = function( doorway ){
+
+    var element = doorway;
+    var params = {
+        width: element.hasOwnProperty("width") ? element["width"] : $Editor.default_params[ element.type ].width || 900,
+        height: element.hasOwnProperty("height") ? element["height"] : $Editor.default_params[ element.type ].height || 2000,
+        thickness: element.hasOwnProperty("thickness") ? element["thickness"] : $Editor.default_params[ element.type ].thickness || 100,
+        elevation: element.hasOwnProperty("elevation") ? element["elevation"] : $Editor.default_params[ element.type ].elevation || 0,
+        offset: element.hasOwnProperty("offset") ? element["offset"] : $Editor.default_params[ element.type ].offset || 0,
+        depObject_thickness: element.hasOwnProperty("depObject_thickness") ? element["depObject_thickness"] : $Editor.default_params[ element.type ].depObject_thickness || '',
+        slope: element.hasOwnProperty("slope") ? element["slope"] : $Editor.default_params[ element.type ].slope || 0,
+        location: element.hasOwnProperty("location") ? element["location"] : $Editor.default_params[ element.type ].location || 1
+      };
+
+      return params;
+  };
+
   //===========
 
   /*===================*/
@@ -3949,16 +4001,8 @@ function initWallEditor( obj ){
 		if( obj.lastDoorway.doorway ){
 
       var element = scene.getObjectByProperty('uuid', obj.lastDoorway.doorway);
-      var params = {
-        width: element.hasOwnProperty("width") ? element["width"] : $Editor.default_params[ obj.lastDoorway.type ].width,
-        height: element.hasOwnProperty("height") ? element["height"] : $Editor.default_params[ obj.lastDoorway.type ].height,
-        thickness: element.hasOwnProperty("thickness") ? element["thickness"] : $Editor.default_params[ obj.lastDoorway.type ].thickness,
-        elevation: element.hasOwnProperty("elevation") ? element["elevation"] : $Editor.default_params[ obj.lastDoorway.type ].elevation,
-        offset: element.hasOwnProperty("offset") ? element["offset"] : $Editor.default_params[ obj.lastDoorway.type ].offset,
-        depObject_thickness: element.hasOwnProperty("depObject_thickness") ? element["depObject_thickness"] : $Editor.default_params[ obj.lastDoorway.type ].depObject_thickness,
-        slope: element.hasOwnProperty("slope") ? element["slope"] : $Editor.default_params[ obj.lastDoorway.type ].slope,
-        location: element.hasOwnProperty("location") ? element["location"] : $Editor.default_params[ obj.lastDoorway.type ].location
-      };
+      var params = obj.getMainDoorwayParams( element );
+
       obj.selected.addDoorway( obj.lastDoorway.type, params );
 
     }
@@ -5627,12 +5671,12 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         var obj = new WindowBlock(this, parameters );
       } else if( type == 'Niche' ){
         var obj = new Niche(this, parameters);
-      } else if( type == 'arch' ){
-      type = 'arch';
+      } else if( type == 'Arch' ){
   //      var obj = new Doorblock(this);
       }
 
-      this.doors.push(obj);
+      this._checkDoorwayOffset( obj );
+      this.doors.push( obj );
       this.add( obj );
       obj.activate();
 
@@ -6288,6 +6332,19 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     });
 
     return ( volume - openingsVolume );
+  },
+
+  _checkDoorwayOffset: function( doorway ){
+
+    var i = this.doors.length;
+
+    while(i--){
+      if( this.doors[i].offset == doorway.offset ){
+        doorway.offset = doorway.offset + this.doors[i].width/2 - doorway.width/2 + 300;
+        doorway.update();
+        this._checkDoorwayOffset(doorway);
+      }
+    }
   }
 
 });
