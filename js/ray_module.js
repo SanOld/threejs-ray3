@@ -6338,11 +6338,17 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     var i = this.doors.length;
 
-    while(i--){
+    while( i-- ){
       if( this.doors[i].offset == doorway.offset ){
-        doorway.offset = doorway.offset + this.doors[i].width/2 - doorway.width/2 + 300;
-        doorway.update();
-        this._checkDoorwayOffset(doorway);
+
+        var offset = doorway.offset + this.doors[i].width/2 - doorway.width/2 + 300;
+        
+        if( offset <= this.axisLength - doorway.width/2 ){
+          doorway.offset = offset;
+          doorway.update();
+          this._checkDoorwayOffset( doorway );
+        }
+
       }
     }
   }
