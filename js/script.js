@@ -4,10 +4,10 @@
 	var parentURL = '*';
   var serverData = null; //данные для инициализации
 
-	window.onbeforeunload = function() {  
+	window.onbeforeunload = function() {
 		//console.log('unload widget');
-		post_cancel();	
-	};	
+		post_cancel();
+	};
 
 	window.onpopstate = function(event) {
 		//alert("location: " + document.location + ", state: " + JSON.stringify(event.state));
@@ -76,9 +76,10 @@ var container, scene, camera, renderer, controls, stats, selection;
 var clock = new THREE.Clock();
 // custom global variables
 var rendererStats;
+var maxAnisotropy;
 
 var mouse = new THREE.Vector2();
-var offset = new THREE.Vector3()
+var offset = new THREE.Vector3();
 
 
 function initMain()
@@ -87,7 +88,7 @@ function initMain()
 	scene = new THREE.Scene();
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 1000000;
+	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 1, FAR = 1000000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera) ;
 	camera.position.set(25000,10000,25000);
@@ -97,8 +98,17 @@ function initMain()
 		renderer = new THREE.WebGLRenderer( {antialias:true} );
 	else
 		renderer = new THREE.CanvasRenderer();
-  
+
 	renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+  maxAnisotropy = renderer.getMaxAnisotropy();
+//  renderer.shadowMapType = THREE.PCFSoftShadowMap; // options are THREE.BasicShadowMap | THREE.PCFShadowMap | THREE.PCFSoftShadowMap
+
+//  renderer.gammaInput = true;
+//  renderer.gammaOutput = true;
+//  renderer.toneMapping = THREE.ReinhardToneMapping;
+//  renderer.toneMappingExposure = 3;
+
+
   container = document.createElement( 'div' );
 	document.body.appendChild( container );
 	container.appendChild( renderer.domElement );
@@ -122,11 +132,11 @@ function initMain()
 //	stats.domElement.style.zIndex = 100;
 //	container.appendChild( stats.domElement );
 	// LIGHT
-    
+
 
 
 	// SKYBOX/FOG
-	var skyBoxGeometry = new THREE.BoxGeometry( 1000000, 1000000, 1000000 );
+	var skyBoxGeometry = new THREE.BoxGeometry( 10000000, 10000000, 10000000 );
 	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
 	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
   skyBox.name = "skyBox";

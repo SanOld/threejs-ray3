@@ -74,16 +74,21 @@
 
 nav input{
     padding: 2px 0px;
-    position: absolute;
-    display: block;
+    /*position: absolute;*/
+    /*display: block;*/
     width: 65px !important;
     height: 20px;
+    float: right;
     line-height: 20px;
     font-size: 14px;
     text-indent: 0;
     text-align: center;
     z-index: 90;
+    clear: both;
+    margin-right: 10px;
 }
+
+
 
 .input-group[class*=col-] {
     height: 20px;
@@ -188,7 +193,7 @@ li a {
     color: #015C99;
 }
 
-.btn-default.active, .btn-default:active, .btn-default:hover,  .btn-default:focus,  .open>.dropdown-toggle.btn-default:hover, .open>.dropdown-toggle.btn-default {
+.btn-default.active, .btn-default.active:hover, .btn-default:active, .btn-default:hover,  .btn-default:focus,  .open>.dropdown-toggle.btn-default:hover, .open>.dropdown-toggle.btn-default {
     color: #015C99;
 }
 

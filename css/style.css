@@ -24,4 +24,23 @@ html, body{
 .input-group-addon {
     padding: 6px 4px;
 }
+  p{
+    display: block!important;
+  }
+/*.added_block_custom{
+  background: red;
+}
 
+.added_block_custom span{
+  display: block;
+}
+
+.added_block_custom input{
+  display: inline-block;
+}
+*/
+/*br{
+  display: block!important;
+}
+
+*/

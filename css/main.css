@@ -1,0 +1,144 @@
+.btn_default_custom{
+    border-color: #015C99!important;
+    color: #015C99!important;
+    padding: 6px;
+    background-color: white!important;
+    margin: 0 2px;
+    border-radius: 5px!important;
+}
+
+.btn_default_custom:hover{
+    background-color: #e6e6e6!important;
+}
+
+.btn_icon_custom{
+	font-size: medium!important;
+}
+
+.cog_icon_custom{
+	font-size: x-large;
+	padding-top: 6px;
+	cursor: pointer;
+}
+
+.cog_icon_custom:hover{
+	color:#747574;
+}
+
+.ul_drop_menu_custom{
+	background-color: rgba(0,0,0,.8);
+    color: white;
+    border-radius: 5px;
+}
+
+.ul_drop_menu_custom>li>a{
+	color: white;
+    background-color: inherit;
+}
+
+.ul_drop_menu_custom>li>a:hover{
+    background: #e6e6e6;
+    color: #747574!important;
+}
+
+.btn_wall_custom.active{
+	background-color: #e6e6e6!important;
+}
+/*
+.input-group-addon {
+	background-color: white!important;
+	border: 1px solid #015c99;
+}
+*/
+
+.left_panel_custom{
+    border: 1px solid;
+    position: absolute;
+    bottom: 10px;
+    left:5px;
+    /*border-radius: 5px;*/
+    width: 230px;
+    height: 400px;
+    background: rgba(0,0,0,.8);
+    padding: 0 10px 0 5px!important;
+}
+
+.left_panel_custom_nemu{
+    border: 1px solid;
+    position: absolute;
+    left: -11px;
+    bottom: 20px;
+    width: 230px;
+    height: 241px;
+    background: rgba(0,0,0,.8);
+    padding: 0 10px 0 5px!important;
+}
+
+.menu_label_position_custom{
+    color: white;
+}
+
+.menu_text_custom{
+    color: white!important;
+    cursor: pointer;
+    display: flex;
+    margin:0 0 10px 0px;
+}
+
+.radio_menu_custom{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-left: -26px;
+}
+
+.label_custom{
+    color: white!important;
+    display: inline;
+}
+
+.wall_len_custom{
+    color: white!important;
+    margin: 0px 0 10px -40px;
+    display: inline-flex;
+
+}
+
+.hover_label_custom:hover{
+    background: #e6e6e6;
+    color: #747574!important;
+}
+
+.div_labels_custom{
+    display: flex;
+}
+
+.div_labels_custom > input{
+    position: relative!important;
+}
+
+.door_div_custom{
+    width: 230px;
+    background: rgba(0,0,0,.8);
+    position: absolute;
+    left: 5px;
+    bottom: -10px;
+}
+
+.door_div_custom input{
+    float: left;
+    margin-left: 5px;
+}
+
+.door_div_custom span{
+    float: right;
+    color: white!important;
+    margin-right: 24px;
+}
+
+.menu_label_position_custom{
+    position: relative!important;
+    left: 30px!important;
+    top: 3px!important;
+}
