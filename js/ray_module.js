@@ -2748,7 +2748,7 @@ function initWallEditor( obj ){
         slope: {val: obj.selected.slope, label: 'Откос'},
         isEntryDoor: {checked: obj.selected.isEntryDoor, label: 'Входная'}
       });
-      $('.left_panel_custom').css({'bottom':'10px'});
+      $('.left_panel_custom').css({'bottom':'30px'});
 
     } else if( obj.selected.type == 'Doorway' || obj.selected.type == 'Niche' ){
       $projection.showObjParams({

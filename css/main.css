@@ -123,7 +123,7 @@
     background: rgba(0,0,0,.8);
     position: absolute;
     left: 5px;
-    bottom: -10px;
+    bottom: 10px;
 }
 
 .door_div_custom input{
