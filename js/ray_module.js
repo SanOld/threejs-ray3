@@ -2486,6 +2486,7 @@ function initWallEditor( obj ){
   obj.enabled = false;
   obj.currentWall = null;
   obj.selected = null;
+  obj.changingOject = null;
   obj.lastDoorway = {};// объект с информацией о последнем добавленом проеме
 
   obj.maxNeighboorsDistance = 0.5;
@@ -2886,10 +2887,6 @@ function initWallEditor( obj ){
                 outer_wall_num: item.outer_wall_num
               });
 
-                  window.console.log(item.getCurrentDimValue().toFixed(2));
-                  window.console.log('start: x:' + outer.start.x +' y:'+  outer.start.y);
-                  window.console.log('end: x:' + outer.end.x +' y:'+  outer.end.y);
-
           }
 
         });
@@ -2917,42 +2914,7 @@ function initWallEditor( obj ){
 
     var rooms = [];
     var nodes =  obj.getNodes(obj.walls);
-
-    window.console.log('nodes: ' );
-
-     for(var key in nodes) {
-
-
-        window.console.log('node11: ' + nodes[key].id);
-
-
-      }
-
-
     var pathes = obj.getPathes(obj.walls);
-
-    var t = obj.walls.length;
-      while (t--) {
-
-        window.console.log('wall: ' + obj.walls[t].axisLength.toFixed(2) );
-        window.console.log('node11: ' + obj.walls[t].node11.id);
-        window.console.log('node12: ' + obj.walls[t].node12.id);
-        window.console.log('node21: ' + obj.walls[t].node21.id);
-        window.console.log('node22: ' + obj.walls[t].node22.id);
-
-      }
-
-
-    var t = pathes.length
-      while (t--) {
-        window.console.log('path for wall: ' + pathes[t].wall_uuid);
-        window.console.log('source: ' + pathes[t].source.id)
-        window.console.log('isNode: ' + nodes[pathes[t].source.id])
-        window.console.log('target: ' + pathes[t].target.id)
-        window.console.log('isNode: ' + nodes[pathes[t].target.id])
-      }
-      window.console.dir(pathes);
-
     var chains = obj.getChains(nodes, pathes);
     obj.ExclusionExternalChain(nodes, chains);
 
@@ -3200,13 +3162,6 @@ function initWallEditor( obj ){
     var result = false;
     point = point.clone().floor();
     result = chain.some( function(item){
-
-//  window.console.log(nodes[item.source.id].position.clone().floor().x + ' ' + nodes[item.source.id].position.clone().floor().y + ' ' + nodes[item.source.id].position.clone().floor().z);
-//  window.console.log(point.x + ' ' + point.y + ' ' + point.z);
-//  window.console.log(point.equals(nodes[item.source.id].position.clone().floor()));
-//  window.console.log(nodes[item.target.id].position.clone().floor().x + ' ' + nodes[item.target.id].position.clone().floor().y + ' ' + nodes[item.target.id].position.clone().floor().z);
-//  window.console.log(point.x + ' ' + point.y + ' ' + point.z);
-//  window.console.log( point.equals( nodes[item.target.id].position.clone().floor() ) );
 
     if( point.equals(nodes[item.source.id].position.clone().floor()) || point.equals(nodes[item.target.id].position.clone().floor()) ){
       return true;
@@ -4007,11 +3962,16 @@ function initWallEditor( obj ){
   });
   $('.footer').on('keydown','[param]',function(event){
 
-    if(event.keyCode == 13 ){
+    //фиксируем изменяемый объект для использовании в событии по change
+    obj.changingOject  = obj.selected;
+
+  });
+
+  $('.footer').on('change','[param]',function(event){
 
       var param = $(this).attr('param');
 
-      if( obj.selected && $(this).val() != '' ){
+      if( obj.changingOject && $(this).val() != '' ){
 
         var val = +$(this).val()/current_unit.c;
 
@@ -4019,33 +3979,29 @@ function initWallEditor( obj ){
 
           case 'depObject_thickness':
 
-            obj.selected.setDepObjectThickness( val );
+            obj.changingOject.setDepObjectThickness( val );
 
             break;
           case 'width':
 
-            if ( obj.selected.type == 'Wall' ){
+            if ( obj.changingOject.type == 'Wall' ){
 
-              obj.selected.setWidth( val );
+              obj.changingOject.setWidth( val );
 
             }
 
             break;
           default:
 
-            obj.selected[ param ] = val;
+            obj.changingOject[ param ] = val;
 
             break;
         }
 
-        obj.selected.wall ? obj.selected.wall.update() : obj.selected.update();
+        obj.changingOject.wall ? obj.changingOject.wall.update() : obj.changingOject.update();
         $wallCreator.updateWalls();
 
       }
-
-      obj.unselect();
-
-    }
 
   });
   $('.footer').on('click','[param]',function(event){

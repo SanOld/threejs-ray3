@@ -23,6 +23,7 @@
                    <!-- <div  class="wall_type" ><span class="wall_len_custom">Толщина стены</span ><input type="text"></div> -->
                   <div  class="wall_type" data-type = "bear_wall"><span class="menu_text_custom hover_label_custom" >Несущая</span ></div>
                   <div  class="wall_type" data-type = "pillar"><span class="menu_text_custom hover_label_custom" >Колонна</span ></div>
+                  <div  class="wall_type" data-type = "stairs"><span class="menu_text_custom hover_label_custom" >Лестница</span ></div>
                   <span class="menu_text_custom">Перегородка:</span>
                   <div class="radio_menu_custom">
                         <span data-type = "notChangable">
@@ -54,44 +55,6 @@
 
               </div>
 
-<!--               <button type="button" class="btn  dropdown-toggle wall_type btn_default_custom" data-toggle="dropdown">Несущая <span class="caret" ></span></button>
-              <ul class="dropdown-menu multi-level ul_drop_menu_custom">
-                <li  class="wall_type" data-type = "bear_wall"><a>Несущая</a></li>
-                <li  class="dropdown-submenu wall_type wall_action dropdown-toggle " data-type = "partition_wall" data-toggle="dropdown"> -->
-                  <!--<div class=" wall_action">-->
-                 <!--    <a  data-toggle="dropdown">Перегородка</a>
-                    <ul class="dropdown-menu ul_drop_menu_custom" style="height:107px;">
-                      <li data-type = "notChangable">
-                        <div class="radio">
-                          <label>
-                              <input type="radio" name="wall_action" id="notChangable" >
-                              <span class="menu_label_position_custom">Не менять</span>
-                            </label>
-                        </div>
-                      </li>
-                      <li data-type = "installation">
-                        <div class="radio">
-                          <label>
-                              <input type="radio" name="wall_action" id="installation" >
-                              <span class="menu_label_position_custom">Монтаж</span>
-                            </label>
-                        </div>
-                      </li>
-                      <li data-type = "deinstallation">
-                        <div class="radio">
-                          <label>
-                              <input type="radio" name="wall_action" id="deinstallation" >
-                              <span class="menu_label_position_custom">Демонтаж</span>
-                            </label>
-                        </div>
-                      </li>
-                    </ul> -->
-                  <!--</div>-->
-                <!-- </li> -->
-                <!-- <li  class="wall_type" data-type = "pillar"><a>Колонна</a></li> -->
-                <li  class="wall_type" data-type = "stairs"><a>Лестница</a></li>
-                <!--<li  data-type = "divider"><a>Разделитель зон</a></li>-->
-              <!-- </ul> -->
 
             </div>
 
