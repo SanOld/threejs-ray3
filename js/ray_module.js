@@ -1258,7 +1258,7 @@ function initDimensionEditorMode(obj){
 
     obj.activate();
 
-  }
+  };
   obj.off = function(){
     obj.enabled = false;
     Dimensions.visible = false;
@@ -1266,7 +1266,7 @@ function initDimensionEditorMode(obj){
       item.deactivate();
     })
     obj.deactivate();
-  }
+  };
 
   obj.edgesAdd = function(){
 
@@ -1291,7 +1291,7 @@ function initDimensionEditorMode(obj){
         }
       }
     })
-  }
+  };
   obj.pointsAdd = function(){
     var geometry = new THREE.SphereGeometry( 3 );
 		obj.currentPointMaterial = new THREE.MeshBasicMaterial( { color: 'red', visible: false } );
@@ -1312,7 +1312,7 @@ function initDimensionEditorMode(obj){
 
       }
     })
-  }
+  };
 
   obj.getDimensionMenu = function(){
     var elements =  $('.DimensionMenu').find('.ActiveElementMenuAnimated');
@@ -1326,10 +1326,10 @@ function initDimensionEditorMode(obj){
       });
     }
 
-  }
+  };
   obj.hideAllMenu = function(){
     $('.DimensionMenu').css('display','none');
-  }
+  };
 
   obj.dimensionAdd = function(){
 
@@ -1347,7 +1347,7 @@ function initDimensionEditorMode(obj){
     obj.deactivateSelectControls();
     obj.activateSelectControls();
 
-  }
+  };
   obj.setSelected = function(selectObj){
 
     var selected = selectObj.clone();
@@ -1379,7 +1379,7 @@ function initDimensionEditorMode(obj){
       current_dim = null;
       return;
     }
-  }
+  };
 
   obj.activate = function(){
     document.addEventListener( 'mousedown', onDocumentMouseDownProjection, false );
@@ -1411,7 +1411,7 @@ function initDimensionEditorMode(obj){
     obj.selectControls.addEventListener( 'hoveron', obj.hoveron );
     obj.selectControls.addEventListener( 'hoveroff', obj.hoveroff );
     obj.selectControls.addEventListener( 'select_contextmenu', obj.select_contextmenu );
-  }
+  };
   obj.deactivateSelectControls = function(){
 
     if(obj.selectControls ){
@@ -1425,7 +1425,7 @@ function initDimensionEditorMode(obj){
       obj.selectControls = null;
     }
 
-  }
+  };
   obj.select = function(event){
 
     obj.hideAllMenu();
@@ -1433,7 +1433,7 @@ function initDimensionEditorMode(obj){
     event.object.parent.select(event);
     obj.selected = event.object.parent;
 
-  }
+  };
   obj.select_contextmenu = function(event){
     obj.hideAllMenu();
     if('select_contextmenu' in event.object.parent){
@@ -1441,19 +1441,19 @@ function initDimensionEditorMode(obj){
     obj.selected = event.object.parent;
     }
 
-  }
+  };
   obj.unselect = function( event ){
     obj.hideAllMenu();
     obj.selected = null;
-  }
+  };
   obj.hoveron = function( event ){
     if( 'hoveron' in event.object.parent )
     event.object.parent.hoveron( event );
-  }
+  };
   obj.hoveroff = function( event ){
     if( 'hoveroff' in event.object.parent )
     event.object.parent.hoveroff(event);
-  }
+  };
 
 
   function onDocumentMouseDownProjection( event ){
@@ -2680,17 +2680,23 @@ function initWallEditor( obj ){
   };
   obj.select = function(event){
 
-    if(obj.selected && obj.selected != event.object && ('unselect' in obj.selected)){
-      obj.selected.unselect(event);
+    //скрываем свойства и меню
+    obj.hideAllMenu();
+    $projection.hideObjParams();
 
-    }
-//    obj.hideAllMenu();
-    if( 'select' in event.object )
-    event.object.select(event);
+
+    //взываем unselect на ранее выбранном объекте
+    if(obj.selected && obj.selected != event.object && ('unselect' in obj.selected))
+    obj.selected.unselect(event);
+
+    //фиксируем выбранный объект
     obj.selected = event.object;
 
+    //взываем select на выбранном объекте
+    if( 'select' in event.object )
+    event.object.select(event);
 
-
+    //по типу отображаем свойства
     if( obj.selected.type == 'Wall'){
 
       $projection.showObjParams({
@@ -2698,7 +2704,7 @@ function initWallEditor( obj ){
         width: {val: obj.selected.width, label: 'Толщина'},
         wall_type: {},
         wall_action: {}
-      })
+      });
 
       $('div.wall_type').parents('div').css('display','block');
       $('.left_panel_custom').css({'bottom':'262px'});
@@ -2713,7 +2719,7 @@ function initWallEditor( obj ){
         width: {val: obj.selected.width, label: 'Ширина'},
         depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
         elevation: {val: obj.selected.elevation, label: 'От пола'},
-        slope: {val: obj.selected.slope, label: 'Откос'},
+        slope: {val: obj.selected.slope, label: 'Откос'}
       });
       $('.left_panel_custom').css({'bottom':'10px'});
 
