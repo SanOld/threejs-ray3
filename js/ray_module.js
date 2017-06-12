@@ -144,21 +144,19 @@ function Editor(obj){
     //активация
     obj.activate();
 
-
     controls.target.set( obj.floor.position.x, obj.floor.position.y, obj.floor.position.z );
     camera.lookAt(obj.floor.position.clone());
     controls.update();
 
-    //глобальный объект-хранилище размеров
-    scene.add( Dimensions );
-    //глобальный объект-хранилище размеров площадей комнат
-    scene.add( Areas );
-    //глобальный объект-хранилище размеров контуров комнат
-    scene.add( AreaCounturs );
+    scene.add( Dimensions );//глобальный объект-хранилище размеров
+    scene.add( Areas );//глобальный объект-хранилище размеров площадей комнат
+    scene.add( AreaCounturs );//глобальный объект-хранилище размеров контуров комнат
     //режим чертежа
     if( ! $projection.enabled){
+
       toggleMode('2D');
       $projection.toggleModeIn2D( 'creation' );
+
     }
 
   };
@@ -279,13 +277,13 @@ function Editor(obj){
     var localData = obj.getLocalData();
     var serverData = obj.getServerData();
 
-    switch (true) {
+    switch ( true ) {
 
       case ! serverData :
         window.localStorage.removeItem( 'cad5' );
         break;
 
-      case (serverData instanceof Object) && (localData instanceof Object):
+      case ( serverData instanceof Object ) && ( localData instanceof Object ):
 
         if( localData.id == serverData.id && localData.timeStamp > serverData.timeStamp ){
           obj.parseData( localData );
@@ -294,7 +292,7 @@ function Editor(obj){
         }
         break;
 
-      case (serverData instanceof Object) && !localData:
+      case ( serverData instanceof Object ) && !localData:
         obj.parseData( serverData );
         break;
 
@@ -349,9 +347,11 @@ function Editor(obj){
       var v1 = item.object.userData.v1;
       var v2 = item.object.userData.v2;
       item.object.userData.v1 = new THREE.Vector3(v1.x, v1.y, v1.z);
-      item.object.userData.v2 = new THREE.Vector3(v2.x, v2.y, v2.z)
+      item.object.userData.v2 = new THREE.Vector3(v2.x, v2.y, v2.z);
+      item.object.userData.uuid = item.object.uuid;
+
       var wall = $wallCreator.addWall( null, item.object.userData );
-      wall.uuid = item.object.uuid;
+
       //восстанавливаем проемы
       if(item.object.children){
 
@@ -381,7 +381,7 @@ function Editor(obj){
 
     //ПОЛ
     var floor = JSON.parse( cad5.floor );
-    $Editor.floor.scale.set( floor.object.userData.scale.x, floor.object.userData.scale.y, floor.object.userData.scale.z )
+    $Editor.floor.scale.set( floor.object.userData.scale.x, floor.object.userData.scale.y, floor.object.userData.scale.z );
     $Editor.floor.width = floor.object.userData.width;
     $Editor.floor.length = floor.object.userData.length;
     if( floor.object.userData.textureFile != '' ){
@@ -391,7 +391,7 @@ function Editor(obj){
 
     setTimeout(function(){
       $wallCreator.updateWalls();
-    })
+    });
 
   };
   obj.addLight = function(){
@@ -1670,7 +1670,7 @@ function initWallCreator(obj){
     document.addEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
     document.addEventListener( 'keydown', onKeyDownWallCreator, false );
 
-  }
+  };
   obj.off = function(){
 
     obj.enabled = !obj.enabled;
@@ -1691,7 +1691,7 @@ function initWallCreator(obj){
     document.removeEventListener( 'mousemove', onDocumentMouseMoveWallCreator, false );
     document.removeEventListener( 'keydown', onKeyDownWallCreator, false );
 
-  }
+  };
 
   function pointerHelperAdd(){
 
@@ -1699,7 +1699,7 @@ function initWallCreator(obj){
     obj.pointerHelper = new THREE.Mesh( geometry, pointHelper_material );
     scene.add( obj.pointerHelper );
 
-  }
+  };
 
   obj.hideAllMenu = function(){
 
@@ -1711,7 +1711,7 @@ function initWallCreator(obj){
     obj.hideAllDimensions();
 
 
-  }
+  };
   obj.hideAllDimensions = function(){
     //поле размера
     $('.EditableField').css('display','none');
@@ -1720,12 +1720,12 @@ function initWallCreator(obj){
         door.unselect();
       })
     })
-  }
+  };
   obj.reIndexWall = function(){
     obj.walls.forEach(function( item, i ){
       item.index = i;
     });
-  }
+  };
   obj.updateWalls = function(){
 
     if( wallsNeedUpdate ){
@@ -1738,17 +1738,17 @@ function initWallCreator(obj){
 
     }
 
-  }
+  };
   obj.updateWallsNodes = function(){
 
     obj.walls.forEach(function( item, i ){
       item.setDefaultNode();
     });
 
-  }
+  };
   obj.calculateRooms = function(){
     obj.rooms = $wallEditor.getRooms();
-  }
+  };
 
   obj.removeWall = function(wall){
 
@@ -1813,7 +1813,7 @@ function initWallCreator(obj){
 
     return wall;
 
-  }
+  };
 
   function isBelongToLine( point, line ){
 
@@ -2911,7 +2911,42 @@ function initWallEditor( obj ){
 
     var rooms = [];
     var nodes =  obj.getNodes(obj.walls);
+
+    window.console.log('nodes: ' );
+
+     for(var key in nodes) {
+
+
+        window.console.log('node11: ' + nodes[key].id);
+
+
+      }
+
+
     var pathes = obj.getPathes(obj.walls);
+
+    var t = obj.walls.length;
+      while (t--) {
+
+        window.console.log('wall: ' + obj.walls[t].axisLength.toFixed(2) );
+        window.console.log('node11: ' + obj.walls[t].node11.id);
+        window.console.log('node12: ' + obj.walls[t].node12.id);
+        window.console.log('node21: ' + obj.walls[t].node21.id);
+        window.console.log('node22: ' + obj.walls[t].node22.id);
+
+      }
+
+
+    var t = pathes.length
+      while (t--) {
+        window.console.log('path for wall: ' + pathes[t].wall_uuid);
+        window.console.log('source: ' + pathes[t].source.id)
+        window.console.log('isNode: ' + nodes[pathes[t].source.id])
+        window.console.log('target: ' + pathes[t].target.id)
+        window.console.log('isNode: ' + nodes[pathes[t].target.id])
+      }
+      window.console.dir(pathes);
+
     var chains = obj.getChains(nodes, pathes);
     obj.ExclusionExternalChain(nodes, chains);
 
@@ -2935,7 +2970,7 @@ function initWallEditor( obj ){
                                 nodes: nodes,
                                 chain: chain,
                                 isClockWise: !isClockWise
-                              })
+                              });
           rooms.push( room );
 
 
@@ -3057,7 +3092,7 @@ function initWallEditor( obj ){
       }
 
 
-    })
+    });
 
     return pathes;
 
@@ -3093,7 +3128,7 @@ function initWallEditor( obj ){
         return;
       }
 
-    })
+    });
 
   };
   obj.ExclusionExternalChain = function( nodes, chains ){
@@ -3175,7 +3210,7 @@ function initWallEditor( obj ){
 
     return result;
 
-  }
+  };
   obj.isPointInCountur = function(countur, point){
     var objects = [];
     // countur - массив wall uuid в комнате
@@ -3972,7 +4007,7 @@ function initWallEditor( obj ){
 
       if( obj.selected && $(this).val() != '' ){
 
-        var val = +$(this).val()/current_unit.c
+        var val = +$(this).val()/current_unit.c;
 
         switch (param) {
 
@@ -4738,6 +4773,7 @@ function Wall( vertices, parameters ){
 
   var self = this;
 
+  this.uuid = parameters.hasOwnProperty("uuid") ? parameters["uuid"]:this.uuid;
   this.width = parameters.hasOwnProperty("width") ? parameters["width"] : $Editor.default_params.wallWidth;
   this.height = parameters.hasOwnProperty("height") ? parameters["height"] : floorHeight;
   this.v1 = parameters.hasOwnProperty("v1") ? parameters["v1"] : vertices[0].clone();
@@ -4780,7 +4816,7 @@ function Wall( vertices, parameters ){
     new THREE.Line3(self.p11, self.p21),
     new THREE.Line3(self.p12, self.p22),
     new THREE.Line3(self.p1, self.p2)
-  ]
+  ];
 
   self.geometry = self.buildGeometry();
 
@@ -4804,7 +4840,6 @@ function Wall( vertices, parameters ){
   //хелпер примечание id
 //  noteAdd( this, 'id: ' + this.id.toString(), null, {x: this.axisLine.getCenter().x, y: this.axisLine.getCenter().z} );
 //  noteAdd( this, '(' + this.v1.x.toFixed(2) + ', \n' + this.v1.z.toFixed(2) + ')', null, {x: this.v1.x+300, y: this.v1.z} );
-
 //noteAdd( this,  this.getFirstSideArea().toFixed(2) , null, {x: this.v1.x+300, y: this.v1.z} );
 
   //Ноды
@@ -4895,7 +4930,7 @@ function Wall( vertices, parameters ){
     this.userData.action = this.action;
     this.doors.forEach(function(item){
       self.userData.doors[item.uuid] = item.type;
-    })
+    });
 
     return parent_toJson.call(this);
 
@@ -4948,33 +4983,17 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.position.set( 0, this.height, 0 );
   },
   setDefaultNode: function(){
-    this.node1 = {
-      id: this.uuid + '_1',
-      position: {x:this.v1.x, y: this.v1.z }
-    }
-    this.node2 = {
-      id: this.uuid + '_2',
-      position: {x:this.v2.x, y: this.v2.z }
-    }
 
-    this.node11 = {
-      id: this.uuid + '_11',
-      position: this.v11.clone()
-    }
-    this.node12 = {
-      id: this.uuid + '_12',
-      position: this.v12.clone()
-    }
-    this.node21 = {
-      id: this.uuid + '_21',
-      position: this.v21.clone()
-    }
-    this.node22 = {
-      id: this.uuid + '_22',
-      position: this.v22.clone()
-    }
+    this.node1 = { id: this.uuid + '_1', position: {x:this.v1.x, y: this.v1.z } };
+    this.node2 = { id: this.uuid + '_2', position: {x:this.v2.x, y: this.v2.z } };
+
+    this.node11 = { id: this.uuid + '_11', position: this.v11.clone() };
+    this.node12 = { id: this.uuid + '_12', position: this.v12.clone() };
+    this.node21 = { id: this.uuid + '_21', position: this.v21.clone() };
+    this.node22 = { id: this.uuid + '_22', position: this.v22.clone() };
+
   },
-  getV22: function (walls){
+  getV22: function ( walls ){
     var result_point =  new THREE.Vector3();
     var walls = walls || [];
     var angle_max = - Math.PI;
@@ -5046,6 +5065,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     }
 
     if(exception){
+
       self._e_path22 = {
                   id: self.uuid + '_e22',
                   wall_uuid: self.uuid,
@@ -5053,11 +5073,12 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                   target: { id: target_foundation.node_id },
                   wall_id: this.id
                 };
+
     }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
-  getV21: function (walls){
+  getV21: function ( walls ){
 
     var result_point =  new THREE.Vector3();
     var walls = walls || [];
@@ -5143,7 +5164,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
-  getV12: function (walls){
+  getV12: function ( walls ){
     var result_point =  new THREE.Vector3();
     var walls = walls || [];
     var angle_max = Math.PI;
@@ -5188,7 +5209,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         }
       }
 
-    })
+    });
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
     var exception = false;
@@ -5273,7 +5294,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         }
       }
 
-    })
+    });
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
     var exception = false;

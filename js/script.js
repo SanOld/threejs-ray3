@@ -34,7 +34,7 @@
 
         if (mess && mess.cmd == 'put_data') {
           parentURL = event.originalEvent.origin;
-          serverData = mess.data;
+          serverData = mess.data || {};
 
           init();
           animate();

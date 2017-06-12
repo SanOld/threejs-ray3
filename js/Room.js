@@ -45,7 +45,7 @@ Room.prototype = Object.assign( {}, {
 
     } else {
 
-      this.closedRoom = false
+      this.closedRoom = false;
       this.walls = this.getWalls( this.chain );
       this.area = 0;
       this.area_coords = {x: 0, y: 0};
@@ -60,7 +60,7 @@ Room.prototype = Object.assign( {}, {
     var countur = [];
     var nodes = this.nodes;
     chain.forEach(function( item ){
-
+//      if( ! countur.length == 0 && ! nodes[item.source.id] )debugger;
       if( countur.length == 0 ){
         countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
         countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
