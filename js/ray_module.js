@@ -101,6 +101,7 @@ function Editor(obj){
   obj.timeSaveInterval = 15000;//мс
   obj.storageEnabled = true;
   obj.floor = null; //подложка
+  obj.hidedFloorTexture = null;
   obj.timeStamp = 0;
 
   obj.default_params = {
@@ -170,8 +171,13 @@ function Editor(obj){
 
     var gui = new dat.GUI();
 				gui.add( obj.default_params, 'opacity', 0, 1 ).onChange( function () {
-					acsWallMaterial.opacity = obj.default_params.opacity;
-					acsWallMaterial2.opacity = obj.default_params.opacity;
+
+          acsWallMaterial2.opacity = obj.default_params.opacity;
+
+					projectionWallMaterial_black.opacity = obj.default_params.opacity;
+          projectionWallMaterial_green.opacity = obj.default_params.opacity;
+          projectionWallMaterial_red.opacity = obj.default_params.opacity;
+
 				} );
 				gui.open();
 
@@ -379,7 +385,7 @@ function Editor(obj){
     $Editor.floor.width = floor.object.userData.width;
     $Editor.floor.length = floor.object.userData.length;
     if( floor.object.userData.textureFile != '' ){
-      setFloorTexture( floor.object.userData.textureFile );
+      obj.setFloorTexture( floor.object.userData.textureFile );
     }
 
 
@@ -420,10 +426,44 @@ function Editor(obj){
 
   };
   obj.changeFloorVisible = function(){
-    if( obj.floor ){
-      obj.floor.visible = !obj.floor.visible;
+    if( obj.floor && !obj.hidedFloorTexture ){
+//      obj.floor.visible = !obj.floor.visible;
+      obj.hidedFloorTexture = obj.floor.material.map;
+      obj.floor.material = floorMaterial;
+
+    } else if( obj.floor &&obj.hidedFloorTexture ){
+      $Editor.floor.material = new THREE.MeshBasicMaterial( { map: obj.hidedFloorTexture, side: THREE.FrontSide } );
+      obj.hidedFloorTexture = null;
     }
   };
+  obj.setFloorTexture = function(filename) {
+	// instantiate a loader
+	var loader = new THREE.TextureLoader();
+	loader.setCrossOrigin('');
+	// load a resource
+	loader.load(
+		// resource URL
+		filename,
+		// Function when resource is loaded
+		function ( floorTexture ) {
+			// do something with the texture
+
+      floorTexture.needsUpdate = true;
+      floorTexture.repeat.set( 1, 1 );
+      $Editor.floor.material = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
+      $Editor.floor.textureFile = filename;
+
+		},
+		// Function called when download progresses
+		function ( xhr ) {
+			console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+		},
+		// Function called when download errors
+		function ( xhr ) {
+			console.log( 'An error happened' );
+		}
+	);
+};
   obj.setPositionLight = function(){
 
 
@@ -611,7 +651,7 @@ function initProjection(obj){
 
     $wallEditor.on();
 
-    $Editor.hidePropGui();
+//    $Editor.hidePropGui();
 
   };
   obj.off = function(){
@@ -639,7 +679,7 @@ function initProjection(obj){
     $wallEditor.off();
     $dimensionEditorMode.off();
 
-    $Editor.showPropGui();
+//    $Editor.showPropGui();
 
   };
   obj.cameraAdd = function(){
@@ -2760,7 +2800,7 @@ function initWallEditor( obj ){
         window.localStorage.setItem( 'cad5',  export_data.drawing  );
 
         var rooms = obj.getRooms();
-        var all_walls_lengths = 0
+        var all_walls_lengths = 0;
         var total_area = 0;
         var total_inner_wall_area_without_openings = 0;
         var total_outer_wall_area_without_openings  = 0;
@@ -2815,41 +2855,6 @@ function initWallEditor( obj ){
 
             var arrWalls = export_data.floors[0].rooms[ room_index ].walls;
 
-            //свертывание стен с одним номером
-
-//            if( arrWalls.length != 0 && arrWalls[ arrWalls.length - 1 ].room_wall_num == item.number[room_index] ){
-//
-//            arrWalls[ arrWalls.length - 1 ].inner.end = inner.end;
-//            arrWalls[ arrWalls.length - 1 ].center.end = center.end;
-//            arrWalls[ arrWalls.length - 1 ].outer.end = outer.end;
-//            arrWalls[ arrWalls.length - 1 ].wall_length_mm +=  +item.getCurrentDimValue().toFixed(2);
-//
-//            } else {
-//              arrWalls.push({
-//                id: item.id,
-//                inner: inner,
-//                outer: outer,
-//                center: center,
-//                arcPath: null,
-//                mount_type: "",
-//                wall_length_mm: +item.getCurrentDimValue().toFixed(2),
-//                width_px: item.width,
-//                width_units: +(item.width * current_unit.c).toFixed(2),
-//                type: item.bearingType,
-//                wall_action: item.wallAction,
-//                height: {
-//                  start: +item.height.toFixed(2),
-//                  end: +item.height.toFixed(2)
-//                },
-//                openings: openings,
-//                external_wall: item.external_wall,
-//                room_wall_num: item.number[room_index]
-//  //                      outer_wall_num: item.outer_wall_num
-//              })
-//
-//              item.outer_wall_num ? arrWalls[ arrWalls.length - 1 ].outer_wall_num = item.outer_wall_num : '';
-//            }
-
             arrWalls.push({
                 id: item.id,
                 inner: inner,
@@ -2875,166 +2880,9 @@ function initWallEditor( obj ){
                 outer_wall_num: item.outer_wall_num
               });
 
-
-                    var inner = null;
-                    var outer = null;
-                    if ( item.isNeighbor( next_item ) == 'v1' ) {
-
-                        var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
-
-//                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
-                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
-
-                          var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-
-//                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
-                        } else {
-
-                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-                          var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-
-                        }
-
-                    } else if ( item.isNeighbor( next_item ) == 'v2' ) {
-
-                        var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
-
-//                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
-                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
-
-                          var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-
-//                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
-                        } else {
-
-                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-                          var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-
-                        }
-
-                    } else if ( item.isNeighbor( prev_item ) == 'v1' ) {
-
-                        var center = {start: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) }, end: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) } };
-
-//                        if ( obj.isPointInCountur( room.walls, item.v11 ) ){
-                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
-
-                          var inner = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-                          var outer = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-
-//                        } else if( obj.isPointInCountur( room.walls, item.v22 ) ) {
-                        } else {
-
-                          var outer = {start: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) }, end: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) } };
-                          var inner = {start: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) }, end: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) } };
-
-                        }
-
-                    } else if ( item.isNeighbor( prev_item ) == 'v2' ) {
-
-                        var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
-
-//                        if ( obj.isPointInCountur( room.walls, item.v21 ) ){
-                        if ( obj.isPointInCountur2( room.chain, item.v11, room.nodes ) ){
-
-                          var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-                          var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-
-//                        } else if( obj.isPointInCountur( room.walls, item.v12 ) ) {
-                        } else {
-
-                          var outer = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-                          var inner = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-
-                        }
-
-                    } else  {
-
-                      var center = {start: {x: +item.v2.x.toFixed(2), y: +item.v2.z.toFixed(2) }, end: {x: +item.v1.x.toFixed(2), y: +item.v1.z.toFixed(2) } };
-                      var inner = {start: {x: +item.v21.x.toFixed(2), y: +item.v21.z.toFixed(2) }, end: {x: +item.v11.x.toFixed(2), y: +item.v11.z.toFixed(2) } };
-                      var outer = {start: {x: +item.v22.x.toFixed(2), y: +item.v22.z.toFixed(2) }, end: {x: +item.v12.x.toFixed(2), y: +item.v12.z.toFixed(2) } };
-
-                    }
-
-
-
-                    //проемы
-                  var openings = [];
-                  item.doors.forEach(function(doorway){
-
-                    var doorway_inner = {start: {x: +doorway.p_11.x.toFixed(2), y: +doorway.p_11.z.toFixed(2) }, end: {x: +doorway.p_21.x.toFixed(2), y: +doorway.p_21.z.toFixed(2) } };
-                    var doorway_outer = {start: {x: +doorway.p_12.x.toFixed(2), y: +doorway.p_12.z.toFixed(2) }, end: {x: +doorway.p_22.x.toFixed(2), y: +doorway.p_22.z.toFixed(2) } };
-                    var cellAngle = 0;
-                    if(doorway.location){
-                      switch (doorway.location) {
-                        case 1:
-                          cellAngle = 0;
-                          break;
-                        case 2:
-                          cellAngle = 90;
-                          break;
-                        case 3:
-                          cellAngle = 180;
-                          break;
-                        case 4:
-                          cellAngle = 270;
-                          break;
-
-                      }
-                    }
-
-                    openings.push(
-                                  {
-                                    id: doorway.id,
-                                    inner: doorway_inner,
-                                    outer: doorway_outer,
-                                    cellPosition: {
-                                      x: 0,
-                                      y: 0
-                                    },
-                                    cellAngle: cellAngle,
-                                    flipped: false,
-                                    type: doorway.json_type,
-                                    systype: doorway.json_systype,
-                                    height: doorway.height,
-                                    heightAboveFloor: doorway.elevation,
-                                    width: doorway.width,
-                                    slope: doorway.slope,
-                                    obj_thickness: doorway.depObject_thickness
-                                  }
-                                );
-                  })
-
-                  export_data.floors[0].rooms[ room_index ].walls.push(
-                                          {
-                                          id: item.id,
-                                          inner: inner,
-                                          outer: outer,
-                                          center: center,
-                                          arcPath: null,
-                                          mount_type: "",
-                                          wall_length_mm: +item.getCurrentDimValue().toFixed(2),
-                                          width_px: item.width,
-                                          width_units: +(item.width * current_unit.c).toFixed(2),
-                                          type: item.bearingType,
-                                          wall_action: item.wallAction,
-                                          height: {
-                                            start: +item.height.toFixed(2),
-                                            end: +item.height.toFixed(2)
-                                          },
-                                          openings: openings,
-                                          external_wall: item.external_wall,
-                                          room_wall_num: item.number[room_index],
-                                          outer_wall_num: item.outer_wall_num,
-                                        }
-                          )
-                  window.console.log('id: ' + item.id);
-                  window.console.log('inner: start: ' + inner.start.x + ' ' +inner.start.y);
-                  window.console.log('inner: end: ' + inner.end.x + ' ' +inner.end.y);
-//                  window.console.log("v1 - x: "+(item.v1.x) + " z: "+(item.v1.z));
-//                  window.console.log("v2 - x: "+(item.v2.x) + " z: "+(item.v2.z));
+                  window.console.log(item.getCurrentDimValue().toFixed(2));
+                  window.console.log('start: x:' + outer.start.x +' y:'+  outer.start.y);
+                  window.console.log('end: x:' + outer.end.x +' y:'+  outer.end.y);
 
           }
 
@@ -3053,8 +2901,6 @@ function initWallEditor( obj ){
 
 
   };
-
-
 //    window.console.timeEnd('t');
 
   obj.getRooms = function(){
@@ -5174,7 +5020,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         }
       }
 
-    })
+    });
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
     var exception = false;
@@ -5183,7 +5029,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
-
 
     }
     if( target && Math.abs(angle_max ) < Math.PI/4 && self.width / target.width > 2 ){
@@ -6342,7 +6187,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       if( this.doors[i].offset == doorway.offset ){
 
         var offset = doorway.offset + this.doors[i].width/2 - doorway.width/2 + 300;
-        
+
         if( offset <= this.axisLength - doorway.width/2 ){
           doorway.offset = offset;
           doorway.update();
@@ -7712,7 +7557,10 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   hideMenu: function() {
     $(this.rkmMenu).css('display','none');
   },
-  showMenu: function(center){
+  showMenu: function( center ){
+
+    this.hideMenuLKM();
+
     var self = this;
 
     var elements =  $( this.rkmMenu ).find('.ActiveElementMenuAnimated');
@@ -7741,11 +7589,13 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   hideMenuLKM: function() {
     $( this.lkmMenu ).css('display','none');
   },
-  showMenuLKM: function(center){
+  showMenuLKM: function( center ){
+
+    this.hideMenu();
 
   },
 
-  setLocation: function(location){
+  setLocation: function( location ){
     this.location = location || 1;
   },
 
@@ -7762,7 +7612,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.updateDimensions();
 
   },
-  remove: function(object){
+  remove: function( object ){
 
     if(object){
 
@@ -7999,7 +7849,6 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     })
   },
 
-
   getArea: function(){
     return  this.width * this.height;
   },
@@ -8070,6 +7919,7 @@ Niche.prototype = Object.assign( Object.create( Doorway.prototype ),{
   },
 
   showMenuLKM: function(center){
+    this.hideMenu();
 
     var elements =  $( this.lkmMenu ).find('.ActiveElementMenuAnimated');
 
@@ -8120,7 +7970,7 @@ Niche.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
   }
 
-})
+});
 //Дверной блок входной
 function Doorblock( wall, parameters ){
 
@@ -8439,6 +8289,8 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
   },
   showMenu: function(center){
 
+    this.hideMenuLKM();
+
     var elements =  $( this.rkmMenu  ).find('.ActiveElementMenuAnimated');
 
     //сбрасываем в ноль координаты для анимации
@@ -8466,6 +8318,8 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     $( this.lkmMenu ).css('display','none');
   },
   showMenuLKM: function(center){
+
+    this.hideMenu();
 
     var elements =  $( this.lkmMenu ).find('.ActiveElementMenuAnimated');
 
@@ -8729,6 +8583,8 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
   },
 
   showMenuLKM: function(center){
+
+    this.hideMenu();
 
     var elements =  $( this.lkmMenu ).find('.ActiveElementMenuAnimated');
 
@@ -9006,6 +8862,8 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),
   },
 
   showMenuLKM: function(center){
+
+    this.hideMenu();
 
     var elements =  $( this.lkmMenu ).find('.ActiveElementMenuAnimated');
 
@@ -10323,7 +10181,7 @@ function setFloorPlan(form) {
 				if (!data.error) {
 					if (data.uploadall) {
 						//setFloorTexture('http://local.online.cableproject.net:8083/drawing/user_images/' + data.uploadall + '-0.jpg');
-						setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.uploadall + '-0.jpg');
+						$Editor.setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.uploadall + '-0.jpg');
 					}
 				}
 			} else
@@ -10331,7 +10189,7 @@ function setFloorPlan(form) {
 				if (!data.error) {
 					if (data.upload) {
 						//setFloorTexture('http://local.online.cableproject.net:8083/drawing/user_images/' + data.upload);
-						setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.upload);
+						$Editor.setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.upload);
 					}
 				}
 			}
@@ -10343,34 +10201,7 @@ function setFloorPlan(form) {
 	});
 	return false;
 }
-function setFloorTexture(filename) {
-	// instantiate a loader
-	var loader = new THREE.TextureLoader();
-	loader.setCrossOrigin('');
-	// load a resource
-	loader.load(
-		// resource URL
-		filename,
-		// Function when resource is loaded
-		function ( floorTexture ) {
-			// do something with the texture
 
-      floorTexture.needsUpdate = true;
-      floorTexture.repeat.set( 1, 1 );
-      $Editor.floor.material = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
-      $Editor.floor.textureFile = filename;
-
-		},
-		// Function called when download progresses
-		function ( xhr ) {
-			console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-		},
-		// Function called when download errors
-		function ( xhr ) {
-			console.log( 'An error happened' );
-		}
-	);
-}
 $('input[name="image_file"]').change(function() {
 	$('form[name="floor_plan_form"]').submit();
 });

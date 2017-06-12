@@ -64,7 +64,7 @@ Room.prototype = Object.assign( {}, {
       if( countur.length == 0 ){
         countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
         countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
-      } else if(countur[countur.length-1].x == nodes[item.target.id].position.x && countur[countur.length-1].y == nodes[item.target.id].position.z ){
+      } else if(countur[countur.length-1].x == nodes[item.target.id].position.x && countur[countur.length-1].y == nodes[item.target.id].position.z && nodes[item.source.id] ){
         countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
       } else {
         countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
@@ -92,10 +92,11 @@ Room.prototype = Object.assign( {}, {
 
         //в случае внутренней перегородки (но не "толстой" стены)
         if( wall.mover.v1_neighbors.length == 0 || wall.mover.v2_neighbors.length == 0){
-          self.externalWallsAdd(item.wall_uuid, false)
-          wall.external_wall = false;
-        }
 
+          self.externalWallsAdd(item.wall_uuid, false);
+          wall.external_wall = false;
+
+        }
 
       }
 
