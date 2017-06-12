@@ -2500,7 +2500,7 @@ function initWallEditor( obj ){
   obj.enabled = false;
   obj.currentWall = null;
   obj.selected = null;
-  obj.changingOject = null;
+  obj.changingObject = null;
   obj.lastDoorway = {};// объект с информацией о последнем добавленом проеме
 
   obj.maxNeighboorsDistance = 0.5;
@@ -3977,7 +3977,7 @@ function initWallEditor( obj ){
   $('.footer').on('keydown','[param]',function(event){
 
     //фиксируем изменяемый объект для использовании в событии по change
-    obj.changingOject  = obj.selected;
+    obj.changingObject  = obj.selected;
 
   });
 
@@ -3985,7 +3985,7 @@ function initWallEditor( obj ){
 
       var param = $(this).attr('param');
 
-      if( obj.changingOject && $(this).val() != '' ){
+      if( obj.changingObject && $(this).val() != '' ){
 
         var val = +$(this).val()/current_unit.c;
 
@@ -3993,26 +3993,30 @@ function initWallEditor( obj ){
 
           case 'depObject_thickness':
 
-            obj.changingOject.setDepObjectThickness( val );
+            obj.changingObject.setDepObjectThickness( val );
 
             break;
           case 'width':
 
-            if ( obj.changingOject.type == 'Wall' ){
+            if ( obj.changingObject.type == 'Wall' ){
 
-              obj.changingOject.setWidth( val );
+              obj.changingObject.setWidth( val );
 
+            } else {
+
+              obj.changingObject[ param ] = val;
+              
             }
 
             break;
           default:
 
-            obj.changingOject[ param ] = val;
+            obj.changingObject[ param ] = val;
 
             break;
         }
 
-        obj.changingOject.wall ? obj.changingOject.wall.update() : obj.changingOject.update();
+        obj.changingObject.wall ? obj.changingObject.wall.update() : obj.changingObject.update();
         $wallCreator.updateWalls();
 
       }
