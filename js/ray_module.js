@@ -4023,7 +4023,7 @@ function initWallEditor( obj ){
             } else {
 
               obj.changingObject[ param ] = val;
-              
+
             }
 
             break;
@@ -6226,7 +6226,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       }
     }
-  }
+  },
   changeRadial: function(){
 
     var v1 = this.v1.clone();
