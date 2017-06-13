@@ -2528,6 +2528,8 @@ function initWallEditor( obj ){
 
   };
   obj.off = function(){
+
+    obj.unselect();
     obj.enabled = false;
     obj.deactivateWallMover();
     obj.deactivateDoorway();
@@ -3853,7 +3855,7 @@ function initWallEditor( obj ){
 
 		obj.selected.remove();
     obj.unselect();
-    
+
 	});
   $('.ActiveElementMenu').on('click', '[action = addCopy]', function(){
 
