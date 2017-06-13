@@ -3850,8 +3850,10 @@ function initWallEditor( obj ){
 
   });
 	$('.ActiveElementMenu').on('click', '[action = remove]', function(){
+
 		obj.selected.remove();
     obj.unselect();
+    
 	});
   $('.ActiveElementMenu').on('click', '[action = addCopy]', function(){
 
@@ -3939,6 +3941,7 @@ function initWallEditor( obj ){
     obj.deactivateSelectControls();
 
 		obj.selected.remove();
+    obj.unselect();
 
     obj.activateSelectControls();
 
@@ -3946,6 +3949,7 @@ function initWallEditor( obj ){
   $('.ControlPointMenu').on('click', '[action = remove]', function(){
 
 		obj.selected.remove();
+    obj.unselect();
 
 	});
 
