@@ -3851,6 +3851,7 @@ function initWallEditor( obj ){
   });
 	$('.ActiveElementMenu').on('click', '[action = remove]', function(){
 		obj.selected.remove();
+    obj.unselect();
 	});
   $('.ActiveElementMenu').on('click', '[action = addCopy]', function(){
 
@@ -4005,7 +4006,7 @@ function initWallEditor( obj ){
             } else {
 
               obj.changingObject[ param ] = val;
-              
+
             }
 
             break;
