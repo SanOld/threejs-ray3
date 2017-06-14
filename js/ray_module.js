@@ -70,7 +70,6 @@ var acsWallMaterial2 = new THREE.MeshLambertMaterial({
       color: '#d5c7ac'
     });
 
-
 var dimGeometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
 
 var measure_unit = {
@@ -127,6 +126,14 @@ function Editor(obj){
       width: 100,
       height: 2100,
       elevation: 0
+    },
+    Room:{
+      main_color: '#F0E68C',
+      active_color: '#00FFFF',
+      hover_color: '#ADFF2F'
+    },
+    RoomSurface:{
+      main_color: 'black'
     }
   };
 
@@ -500,7 +507,13 @@ function Editor(obj){
       }
       break;
     case 50: /*2*/
-
+      if(event.altKey){
+        if( $selectMode.enabled ){
+          $projection.toggleModeIn2D( 'creation' );
+        } else {
+          $projection.toggleModeIn2D( 'selection' );
+        }
+      }
       break;
 
   }
@@ -854,34 +867,53 @@ function initProjection(obj){
 
         $wallEditor.off();
         $dimensionEditorMode.off();
+        $selectMode.off();
         if($wallCreator.enabled)$wallCreator.off();
         $wallCreator.on();
 
         $('.footer').find('[action = modeC]').addClass('active');
         $('.footer').find('[action = modeE]').removeClass('active');
         $('.footer').find('[action = modeD]').removeClass('active');
+        $('.footer').show();
 
         break;
       case 'edition':
 
         $wallCreator.off();
         $dimensionEditorMode.off();
+        $selectMode.off();
         $wallEditor.on();
 
         $('.footer').find('[action = modeE]').addClass('active');
         $('.footer').find('[action = modeC]').removeClass('active');
         $('.footer').find('[action = modeD]').removeClass('active');
+        $('.footer').show();
 
         break;
       case 'dimension':
 
         $wallEditor.off();
         $wallCreator.off();
+        $selectMode.off();
         $dimensionEditorMode.on();
 
         $('.footer').find('[action = modeD]').addClass('active');
         $('.footer').find('[action = modeC]').removeClass('active');
         $('.footer').find('[action = modeE]').removeClass('active');
+        $('.footer').show();
+
+        break;
+      case 'selection':
+
+        $wallEditor.off();
+        $wallCreator.off();
+        $dimensionEditorMode.off();
+        $selectMode.on();
+
+        $('.footer').find('[action = modeD]').removeClass('active');
+        $('.footer').find('[action = modeC]').removeClass('active');
+        $('.footer').find('[action = modeE]').removeClass('active');
+        $('.footer').hide();
 
         break;
 
@@ -2922,10 +2954,26 @@ function initWallEditor( obj ){
   };
 //    window.console.timeEnd('t');
 
+  obj.removeRooms = function(){
+
+    if( obj.rooms )
+    obj.rooms.forEach(function( room ){
+
+      //удаляем пол
+      scene.remove( room.floor );
+      //удаляем стены комнаты
+      room.surfaces.forEach(function( surface ){
+        scene.remove( surface );
+      });
+
+    });
+
+  };
+
   obj.getRooms = function(){
 
 //    window.console.time('t');
-
+    obj.removeRooms();
     obj.hideAreaNotifications();
 
     var rooms = [];
@@ -2979,7 +3027,7 @@ function initWallEditor( obj ){
     });
 
 //    window.console.timeEnd('t');
-
+    obj.rooms = rooms;
     return rooms;
 
   };
@@ -4037,6 +4085,8 @@ function initWallEditor( obj ){
 $wallEditor = {};
 Object.setPrototypeOf($wallEditor, $wallCreator);
 initWallEditor($wallEditor);
+
+
 
 //Размеры проекции
 /*
@@ -10020,6 +10070,12 @@ SelectControls = function ( _objects, _camera, _domElement ){
 			_plane.setFromNormalAndCoplanarPoint( _camera.getWorldDirection( _plane.normal ), object.position );
 
 			if ( _hovered !== object ) {
+
+        if ( _hovered !== null ){
+          scope.dispatchEvent( { type: 'hoveroff', object: _hovered } );
+          _hovered = null;
+        }
+
 
 				scope.dispatchEvent( { type: 'hoveron', object: object } );
 

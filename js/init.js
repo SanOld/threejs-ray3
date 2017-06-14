@@ -34,7 +34,12 @@ $(document).ready(function() {
   include("js/ray_module.js?"+HASH);
   include("js/script.js?"+HASH);
 
-  include("js/Room.js?"+HASH);
 
-})
+  include("js/Room.js?"+HASH);
+  include("js/RoomFloor.js?"+HASH);
+  include("js/RoomSurface.js?"+HASH);
+  include("js/selectMode.js?"+HASH);
+
+
+});
 

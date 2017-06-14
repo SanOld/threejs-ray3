@@ -20,9 +20,15 @@ function Room( parameters ){
   this.external_walls = [];
   this.elements = [];
   this.isClockWise = parameters.hasOwnProperty("isClockWise") ? parameters["isClockWise"] : false;
+  this.surfaces = [];
 
 
   this.init();
+
+  self.floor = new RoomFloor( self );
+  scene.add( self.floor );
+
+  this.surfaces = this.getSurfaces( this.chain );
 }
 
 Room.prototype = Object.assign( {}, {
@@ -38,7 +44,6 @@ Room.prototype = Object.assign( {}, {
       this.area = objArea.area;
       this.area_coords = { x: objArea.coord.x, y: objArea.coord.z },
       this.area_coords_3D = objArea.area.coord;
-
 
       //отрисовка контура комнаты
       this.drawCounturLine( this.chain, this.nodes );
@@ -198,7 +203,24 @@ Room.prototype = Object.assign( {}, {
         AreaCounturs.add( line );
       }
 
-    })
+    });
+  },
+
+  getSurfaces: function( chain ){
+    var self = this;
+    var surfaces = [];
+    var vertieces = [];
+    chain.forEach(function( item ){
+
+      var wall = scene.getObjectByProperty( 'uuid', item.wall_uuid );
+      vertieces[0] = self.nodes[item.source.id].position;
+      vertieces[1] = self.nodes[item.target.id].position;
+      surfaces.push( new RoomSurface( self, wall, vertieces ));
+      scene.add(surfaces[surfaces.length-1]);
+    });
+
+    return surfaces;
+
   },
 
   defineWallsParams: function(){
