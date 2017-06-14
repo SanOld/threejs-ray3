@@ -2948,32 +2948,31 @@ function initWallEditor( obj ){
       if( chain ){
 
 
-          var isClockWise = ! THREE.ShapeUtils.isClockWise(countur) ;
+        var isClockWise = ! THREE.ShapeUtils.isClockWise(countur) ;
 
-          var  room = new Room({
-                                nodes: nodes,
-                                chain: chain,
-                                isClockWise: !isClockWise
-                              });
-          rooms.push( room );
+        var  room = new Room({
+                              nodes: nodes,
+                              chain: chain,
+                              isClockWise: !isClockWise
+                            });
+        rooms.push( room );
 
+        var objArea = room.getArea( room.countur ) ;
+        objArea.area = ( objArea.area * area_unit.c ).toFixed( area_accuracy_measurements );
 
-          var objArea = room.getArea( room.countur ) ;
-          objArea.area = ( objArea.area * area_unit.c ).toFixed( area_accuracy_measurements );
+        if( Areas.children.length < rooms.length && objArea.area){
 
-          if( Areas.children.length < rooms.length && objArea.area){
+          obj.addAreaNotification( objArea.coord, objArea.area );
 
-            obj.addAreaNotification( objArea.coord, objArea.area );
+        } else if(+objArea.area){
 
-          } else if(+objArea.area){
+          var note = Areas.children[ rooms.length - 1 ];
+          note.position.copy( objArea.coord );
+          note.setMessage( objArea.area + " " + area_unit.short_name );
+          note.update();
+          note.material.visible = true;
 
-            var note = Areas.children[ rooms.length - 1 ];
-            note.position.copy( objArea.coord );
-            note.setMessage( objArea.area + " " + area_unit.short_name );
-            note.update();
-            note.material.visible = true;
-
-          }
+        }
 
       }
 
