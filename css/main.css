@@ -57,19 +57,19 @@
     bottom: 10px;
     left:5px;
     /*border-radius: 5px;*/
-    width: 230px;
+    width: 250px;
     height: 400px;
     background: rgba(0,0,0,.8);
-    padding: 0 10px 0 5px!important;
+    padding: 0 10px 5px 5px!important;
 }
 
 .left_panel_custom_nemu{
     border: 1px solid;
     position: absolute;
     left: -11px;
-    bottom: 20px;
-    width: 230px;
-    height: 195px;
+    bottom: 16px;
+    width: 250px;
+    height: 199px;
     background: rgba(0,0,0,.8);
     padding: 0 10px 0 5px!important;
 }
@@ -82,15 +82,16 @@
     color: white!important;
     cursor: pointer;
     display: flex;
-    margin:0 0 10px 0px;
+    margin:0 0 3px 0px;
 }
 
 .radio_menu_custom{
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     align-items: flex-start;
-    margin: -20px 0 0 -26px;
+    position: relative;
+    bottom: 20px;
+    right: 46px;
 }
 
 .label_custom{
@@ -119,11 +120,13 @@
 }
 
 .door_div_custom{
-    width: 230px;
     background: rgba(0,0,0,.8);
-    position: absolute;
-    left: 5px;
-    bottom: 10px;
+    position: relative;
+    padding-top: 7px;
+    left: -6px;
+    /* bottom: 68px; */
+    min-width: 195px;
+
 }
 
 .door_div_custom input{
@@ -139,8 +142,9 @@
 
 .menu_label_position_custom{
     position: relative!important;
-    left: 30px!important;
+    left: 26px!important;
     top: 3px!important;
+    font-weight: bold;
 } 
 
 .border_custom{
@@ -148,10 +152,134 @@
     height: 2px;
     position: relative;
     left: -5px;
-    width: 228px;
-    margin: -7px 0 2px 0;
+    width: 248px;
+    margin: 0px 0 8px 0;
 }
 
 .checkbox, .radio{
-    margin: 10px 0 -2px 120px;
+    margin: 10px 0 0px 0px;
+}
+
+.left_panel_type{
+    display: flex;
+    /*justify-content: center;*/
+    /*align-items: center;*/
+}
+
+.left_panel_type > b{
+    color: white;
+    font-weight: 100;
+}
+
+.lp_radio_div{
+    display: flex!important;
+    justify-content: space-between;
+}
+
+.menu_text_custom > input{
+    width: 25px!important;
+    /* height: 20px; */
+    position: relative;
+    bottom: 3px;
+}
+
+.lp_input_custom{
+    position: relative;
+    right: 38px;
+}
+
+.height_ed_izm{
+    color: white!important;
+    position: relative;
+    left: 148px;
+}
+
+.width_ed_izm{
+    color: white!important;
+    position: relative;
+    left: 147px;
+}
+
+.label_lp_custom{
+    font-weight: 100!important;
+}
+
+.lp-label{
+    position: relative;
+    bottom: 7px;
+}
+
+.doors_all_block_1{
+    display: block;
+    position: relative;
+    bottom: 60px;
+    right: 143px;
+    background: rgba(0,0,0,.8); 
+}
+
+.doors_label_{
+    background: rgba(0,0,0,.8);
+    width: 50px;
+    position: relative;
+    left: -6px;
+    min-width: 55px;
+    margin: 0;
+    height: 57px;
+    padding-top: 7px;
+}
+
+.doors_label_ > span {
+    color: white;
+    margin-left: 7px;
+}
+
+input.depObject_thickness{
+    position: relative;
+    right: 38px;
+}
+
+.dep_th_ed_izm{
+    position: relative;
+    left: 141px;
+    color: white!important;
+}
+
+
+input.thickness{
+    position: relative;
+    right: 38px;
+}
+
+.th_ed_izm{
+    position: relative;
+    left: 141px;
+    color: white!important;
+}
+
+input.elevation{
+    position: relative;
+    right: 38px;
+}
+
+.elevation_ed_izm{
+    position: relative;
+    left: 146px;
+    color: white!important;
+}
+
+input.slope{
+    position: relative;
+    right: 38px;
+}
+
+.slope_ed_izm{
+    position: relative;
+    left: 161px;
+    color: white!important;
+}
+
+.isEmDoor1{
+    position: relative;
+    right: 43px;
+
 }

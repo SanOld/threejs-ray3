@@ -2870,6 +2870,9 @@ function initWallEditor( obj ){
       $projection.showObjParams({
         height: {val: obj.selected.height, label: 'Высота'},
         width: {val: obj.selected.width, label: 'Толщина'},
+        width_ed_izm:{label:'мм'},
+        height_ed_izm:{label:'мм'},
+        // elevation_ed_izm:{label:'мм'},
         wall_type: {},
         wall_action: {}
       });
@@ -2887,7 +2890,14 @@ function initWallEditor( obj ){
         width: {val: obj.selected.width, label: 'Ширина'},
         depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
         elevation: {val: obj.selected.elevation, label: 'От пола'},
-        slope: {val: obj.selected.slope, label: 'Откос'}
+        slope: {val: obj.selected.slope, label: 'Откос'}, 
+
+        elevation_ed_izm:{label:'мм'},
+        slope_ed_izm:{label:'мм'},
+        width_ed_izm:{label:'мм'},
+        height_ed_izm:{label:'мм'},
+        slope_ed_izm:{label:'мм'}
+
       });
       $('.left_panel_custom').css({'bottom':'10px'});
 
@@ -2896,19 +2906,37 @@ function initWallEditor( obj ){
       $projection.showObjParams({
         height: {val: obj.selected.height, label: 'Высота'},
         width: {val: obj.selected.width, label: 'Ширина'},
+
         depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
         elevation: {val: obj.selected.elevation, label: 'От пола'},
         slope: {val: obj.selected.slope, label: 'Откос'},
-        isEntryDoor: {checked: obj.selected.isEntryDoor, label: 'Входная'}
+        // isEntryDoor: {checked: obj.selected.isEntryDoor, label: 'Входная'},
+        isEntryDoor: {val: obj.selected.isEntryDoor, label: 'Входная'},
+        isEmDoor:{label:'Межкомнатная'},
+        isEmDoor1:{label:'Входная'},
+        width_ed_izm:{label:'мм'},
+        height_ed_izm:{label:'мм'},
+        elevation_ed_izm:{label:'мм'},
+        dep_th_ed_izm:{label:'мм'},
+        slope_ed_izm:{label:'мм'}
       });
-      $('.left_panel_custom').css({'bottom':'30px'});
+      $('.left_panel_custom').css({'bottom':'78px'});
+      $('#border-div').css({'display':'block'});
+      $('.doors_all_block_1').css({'display':'block'});
+      $('.doors_all_block').css({'display':'flex'});
 
     } else if( obj.selected.type == 'Doorway' || obj.selected.type == 'Niche' ){
       $projection.showObjParams({
         height: {val: obj.selected.height, label: 'Высота'},
         width: {val: obj.selected.width, label: 'Ширина'},
         thickness: {val: obj.selected.thickness, label: 'Толщина'},
-        elevation: {val: obj.selected.elevation, label: 'От пола'}
+        elevation: {val: obj.selected.elevation, label: 'От пола'},
+        th_ed_izm:{label:'мм'},
+        width_ed_izm:{label:'мм'},
+        height_ed_izm:{label:'мм'},
+        elevation_ed_izm:{label:'мм'},
+        // dep_th_ed_izm:{label:'мм'},
+        // slope_ed_izm:{label:'мм'}
 
       });
       $('.left_panel_custom').css({'bottom':'10px'});
@@ -6306,10 +6334,12 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       if( event.keyCode == 13 ){
 
         element.css('display', 'none');
+        $('.doors_all_block_1').css({'display':'none'});
 
       } else if( event.keyCode == 27 ){
 
         element.css('display', 'none');
+        $('.doors_all_block_1').css({'display':'none'});
       }
 
     });
@@ -6342,6 +6372,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       self.update();
       $wallCreator.updateWalls();
       element.css('display', 'none');
+      $('.doors_all_block_1').css({'display':'none'});
 
     });
   },
@@ -7431,6 +7462,7 @@ WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype 
 
   hideMenu: function() {
     $(this.rkmMenu).css('display','none');
+    $('.doors_all_block_1').css({'display':'none'});
   },
   showMenu: function(center){
     var self = this;
@@ -7839,6 +7871,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
   hideMenu: function() {
     $(this.rkmMenu).css('display','none');
+    $('.doors_all_block_1').css({'display':'none'});
   },
   showMenu: function( center ){
 
@@ -7871,6 +7904,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
   hideMenuLKM: function() {
     $( this.lkmMenu ).css('display','none');
+    $('.doors_all_block_1').css({'display':'none'});
   },
   showMenuLKM: function( center ){
 
@@ -8580,6 +8614,7 @@ DoorBlock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
   hideMenu: function() {
     $( this.rkmMenu  ).css('display','none');
+    $('.doors_all_block_1').css({'display':'none'});
   },
   showMenu: function(center){
 
@@ -8610,6 +8645,7 @@ DoorBlock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
   hideMenuLKM: function() {
     $( this.lkmMenu ).css('display','none');
+    $('.doors_all_block_1').css({'display':'none'});
   },
   showMenuLKM: function(center){
 
