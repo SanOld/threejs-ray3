@@ -288,6 +288,6 @@
 </div>
 
 <div id="dimToolTip" title="Внимание" style="display: none;">
-  <p>Выберите направление изменения длины стены</p>
+  <p>text</p>
 </div>
 </html>

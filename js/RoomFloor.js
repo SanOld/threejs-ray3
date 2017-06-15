@@ -32,8 +32,6 @@ function RoomFloor( room ){
   };
   this.hoveroff =   function ( event ) {
 
-    window.console.log(event.object);
-
     if( ! self.actived )
     self.material.color = new THREE.Color( $Editor.default_params.Room.main_color );
 

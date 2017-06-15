@@ -4,6 +4,7 @@ function initSelectMode( obj ){
   obj.enabled = false;
   obj.rooms = [];
   obj.selected = null;
+  obj.hovered = null;
   obj.arraySelected = [];
 
   obj.on = function(){
@@ -12,6 +13,8 @@ function initSelectMode( obj ){
     obj.activate();
 
     obj.calculateRooms();
+    obj.showRoomsFloor();
+    obj.showRoomsSurfaces();
 
     obj.deactivateSelectControls();
     obj.activateSelectControls();
@@ -20,6 +23,10 @@ function initSelectMode( obj ){
   obj.off = function(){
 
     obj.enabled = false;
+    obj.unselectAll();
+
+    obj.hideRoomsFloor();
+    obj.hideRoomsSurfaces();
 
     obj.deactivateSelectControls();
 
@@ -45,15 +52,14 @@ function initSelectMode( obj ){
   obj.activateSelectControls = function(){
 
     var objects = [];
-//    $wallEditor.walls.forEach(function( wall ){
-//
-//      objects = objects.concat( wall.doors, wall );
-//
-//    });
 
     obj.rooms.forEach(function( room ){
 
-      objects = objects.concat( room.surfaces, room.floor );
+      objects = objects.concat( room.surfaces );
+
+      if( !room.external ){
+        objects = objects.concat( room.floor );
+      }
 
     });
 
@@ -100,14 +106,22 @@ function initSelectMode( obj ){
     if ( obj.arraySelected.length > 0 && obj.arraySelected[0].type != obj.selected.type ){
 
       //TODO сообщение о замене выбранных объектов
-      alert('Другой тип объекта');
 
-      obj.unselectAll();
+      $Editor.msg({
+        type: 'confirm',
+        text: 'Вы выбираете объект другого типа. \n Выбранные объекты будут сброшены. \n Продолжить?',
+        response: function(response){
+          if(response){
 
-      obj.arraySelected.push( obj.selected );
+            obj.unselectAll();
+            obj.arraySelected.push( obj.selected );
+            if( 'select' in event.object )
+            event.object.select(event);//вызываем select на выбранном объекте
 
-      if( 'select' in event.object )
-      event.object.select(event);//взываем select на выбранном объекте
+          }
+        }
+
+      });
 
     } else if( obj.arraySelected.indexOf( obj.selected ) != -1){
 
@@ -124,6 +138,8 @@ function initSelectMode( obj ){
 
     }
 
+
+    //TODO расчет параметров
     obj.calculateSelectedParams();
 
   };
@@ -137,22 +153,62 @@ function initSelectMode( obj ){
   };
   obj.unselect = function( event ){
 
-    if( obj.selected && ('unselect' in obj.selected) )
-    obj.selected.unselect(event);
+//    if( obj.selected && ('unselect' in obj.selected) )
+//    obj.selected.unselect(event);
     obj.selected = null;
 
   };
   obj.hoveron = function( event ){
-    if( 'hoveron' in event.object )
-    event.object.hoveron( event );
+    if( 'hoveron' in event.object && obj.hovered != event.object){
+      event.object.hoveron( event );
+      obj.hovered = event.object;
+    }
+
   };
   obj.hoveroff = function( event ){
     if( 'hoveroff' in event.object )
     event.object.hoveroff(event);
+    obj.hovered = null;
   };
 
   obj.calculateRooms = function(){
     obj.rooms = $wallEditor.getRooms();
+  };
+  obj.showRoomsFloor = function(){
+
+    obj.rooms.forEach(function( room ){
+
+      room.showFloor();
+
+    });
+
+  };
+  obj.hideRoomsFloor = function(){
+
+    obj.rooms.forEach(function( room ){
+
+      room.hideFloor();
+
+    });
+
+  };
+  obj.showRoomsSurfaces = function(){
+
+    obj.rooms.forEach(function( room ){
+
+      room.showSurfaces();
+
+    });
+
+  };
+  obj.hideRoomsSurfaces = function(){
+
+    obj.rooms.forEach(function( room ){
+
+      room.hideSurfaces();
+
+    });
+
   };
   obj.unselectAll = function(){
 

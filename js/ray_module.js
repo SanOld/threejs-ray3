@@ -3,10 +3,10 @@
 
 var Dimensions = new THREE.Object3D(0,3000,0); //объект хранилище размеров
 Dimensions.name = "Dimensions";
-var Areas = new THREE.Object3D(0,3000,0); //объект хранилище размеров площадей
-Areas.name = "Areas";
-var AreaCounturs = new THREE.Object3D(0,1,0); //объект хранилище размеров площадей
-AreaCounturs.name = "AreaCounturs";
+//var Areas = new THREE.Object3D(0,3000,0); //объект хранилище размеров площадей
+//Areas.name = "Areas";
+//var AreaCounturs = new THREE.Object3D(0,1,0); //объект хранилище размеров площадей
+//AreaCounturs.name = "AreaCounturs";
 
 var floorHeight = 3000;
 
@@ -133,7 +133,8 @@ function Editor(obj){
       hover_color: '#ADFF2F'
     },
     RoomSurface:{
-      main_color: 'black'
+      main_color: 'black',
+      width: 50
     }
   };
 
@@ -156,8 +157,8 @@ function Editor(obj){
     controls.update();
 
     scene.add( Dimensions );//глобальный объект-хранилище размеров
-    scene.add( Areas );//глобальный объект-хранилище размеров площадей комнат
-    scene.add( AreaCounturs );//глобальный объект-хранилище размеров контуров комнат
+//    scene.add( Areas );//глобальный объект-хранилище размеров площадей комнат
+//    scene.add( AreaCounturs );//глобальный объект-хранилище размеров контуров комнат
     //режим чертежа
     if( ! $projection.enabled){
 
@@ -483,6 +484,73 @@ function Editor(obj){
     obj.lights[4].position.set( obj.floor.length/2, floorHeight  , obj.floor.width/2 );
   };
 
+  obj.msg = function( parameters ){
+
+    var type = parameters.hasOwnProperty("type") ? parameters["type"] : 'attention';
+    var title = parameters.hasOwnProperty("title") ? parameters["title"] : 'Внимание';
+    var text = parameters.hasOwnProperty("text") ? parameters["text"] : '';
+    var callback = parameters.hasOwnProperty("response") ? parameters["response"] : function(){};
+
+    $('#dimToolTip').find('p').text( text );
+
+    switch (type) {
+      case 'attention':
+        $( "#dimToolTip" ).dialog({
+          dialogClass: "no-close",
+          autoOpen: false,
+          title: title,
+          show: {
+            effect: "blind",
+            duration: 1000
+          },
+          hide: {
+            effect: "explode",
+            duration: 1000
+          }
+        });
+
+
+        $( "#dimToolTip" ).dialog( "open" );
+
+        setTimeout(function(){
+          $( "#dimToolTip" ).dialog( "close" );
+        }, 2000);
+
+
+        break;
+
+      case 'confirm':
+        $( "#dimToolTip" ).dialog({
+          dialogClass: "no-close",
+          autoOpen: false,
+          title: title,
+          show: {
+            effect: "blind",
+            duration: 1000
+          },
+          hide: {
+            effect: "explode",
+            duration: 1000
+          },
+          modal: true,
+          buttons: {
+            "Ok": function() {
+              callback.call(null, true);
+              $( this ).dialog( "close" );
+            },
+            Cancel: function() {
+              callback.call(null, false);
+              $( this ).dialog( "close" );
+            }
+          }
+        });
+
+        $( "#dimToolTip" ).dialog( "open" );
+
+        break;
+    }
+
+  };
 
   function onKeyDownEditor ( event ){
 //  alert(event.keyCode)
@@ -519,20 +587,6 @@ function Editor(obj){
   }
 }
 
-  $( function() {
-    $( "#dimToolTip" ).dialog({
-      dialogClass: "no-close",
-      autoOpen: false,
-      show: {
-        effect: "blind",
-        duration: 1000
-      },
-      hide: {
-        effect: "explode",
-        duration: 1000
-      }
-    });
-  });
 
   $('.footer').on('click','[action = mode]',function(){
 
@@ -658,8 +712,8 @@ function initProjection(obj){
 
     obj.doorwaysProjectionMode();
 
-    Areas.visible = true;
-    AreaCounturs.visible = true;
+//    Areas.visible = true;
+//    AreaCounturs.visible = true;
 
     $wallEditor.on();
 
@@ -680,8 +734,8 @@ function initProjection(obj){
     delete obj.plane;
 
     Dimensions.visible = false;
-    Areas.visible = false;
-    AreaCounturs.visible = false;
+//    Areas.visible = false;
+//    AreaCounturs.visible = false;
     obj.setMaterialToWall('3D');
 
 
@@ -1778,7 +1832,10 @@ function initWallCreator(obj){
 
   };
   obj.calculateRooms = function(){
+
     obj.rooms = $wallEditor.getRooms();
+    $wallEditor.showRoomsArea();
+
   };
 
   obj.removeWall = function(wall){
@@ -2847,7 +2904,9 @@ function initWallEditor( obj ){
   };
 
   obj.getJSON = function(callback){
+
     var export_data;
+
     $.getJSON("data/export_example.json", function(data) {
 
         export_data = data;
@@ -2959,12 +3018,19 @@ function initWallEditor( obj ){
     if( obj.rooms )
     obj.rooms.forEach(function( room ){
 
-      //удаляем пол
-      scene.remove( room.floor );
-      //удаляем стены комнаты
-      room.surfaces.forEach(function( surface ){
-        scene.remove( surface );
-      });
+      room.clear();
+
+    });
+
+  obj.rooms = [];
+
+  };
+  obj.showRoomsArea = function(){
+
+    if( obj.rooms )
+    obj.rooms.forEach(function( room ){
+
+      room.showAreaNotification();
 
     });
 
@@ -2974,53 +3040,31 @@ function initWallEditor( obj ){
 
 //    window.console.time('t');
     obj.removeRooms();
-    obj.hideAreaNotifications();
 
     var rooms = [];
     var nodes =  obj.getNodes(obj.walls);
     var pathes = obj.getPathes(obj.walls);
     var chains = obj.getChains(nodes, pathes);
-    obj.ExclusionExternalChain(nodes, chains);
 
 
-    //удаление линий контура комнат
-    obj.removeCounturLine();
     //=================
 
-    chains.forEach(function( chain ){
+    chains.forEach( function( chain ){
 
-      var walls = [];
-      var external_walls = [];
       var countur = [];
 
       if( chain ){
 
+        var isClockWise = ! THREE.ShapeUtils.isClockWise( countur ) ;
+        var isExternal = obj.isExternalChain( nodes, chain );
 
-        var isClockWise = ! THREE.ShapeUtils.isClockWise(countur) ;
-
-        var  room = new Room({
-                              nodes: nodes,
-                              chain: chain,
-                              isClockWise: !isClockWise
-                            });
+        var  room = new Room( {
+                                nodes: nodes,
+                                chain: chain,
+                                isClockWise: !isClockWise,
+                                external: isExternal
+                              });
         rooms.push( room );
-
-        var objArea = room.getArea( room.countur ) ;
-        objArea.area = ( objArea.area * area_unit.c ).toFixed( area_accuracy_measurements );
-
-        if( Areas.children.length < rooms.length && objArea.area){
-
-          obj.addAreaNotification( objArea.coord, objArea.area );
-
-        } else if(+objArea.area){
-
-          var note = Areas.children[ rooms.length - 1 ];
-          note.position.copy( objArea.coord );
-          note.setMessage( objArea.area + " " + area_unit.short_name );
-          note.update();
-          note.material.visible = true;
-
-        }
 
       }
 
@@ -3162,26 +3206,20 @@ function initWallEditor( obj ){
     });
 
   };
-  obj.ExclusionExternalChain = function( nodes, chains ){
+  obj.isExternalChain = function( nodes, chain ){
 
-    var toRemove = [];
-
-    chains.forEach( function( item, index ){
-
-      var wall_uuid = item[0].wall_uuid;
+      var wall_uuid = chain[0].wall_uuid;
       var wall = scene.getObjectByProperty ( 'uuid', wall_uuid );
 
       if( wall ){
-        if ( obj.isWallInRoom( nodes, wall, item ) )
-			delete chains[ index ];
+        if ( obj.isWallInRoom( nodes, wall, chain ) )
+        return true;
       }
-    });
 
-    toRemove.forEach( function( item ){
-      chains.splice( item, 1 );
-    });
+      return false;
 
   };
+
 
   obj.isWallInRoom = function( nodes, wall, chain ){
 
@@ -3329,62 +3367,7 @@ function initWallEditor( obj ){
 
     return  result ;
   };
-  obj.addAreaNotification = function( area_coord, area ){
 
-    var notification = new noteSimple(
-                                      null,
-                                      area + " " + area_unit.short_name,
-                                      {
-                                        backgroundColor: { r:255, g:255, b:255, a:0 },
-                                        borderColor:     { r:255, g:255, b:255, a:0 },
-                                        fontsize: 36
-                                      }
-                                      );
-    notification.position.copy( area_coord );
-    Areas.add( notification );
-
-  };
-  obj.removeAreaNotifications = function(){
-
-    Areas.children.forEach(function(item){
-      item.parent.remove(item);
-    });
-
-    Areas.children.length = 0;
-
-  };
-  obj.hideAreaNotifications = function(){
-    Areas.children.forEach(function(item){
-      item.material.visible = false;
-    });
-  };
-  obj.addCounturLine = function( chain, nodes ){
-
-    chain.forEach(function(item){
-
-      var geometry = new THREE.Geometry();
-      if(nodes[item.source.id] && nodes[item.target.id]){
-        geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
-        var line = new THREE.Line(geometry, LineBasicMaterialRed);
-        line.name = 'room_line';
-
-        AreaCounturs.add( line );
-      }
-
-    });
-
-  };
-  obj.removeCounturLine = function(){
-    var _lines = [];
-    AreaCounturs.children.forEach(function(line){
-      if(line.name === 'room_line'){
-        _lines.push(line);
-      }
-    });
-    _lines.forEach(function(item){
-      AreaCounturs.remove(item);
-    });
-  };
   obj.defineExternalWall = function( rooms ){
 
     var walls = [];
@@ -3639,17 +3622,6 @@ function initWallEditor( obj ){
     return false;
 
   };
-  obj.isCollinear = function( w1, w2 ){
-
-    if( (w1 && w2) && (w1.uuid != w2.uuid) )
-    if( Math.abs(w1.direction.clone().dot( w2.direction.clone() )) > 0.999 && w1.isNeighbor(w2) ){
-
-      return true;
-
-    }
-
-    return false;
-  };
   obj.defineFreeRoom = function( rooms ){
 
     var walls = obj.walls.slice();
@@ -3680,7 +3652,6 @@ function initWallEditor( obj ){
       var walls = [];
 
       if( chain ){
-          //отрисовка контура комнаты
 
           //=================
 
@@ -3692,15 +3663,7 @@ function initWallEditor( obj ){
 
           });
 
-//          rooms.push({
-//                      id: THREE.Math.generateUUID(),
-//                      walls: walls,
-//                      external_walls: true,
-//                      area: 0,
-//                      area_coords: {x: 0, y: 0},
-//                      area_coords_3D: 0,
-//                      isClockWise: 0
-//                    })
+
           var  room = new Room({
                                 nodes: nodes,
                                 chain: chain,
@@ -4936,12 +4899,10 @@ function Wall( vertices, parameters ){
         self.movePoint( left_point, offset/2, dimension.dim_type == 'center' );
 
       } else if( !dimension.leftArrowActivated && !dimension.rightArrowActivated ){
-        //Подсказка
-        $( "#dimToolTip" ).dialog( "open" );
 
-        setTimeout(function(){
-          $( "#dimToolTip" ).dialog( "close" );
-        }, 2000);
+        $Editor.msg({text:'Выберите направление изменения длины стены'})
+        //Подсказка
+
 
       }
 
