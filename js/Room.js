@@ -428,17 +428,19 @@ Room.prototype = Object.assign( {}, {
   addCounturLine: function( chain, nodes ){
 
     var self = this;
+    self.counturLine = new THREE.Object3D();
+    scene.add( self.counturLine );
 
     chain.forEach(function(item){
 
       var geometry = new THREE.Geometry();
       if(nodes[item.source.id] && nodes[item.target.id]){
         geometry.vertices.push( nodes[item.source.id].position.clone(), nodes[item.target.id].position.clone() );
-        self.counturLine = new THREE.Line(geometry, LineBasicMaterialRed);
-        self.counturLine.name = 'room_line';
-        self.counturLine.visible = false;
+        var line = new THREE.Line(geometry, LineBasicMaterialRed);
+        line.name = 'room_line';
+        line.visible = false;
 
-        scene.add( self.counturLine );
+        self.counturLine.add( line );
       }
 
     });
