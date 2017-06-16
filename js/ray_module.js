@@ -6210,6 +6210,20 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     return ( volume - openingsVolume );
   },
+  getOpeningsArea: function(){
+
+    var area = 0;
+
+    this.doors.forEach(function ( item, index, arr ) {
+
+      area += item.getArea();
+
+    });
+
+    return area;
+
+  },
+
 
   _checkDoorwayOffset: function( doorway ){
 
@@ -7876,6 +7890,12 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     });
   },
 
+  getPerimeter4: function(){
+    return  2 * this.width + 2 * this.height;
+  },
+  getPerimeter3: function(){
+    return  this.width + 2 * this.height;
+  },
   getArea: function(){
     return  this.width * this.height;
   },

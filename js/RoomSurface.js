@@ -1,4 +1,4 @@
-function RoomSurface( room, walls, vertieces, movePoint ){
+function RoomSurface( room, walls, vertieces, movePoint, exception ){
 
   this.walls = walls || [];
   this.source = vertieces[0];
@@ -6,6 +6,7 @@ function RoomSurface( room, walls, vertieces, movePoint ){
   this.sourceBase = vertieces[2] || null;
   this.targetBase = vertieces[3] || null;
   this.movePoint = movePoint || false;
+  this.exception = exception || false;
 
 
   RoomObject.call( this, room);
@@ -90,6 +91,31 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
     this.rotation.x = Math.PI/2;
     this.position.set( 0, this.walls[0].height + this.height, 0);
 
+  },
+
+  getArea: function(){
+
+    var length = this.source.distanceTo( this.target );
+    var height = this.walls[0].height;
+
+    return length * height;
+  },
+
+  getAreaWithoutOpenings: function(){
+
+    var result = 0;
+    var openingArea = 0;
+
+    this.walls.forEach(function ( item, index, arr ) {
+
+      if( ! exception)
+      openingArea += item.getOpeningsArea();
+
+    });
+
+    result = this.getArea - openingArea;
+
+    return result;
   }
 
 });

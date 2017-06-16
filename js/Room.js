@@ -171,7 +171,7 @@ Room.prototype = Object.assign( {}, {
       }
 
 
-    })
+    });
 
 
     this.elements = elements;
@@ -183,6 +183,35 @@ Room.prototype = Object.assign( {}, {
     var area = Math.abs( nativeArea );
     return  area ;
 
+  },
+  getAreaWithoutOpenings: function(){
+
+    var self = this;
+    var area = this.getArea( this.countur );
+    var countur = this.getCountur( this.chain );
+
+    //исключаем площадь колонн, лестниц?
+    $wallEditor.walls.forEach(function( item ){
+
+      if( self.walls.indexOf( item.uuid) == -1)
+      switch ( item.bearingType ) {
+        case 'pillar':
+        case 'partition_wall':
+        case 'stairs':
+
+          if( $wallEditor.isPointInCountur( self.walls, item.v1) || $wallEditor.isPointInCountur( self.walls, item.v2 ) ){
+            area -= item.getPlanArea();
+          }
+
+          break;
+
+        case 'something else':
+        break;
+      }
+
+
+    })
+     return area;
   },
   getAreaCoords: function( countur ){
 
@@ -259,6 +288,19 @@ Room.prototype = Object.assign( {}, {
 
   },
 
+  getFloorPerimeter: function(){
+
+    var perimeter = 0;
+
+    for (var i = 1; i < this.countur.length-1; i++) {
+
+      perimeter += this.countur[i-1].distanceTo( this.countur[i] );
+
+    }
+
+    return perimeter;
+  },
+
 
   addSelectAllWallsTool: function(area_coord){
 
@@ -297,35 +339,7 @@ Room.prototype = Object.assign( {}, {
 
   },
 
-  getAreaWithoutOpenings: function(){
 
-    var self = this;
-    var area = this.getArea( this.countur ).area;
-    var countur = this.getCountur( this.chain );
-
-    //исключаем площадь колонн, лестниц?
-    $wallEditor.walls.forEach(function( item ){
-
-      if( self.walls.indexOf( item.uuid) == -1)
-      switch ( item.bearingType ) {
-        case 'pillar':
-        case 'partition_wall':
-        case 'stairs':
-
-          if( $wallEditor.isPointInCountur( self.walls, item.v1) || $wallEditor.isPointInCountur( self.walls, item.v2 ) ){
-            area -= item.getPlanArea();
-          }
-
-          break;
-
-        case 'something else':
-        break;
-      }
-
-
-    })
-     return area;
-  },
 
   getSurfaces: function( chain ){
     var self = this;
@@ -341,7 +355,8 @@ Room.prototype = Object.assign( {}, {
       var wall = scene.getObjectByProperty( 'uuid', item.wall_uuid );
       vertieces[0] = self.nodes[item.source.id].position;
       vertieces[1] = self.nodes[item.target.id].position;
-      var surface = new RoomSurface( self, [ wall ], vertieces, moveBasicPoint );
+      var exception = item.id.split('_').indexOf('e') != -1; // для торцевых поверхностей
+      var surface = new RoomSurface( self, [ wall ], vertieces, moveBasicPoint, exception );
       surfaces.push( surface );
       scene.add( surface );
 
@@ -411,16 +426,19 @@ Room.prototype = Object.assign( {}, {
   },
 
   addCounturLine: function( chain, nodes ){
+
+    var self = this;
+
     chain.forEach(function(item){
 
       var geometry = new THREE.Geometry();
       if(nodes[item.source.id] && nodes[item.target.id]){
-        geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
-        this.counturLine = new THREE.Line(geometry, LineBasicMaterialRed);
-        this.counturLine.name = 'room_line';
-        this.counturLine.visible = false;
+        geometry.vertices.push( nodes[item.source.id].position.clone(), nodes[item.target.id].position.clone() );
+        self.counturLine = new THREE.Line(geometry, LineBasicMaterialRed);
+        self.counturLine.name = 'room_line';
+        self.counturLine.visible = false;
 
-        scene.add( this.counturLine );
+        scene.add( self.counturLine );
       }
 
     });
