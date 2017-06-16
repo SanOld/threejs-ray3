@@ -3,6 +3,7 @@ function initSelectMode( obj ){
 
   obj.enabled = false;
   obj.rooms = [];
+  obj.doorways = [];
   obj.selected = null;
   obj.hovered = null;
   obj.arraySelected = [];
@@ -16,6 +17,11 @@ function initSelectMode( obj ){
     obj.showRoomsFloor();
     obj.showRoomsSurfaces();
 
+    obj.showSelectAllWallsTool();
+
+    obj.calculateDoorways();
+    obj.showDoorways();
+
     obj.deactivateSelectControls();
     obj.activateSelectControls();
 
@@ -27,6 +33,9 @@ function initSelectMode( obj ){
 
     obj.hideRoomsFloor();
     obj.hideRoomsSurfaces();
+    obj.hideDoorways();
+
+    obj.hideSelectAllWallsTool();
 
     obj.deactivateSelectControls();
 
@@ -59,9 +68,13 @@ function initSelectMode( obj ){
 
       if( !room.external ){
         objects = objects.concat( room.floor );
+        objects = objects.concat( room.selectAllWallsTool );
       }
 
     });
+
+    objects = objects.concat( obj.doorways );
+
 
     if( obj.selectControls ){
 
@@ -99,13 +112,44 @@ function initSelectMode( obj ){
   };
 
   obj.select = function( event ){
+    window.console.log(event.object.type);
+
+    if( event.object.type == 'Sprite'){
+
+      if ( obj.arraySelected.length > 0 && obj.arraySelected[0].type != 'RoomSurface' ){
+
+        $Editor.msg({
+          type: 'confirm',
+          text: 'Вы выбираете объект другого типа. \n Выбранные объекты будут сброшены. \n Продолжить?',
+          response: function(response){
+            if(response){
+
+              obj.unselectAll();
+
+              if( 'select' in event.object )
+              event.object.select(event);//вызываем select на выбранном объекте
+
+            } else {
+              return;
+            }
+          }
+
+        });
+
+      } else {
+
+        if( 'select' in event.object )
+        event.object.select(event);//вызываем select на выбранном объекте
+
+      }
+
+      return;
+    }
 
     //фиксируем выбранный объект
     obj.selected = event.object;
 
     if ( obj.arraySelected.length > 0 && obj.arraySelected[0].type != obj.selected.type ){
-
-      //TODO сообщение о замене выбранных объектов
 
       $Editor.msg({
         type: 'confirm',
@@ -210,6 +254,24 @@ function initSelectMode( obj ){
     });
 
   };
+  obj.showSelectAllWallsTool = function(){
+
+    obj.rooms.forEach(function( room ){
+
+      room.showSelectAllWallsTool();
+
+    });
+
+  };
+  obj.hideSelectAllWallsTool = function(){
+
+    obj.rooms.forEach(function( room ){
+
+      room.hideSelectAllWallsTool();
+
+    });
+
+  };
   obj.unselectAll = function(){
 
     obj.arraySelected.forEach( function( item ){
@@ -240,6 +302,36 @@ function initSelectMode( obj ){
       }
 
     });
+  };
+
+  obj.calculateDoorways = function(){
+
+    $wallEditor.walls.forEach(function ( wall, index, arr ) {
+      wall.doors.forEach(function ( door, index, arr ) {
+        var el = new RoomDoorway( door );
+        scene.add( el );
+        obj.doorways.push( el );
+      });
+    });
+
+  };
+  obj.showDoorways = function(){
+
+    obj.doorways.forEach(function ( item, index, arr ) {
+
+      item.visible = true;
+
+    });
+
+  };
+  obj.hideDoorways = function(){
+
+    obj.doorways.forEach(function ( item, index, arr ) {
+
+      item.visible = false;
+
+    });
+
   };
 
   function onKeyDownSelectMode ( event ){

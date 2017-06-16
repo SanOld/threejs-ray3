@@ -53,6 +53,9 @@ Room.prototype = Object.assign( {}, {
         this.defineAreaNotification();
         this.showAreaNotification();
 
+        this.addSelectAllWallsTool();
+        this.hideSelectAllWallsTool();
+
         this.floor = new RoomFloor( this );
         scene.add( this.floor );
         this.hideFloor();
@@ -74,6 +77,8 @@ Room.prototype = Object.assign( {}, {
     this.combineColinearSurfaces( this.surfaces );
 
     this.hideSurfaces();
+
+    this.doorways = this.getDoorways ( this.chain );
 
 
   },
@@ -254,6 +259,44 @@ Room.prototype = Object.assign( {}, {
 
   },
 
+
+  addSelectAllWallsTool: function(area_coord){
+
+    var self = this;
+
+    this.selectAllWallsTool = new noteSimple(
+                                      null,
+                                      'Стены',
+                                      {
+                                        backgroundColor: { r:255, g:255, b:255, a:0 },
+                                        borderColor:     { r:0, g:0, b:0, a:0 },
+                                        fontsize: 36
+                                      }
+                                      );
+    this.selectAllWallsTool.position.copy( this.area_coords_3D.clone().add( new THREE.Vector3(0,0,200)) );
+    scene.add( this.selectAllWallsTool );
+
+    this.selectAllWallsTool.select = function(){
+      self.selectAllWalls();
+    };
+    this.selectAllWallsTool.unselect = function(){
+      self.unSelectAllWalls();
+    };
+
+  },
+  showSelectAllWallsTool: function(){
+
+    if( this.selectAllWallsTool )
+    this.selectAllWallsTool.material.visible = true;
+
+  },
+  hideSelectAllWallsTool: function(){
+
+       if( this.selectAllWallsTool )
+         this.selectAllWallsTool.material.visible = false;
+
+  },
+
   getAreaWithoutOpenings: function(){
 
     var self = this;
@@ -347,6 +390,24 @@ Room.prototype = Object.assign( {}, {
       item.visible = false;
     });
 
+  },
+
+  getDoorways: function( chain ){
+
+    var self = this;
+    var doorways = [];
+
+    chain.forEach(function( item, index ){
+
+      var wall = scene.getObjectByProperty( 'uuid', item.wall_uuid );
+
+      wall.doors.forEach(function( door ){
+        doorways.push( door );
+      });
+
+    });
+
+    return doorways;
   },
 
   addCounturLine: function( chain, nodes ){
@@ -695,7 +756,25 @@ Room.prototype = Object.assign( {}, {
     });
 
     return result;
+  },
+
+  selectAllWalls: function(){
+
+    this.surfaces.forEach(function(item, index, arr){
+      var event = {
+        object: item
+      };
+      $selectMode.select( event );
+
+    });
+
+  },
+  unSelectAllWalls: function(){
+
+
   }
+
+
 });
 
 

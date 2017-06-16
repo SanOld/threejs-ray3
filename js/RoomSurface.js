@@ -1,51 +1,34 @@
 function RoomSurface( room, walls, vertieces, movePoint ){
 
-  THREE.Mesh.call( this, new THREE.Geometry());
-
-  this.type = 'RoomSurface';
-  this.name = 'room_surface';
-
-  var self = this;
-
-  this.room = room;
   this.walls = walls || [];
   this.source = vertieces[0];
   this.target = vertieces[1];
   this.sourceBase = vertieces[2] || null;
   this.targetBase = vertieces[3] || null;
   this.movePoint = movePoint || false;
-  this.height = 1;
 
-  self.actived = false;
 
-  this.geometry = this.buildGeometry();
+  RoomObject.call( this, room);
+
+  this.type = 'RoomSurface';
+  this.name = 'room_surface';
+  var self = this;
+
+  this.mainColor =  $Editor.default_params.RoomSurface.main_color;
+  this.hoverColor =  $Editor.default_params.Room.hover_color;
+  this.activeColor =  $Editor.default_params.Room.active_color;
+
   this.material = new THREE.MeshBasicMaterial({
       wireframe: false,
       opacity: 1,
       transparent: true,
       depthWrite: false,
-      color: $Editor.default_params.RoomSurface.main_color
+      color: this.mainColor
     });
 
-  this.setStartPosition();
-
-  //события
-
-  this.hoveron =    function ( event ) {
-
-    if( ! self.actived )
-    self.material.color = new THREE.Color( $Editor.default_params.Room.hover_color );
-
-  };
-  this.hoveroff =   function ( event ) {
-
-    if( ! self.actived )
-    self.material.color = new THREE.Color( $Editor.default_params.RoomSurface.main_color );
-
-  };
 }
 
-RoomSurface.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
+RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
   constructor: RoomSurface,
 
@@ -107,21 +90,8 @@ RoomSurface.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.rotation.x = Math.PI/2;
     this.position.set( 0, this.walls[0].height + this.height, 0);
 
-  },
-
-  select: function(){
-    this.material.color = new THREE.Color( $Editor.default_params.Room.active_color );
-    this.actived = true;
-  },
-  unselect: function(){
-    this.actived = false;
-    this.material.color = new THREE.Color( $Editor.default_params.RoomSurface.main_color );
-  },
-
-  update: function(){
-
-
   }
+
 });
 
 

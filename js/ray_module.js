@@ -128,13 +128,16 @@ function Editor(obj){
       elevation: 0
     },
     Room:{
-      main_color: '#F0E68C',
+      main_color: '#FFCC99',
       active_color: '#00FFFF',
       hover_color: '#ADFF2F'
     },
     RoomSurface:{
       main_color: 'black',
       width: 50
+    },
+    RoomDoorway:{
+      main_color: '#A0A0A0'
     }
   };
 
@@ -744,6 +747,7 @@ function initProjection(obj){
     $wallCreator.off();
     $wallEditor.off();
     $dimensionEditorMode.off();
+    $selectMode.off();
 
 //    $Editor.showPropGui();
 
