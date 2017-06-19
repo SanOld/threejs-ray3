@@ -93,12 +93,40 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
   },
 
+  getLength: function(){
+
+    return this.source.distanceTo( this.target );
+
+  },
+  geHeight: function(){
+
+    return this.walls[0].height;
+
+  },
+  getPerimeter: function(){
+
+    return 2 * this.getLength()  + 2 * this.geHeight();
+
+  },
   getArea: function(){
 
-    var length = this.source.distanceTo( this.target );
-    var height = this.walls[0].height;
+    return this.getLength() * this.geHeight();
 
-    return length * height;
+  },
+
+  getDoorways: function( chain ){
+
+    var doorways = [];
+
+    this.walls.forEach(function( wall, index ){
+
+      wall.doors.forEach(function( door ){
+        doorways.push( door );
+      });
+
+    });
+
+    return doorways;
   },
 
   getAreaWithoutOpenings: function(){

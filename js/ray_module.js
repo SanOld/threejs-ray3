@@ -2925,78 +2925,68 @@ function initWallEditor( obj ){
         var total_walls_volume_without_openings = 0;
         var total_floor_area_without_openings = 0;
 
-        obj.defineExternalWall( rooms );
+        var P_outer_contur = 0;
+
+//        obj.defineExternalWall( rooms );
+//        obj.setRoomWallNumbers( rooms );
+//        obj.resetOuterWallNumber();
+//        obj.setOuterWallNumbers( rooms );
         obj.defineFreeRoom( rooms );
-        obj.setRoomWallNumbers( rooms );
-        obj.resetOuterWallNumber();
-        obj.setOuterWallNumbers( rooms );
 
         rooms.forEach(function( room, room_index ){
 
           window.console.log('room: ' + room.area );
 
-          if( room._type != 'freeRoom'){
-            total_area += +room.area;
-            all_walls_lengths += +room.getWallslength();
-            total_inner_wall_area_without_openings += +room.getInnerWallsArea();
-            total_outer_wall_area_without_openings += +room.getOuterWallsArea();
-            total_walls_volume_without_openings  += +room.getWallsVolume();
-            total_floor_area_without_openings += +room.getAreaWithoutOpenings();
-          }
+          if( room.external ){
 
-          export_data.floors[0].rooms[ room_index ] =
-                                                      {
-                                                        "id": room.uuid,
-                                                        "furniture": [],
-                                                        "closedRoom": room.closedRoom,
-                                                        "roomID": "",
-                                                        "room_type": room._type,
-                                                        "room_name": "",
-                                                        "room_number": "",
-                                                        "room_zone": "",
-                                                        "room_area": ( room.area * area_unit.c ).toFixed( area_accuracy_measurements ),
-                                                        "area_coords": room.area_coords,
-                                                        "walls": [],
-                                                        "elements": room.getElements()
-                                                      };
-          room.defineWallsParams();
+            if( room._type != 'freeRoom'){
+              total_area += +room.area;
+              all_walls_lengths += +room.getWallslength();
+              total_inner_wall_area_without_openings += +room.getInnerWallsArea();
+              total_outer_wall_area_without_openings += +room.getOuterWallsArea();
+              total_walls_volume_without_openings  += +room.getWallsVolume();
+              total_floor_area_without_openings += +room.getAreaWithoutOpenings();
+            }
 
-          var j = room.walls.length;
-          while (j--) {
+            export_data.floors[0].rooms[ room_index ] =
+                                                        {
+                                                          "id": room.uuid,
+                                                          "furniture": [],
+                                                          "closedRoom": room.closedRoom,
+                                                          "roomID": "",
+                                                          "room_type": room._type,
+                                                          "room_name": "",
+                                                          "room_number": "",
+                                                          "room_zone": "",
+                                                          "room_area": ( room.area * area_unit.c ).toFixed( area_accuracy_measurements ),
+                                                          "area_coords": room.area_coords,
+                                                          "walls": [],
+                                                          "elements": room.getElements()
+                                                        };
+            //стены комнаты
+            var j = room.surfaces.length;
+            while (j--) {
 
-            var item = scene.getObjectByProperty( 'uuid', room.walls[j] );
+              var item = room.surfaces[j];
+              var arrSurfaces = export_data.floors[0].rooms[ room_index ].walls;
 
-            var inner = room.wallsParams[ room.walls[j] ].inner;
-            var outer = room.wallsParams[ room.walls[j] ].outer;
-            var center = room.wallsParams[ room.walls[j] ].center;
-            var openings = room.wallsParams[ room.walls[j] ].openings;
+              arrSurfaces.push({
 
-            var arrWalls = export_data.floors[0].rooms[ room_index ].walls;
+                wall_length: item.getLength(),
+                h_wall: item.geHeight(),
+                P_wall: item.getPerimeter(),
+                S_wall: item.getArea(),
+                S_wall_without_openings: item.getAreaWithoutOpenings(),
+                openings: openings
 
-            arrWalls.push({
-                id: item.id,
-                inner: inner,
-                outer: outer,
-                center: center,
-                arcPath: null,
-                mount_type: "",
-                wall_length_mm: +item.getCurrentDimValue().toFixed(2),
-                wall_length_mm_inner:   new THREE.Vector2(inner.start.x, inner.start.y).distanceTo( new THREE.Vector2(inner.end.x, inner.end.y) ).toFixed(2),
-                wall_length_mm_outer:   new THREE.Vector2(outer.start.x, outer.start.y).distanceTo( new THREE.Vector2(outer.end.x, outer.end.y) ).toFixed(2),
-                wall_length_mm_centеr:  new THREE.Vector2(center.start.x, center.start.y).distanceTo( new THREE.Vector2(center.end.x, center.end.y) ).toFixed(2),
-                width_px: item.width,
-                width_units: +(item.width * current_unit.c).toFixed(2),
-                type: item.bearingType,
-                wall_action: item.wallAction,
-                height: {
-                  start: +item.height.toFixed(2),
-                  end: +item.height.toFixed(2)
-                },
-                openings: openings,
-                external_wall: item.external_wall,
-                room_wall_num: item.number[room_index],
-                outer_wall_num: item.outer_wall_num
               });
+
+            }
+
+
+          } else { //если не внешняя комната
+
+            P_outer_contur += room.getFloorPerimeter();
 
           }
 

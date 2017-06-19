@@ -39,6 +39,8 @@ Room.prototype = Object.assign( {}, {
 
       this.countur = this.getCountur( this.chain );
       this.walls = this.getWalls( this.chain );
+      this._defineWallsParams();
+
       this.objArea = this.getArea( this.countur );
       this.area = this.getArea( this.countur );
       this.area_coords_3D = this.getAreaCoords( this.countur );
@@ -82,7 +84,6 @@ Room.prototype = Object.assign( {}, {
     this.hideSurfaces();
 
     this.doorways = this.getDoorways ( this.chain );
-
 
   },
 
@@ -497,7 +498,7 @@ Room.prototype = Object.assign( {}, {
   externalWallsAdd: function(uuid, value){
     this.external_walls.push(uuid);
   },
-  defineWallsParams: function(){
+  _defineWallsParams: function(){
 
     var j = this.walls.length;
     while (j--) {
@@ -726,7 +727,7 @@ Room.prototype = Object.assign( {}, {
     var result = 0;
     var self = this;
 
-    this.defineWallsParams();
+    //after defineWallsParams();
     this.walls.forEach(function( item ){
 
       result += self.wallsParams[item].inner_wall_area_without_openings;
@@ -740,7 +741,7 @@ Room.prototype = Object.assign( {}, {
     var result = 0;
     var self = this;
 
-    this.defineWallsParams();
+    //after defineWallsParams();
     this.walls.forEach(function( item ){
 
     var wall = scene.getObjectByProperty( 'uuid', item );
@@ -757,7 +758,7 @@ Room.prototype = Object.assign( {}, {
     var result = 0;
     var self = this;
 
-    this.defineWallsParams();
+    //after defineWallsParams();
     this.walls.forEach(function( item ){
 
       result += self.wallsParams[item].volume;
@@ -770,7 +771,7 @@ Room.prototype = Object.assign( {}, {
     var result = 0;
     var self = this;
 
-    this.defineWallsParams();
+    //after defineWallsParams();
     this.walls.forEach(function( item ){
 
       result += self.wallsParams[item].length;
