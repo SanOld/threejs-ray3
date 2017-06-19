@@ -24,6 +24,7 @@ function Room( parameters ){
   this.surfaces = [];
   this.counturLine = null;
   this.floor = null;
+  this.counturLine =  new THREE.Object3D(0,1,0);
 
   this.init();
 
@@ -47,8 +48,10 @@ Room.prototype = Object.assign( {}, {
       //отрисовка контура комнаты
       if( !this.external ){
 
+        scene.add( this.counturLine );
         this.addCounturLine( this.chain, this.nodes );
         this.showCounturLine();
+
 
         this.defineAreaNotification();
         this.showAreaNotification();
@@ -428,8 +431,7 @@ Room.prototype = Object.assign( {}, {
   addCounturLine: function( chain, nodes ){
 
     var self = this;
-    self.counturLine = new THREE.Object3D();
-    scene.add( self.counturLine );
+
 
     chain.forEach(function(item){
 
