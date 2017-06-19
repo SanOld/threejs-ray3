@@ -15,6 +15,13 @@ function RoomSurface( room, walls, vertieces, movePoint, exception ){
   this.name = 'room_surface';
   var self = this;
 
+  this.doors = [];
+  this.windows = [];
+  this.niches = [];
+  this.doors_params = [];
+  this.windows_params = [];
+  this.niches_params = [];
+
   this.mainColor =  $Editor.default_params.RoomSurface.main_color;
   this.hoverColor =  $Editor.default_params.Room.hover_color;
   this.activeColor =  $Editor.default_params.Room.active_color;
@@ -26,6 +33,9 @@ function RoomSurface( room, walls, vertieces, movePoint, exception ){
       depthWrite: false,
       color: this.mainColor
     });
+
+
+  this.defineDoorways();
 
 }
 
@@ -114,19 +124,62 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
   },
 
-  getDoorways: function( chain ){
+  defineDoorways: function( chain ){
 
     var doorways = [];
 
     this.walls.forEach(function( wall, index ){
 
       wall.doors.forEach(function( door ){
-        doorways.push( door );
+
+        switch (door.type) {
+          case 'Doorway':
+          case 'Doorblock':
+          case 'DoorblockFloor':
+          case 'DoubleDoorBlock':
+          case 'DoubleDoorBlockFloor':
+
+            this.doors.push( door );
+            this.doors_params.push({
+
+              P_otkos_door: door.getPerimeter3(), //Периметр откосов дверей
+              S_otkos_door: door.getSlope3Area(), //Площадь откосов (периметр двери * глубину)
+              door_lintel_length: door.width //Длина перемычек
+
+            });
+
+            break;
+          case 'WindowBlock':
+
+            this.windows.push( door );
+            this.windows_params.push({
+
+              P_otkos_window : door.getPerimeter3(), //Периметр откосов дверей
+              S_otkos_window: door.getSlope3Area(), //Площадь откосов (периметр двери * глубину)
+              window_lintel_length: door.width //Длина перемычек
+
+            });
+
+            break;
+          case 'Niche':
+            //TODO Belonging
+            this.niches.push( door );
+            this.niches_params.push({
+
+              P_niche: door.getPerimeter4(), //Периметр
+              S_niche_wall: door.getArea(), //Периметр
+              depth_niche: door.thickness, //Площадь откосов (периметр двери * глубину)
+              S_side_niche: door.getPerimeter4() * door.thickness //Длина перемычек
+
+            });
+
+            break;
+
+        }
+
       });
 
     });
-
-    return doorways;
   },
 
   getAreaWithoutOpenings: function(){

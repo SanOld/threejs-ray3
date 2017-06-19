@@ -305,7 +305,6 @@ Room.prototype = Object.assign( {}, {
     return perimeter;
   },
 
-
   addSelectAllWallsTool: function(area_coord){
 
     var self = this;
@@ -342,8 +341,6 @@ Room.prototype = Object.assign( {}, {
          this.selectAllWallsTool.material.visible = false;
 
   },
-
-
 
   getSurfaces: function( chain ){
     var self = this;
@@ -416,17 +413,14 @@ Room.prototype = Object.assign( {}, {
     var self = this;
     var doorways = [];
 
-    chain.forEach(function( item, index ){
+    this.surfaces.forEach(function(item){
 
-      var wall = scene.getObjectByProperty( 'uuid', item.wall_uuid );
-
-      wall.doors.forEach(function( door ){
-        doorways.push( door );
-      });
+      doorways.concat(doorways, item.doors, item.windows, item.niches);
 
     });
 
     return doorways;
+
   },
 
   addCounturLine: function( chain, nodes ){
@@ -493,7 +487,6 @@ Room.prototype = Object.assign( {}, {
 
 
   },
-
 
   externalWallsAdd: function(uuid, value){
     this.external_walls.push(uuid);

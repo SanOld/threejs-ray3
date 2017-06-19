@@ -2949,20 +2949,22 @@ function initWallEditor( obj ){
             }
 
             export_data.floors[0].rooms[ room_index ] =
-                                                        {
-                                                          "id": room.uuid,
-                                                          "furniture": [],
-                                                          "closedRoom": room.closedRoom,
-                                                          "roomID": "",
-                                                          "room_type": room._type,
-                                                          "room_name": "",
-                                                          "room_number": "",
-                                                          "room_zone": "",
-                                                          "room_area": ( room.area * area_unit.c ).toFixed( area_accuracy_measurements ),
-                                                          "area_coords": room.area_coords,
-                                                          "walls": [],
-                                                          "elements": room.getElements()
-                                                        };
+              {
+                "id": room.uuid,
+                "furniture": [],
+                "closedRoom": room.closedRoom,
+                "roomID": "",
+                "room_type": room._type,
+                "room_name": "",
+                "room_number": "",
+                "room_zone": "",
+                "room_area": ( room.area * area_unit.c ).toFixed( area_accuracy_measurements ),
+                "area_coords": room.area_coords,
+                "walls": [],
+                "elements": room.getElements()
+              };
+
+              
             //стены комнаты
             var j = room.surfaces.length;
             while (j--) {
@@ -2977,7 +2979,11 @@ function initWallEditor( obj ){
                 P_wall: item.getPerimeter(),
                 S_wall: item.getArea(),
                 S_wall_without_openings: item.getAreaWithoutOpenings(),
-                openings: openings
+                openings: {
+                  doors: item.doors_params,
+                  windows: item.windows_params,
+                  niches: item.niches_params
+                }
 
               });
 
@@ -7339,12 +7345,12 @@ function Doorway( wall, parameters ){
   this.raycaster = new THREE.Raycaster();
   this.top_offset = 2; //отступ от верха стены
 
-
   this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 900;
   this.height = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
   this.thickness = parameters.hasOwnProperty("thickness") ? parameters["thickness"] : this.wall.width;
   this.elevation = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 0;
   this.offset = parameters.hasOwnProperty("offset") ? parameters["offset"] : this.wall.axisLength / 2;
+  this.depObject_thickness = 0;
 
 
   this.dimensions = []; //массив хранения объектов размеров проемов
@@ -7880,6 +7886,10 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     });
   },
 
+  getSlope: function(){
+    return Math.abs( this.thickness - this.depObject_thickness );
+  },
+
   getPerimeter4: function(){
     return  2 * this.width + 2 * this.height;
   },
@@ -7888,6 +7898,9 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   },
   getArea: function(){
     return  this.width * this.height;
+  },
+  getSlopeArea: function(){
+    return this.getPerimeter3() * this.getSlope();
   },
   getVolume: function(){
 
@@ -8306,9 +8319,7 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     scene.remove( this.depObject );
   },
 
-  getSlope: function(){
-    return Math.abs( this.thickness - this.depObject_thickness );
-  },
+
 
 
   setLocation: function(location){
