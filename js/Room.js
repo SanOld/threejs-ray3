@@ -26,6 +26,9 @@ function Room( parameters ){
   this.floor = null;
   this.counturLine =  new THREE.Object3D(0,1,0);
 
+  this.numberAnglesEquals90 = 0;
+  this.numberAnglesNotEquals90 = 0;
+
   this.init();
 
 }
@@ -80,10 +83,11 @@ Room.prototype = Object.assign( {}, {
 
     this.surfaces = this.getSurfaces( this.chain );
     this.combineColinearSurfaces( this.surfaces );
-
     this.hideSurfaces();
 
-    this.doorways = this.getDoorways ( this.chain );
+//    this.doorways = this.getDoorways ( this.chain );
+
+    this.defineAngles(); // определение количества прямых непрямых углов
 
   },
 
@@ -788,6 +792,29 @@ Room.prototype = Object.assign( {}, {
   unSelectAllWalls: function(){
 
 
+  },
+
+  defineAngles: function(){
+
+
+    for (var i = 1; i < max; i++) {
+      var prev_item = this.surfaces[ i - 1 ];
+      var next_item = this.surfaces[ i ];
+      var prev_vector = prev_item.source.clone().sub( prev_item.target.clone() );
+      var next_vector = next_item.source.clone().sub( next_item.target.clone() );
+
+      if( Math.abs( prev_vector.dot( next_vector ) ) < 0.001 ){
+
+        this.numberAnglesEquals90 += 1;
+
+      } else {
+
+        this.numberAnglesNotEquals90 += 1;
+
+      }
+
+    }
+    
   }
 
 

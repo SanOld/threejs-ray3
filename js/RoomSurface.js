@@ -18,9 +18,9 @@ function RoomSurface( room, walls, vertieces, movePoint, exception ){
   this.doors = [];
   this.windows = [];
   this.niches = [];
-  this.doors_params = [];
-  this.windows_params = [];
-  this.niches_params = [];
+  this.doorsParams = [];
+  this.windowsParams = [];
+  this.nichesParams = [];
 
   this.mainColor =  $Editor.default_params.RoomSurface.main_color;
   this.hoverColor =  $Editor.default_params.Room.hover_color;
@@ -140,7 +140,7 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
           case 'DoubleDoorBlockFloor':
 
             this.doors.push( door );
-            this.doors_params.push({
+            this.doorsParams.push({
 
               P_otkos_door: door.getPerimeter3(), //Периметр откосов дверей
               S_otkos_door: door.getSlope3Area(), //Площадь откосов (периметр двери * глубину)
@@ -152,7 +152,7 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
           case 'WindowBlock':
 
             this.windows.push( door );
-            this.windows_params.push({
+            this.windowsParams.push({
 
               P_otkos_window : door.getPerimeter3(), //Периметр откосов дверей
               S_otkos_window: door.getSlope3Area(), //Площадь откосов (периметр двери * глубину)
@@ -164,7 +164,7 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
           case 'Niche':
             //TODO Belonging
             this.niches.push( door );
-            this.niches_params.push({
+            this.nichesParams.push({
 
               P_niche: door.getPerimeter4(), //Периметр
               S_niche_wall: door.getArea(), //Периметр
