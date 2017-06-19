@@ -108,23 +108,42 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
     return this.source.distanceTo( this.target );
 
   },
-  geHeight: function(){
+  getHeight: function(){
 
     return this.walls[0].height;
 
   },
   getPerimeter: function(){
 
-    return 2 * this.getLength()  + 2 * this.geHeight();
+    return 2 * this.getLength()  + 2 * this.getHeight();
 
   },
   getArea: function(){
 
-    return this.getLength() * this.geHeight();
+    return this.getLength() * this.getHeight();
 
+  },
+  getAreaWithoutOpenings: function(){
+
+    var self = this;
+    var result = 0;
+    var openingArea = 0;
+
+    this.walls.forEach(function ( item, index, arr ) {
+
+      if( ! self.exception)
+      openingArea += item.getOpeningsArea();
+
+    });
+
+    result = self.getArea() - openingArea;
+
+    return result;
   },
 
   defineDoorways: function( chain ){
+
+    var self = this;
 
     var doorways = [];
 
@@ -134,42 +153,44 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
         switch (door.type) {
           case 'Doorway':
-          case 'Doorblock':
-          case 'DoorblockFloor':
+          case 'DoorBlock':
+          case 'DoorBlockFloor':
           case 'DoubleDoorBlock':
           case 'DoubleDoorBlockFloor':
 
-            this.doors.push( door );
-            this.doorsParams.push({
+            self.doors.push( door );
+            self.doorsParams.push({
 
-              P_otkos_door: door.getPerimeter3(), //Периметр откосов дверей
-              S_otkos_door: door.getSlope3Area(), //Площадь откосов (периметр двери * глубину)
-              door_lintel_length: door.width //Длина перемычек
+              p_otkos_door: ( door.getPerimeter3() * current_unit.c ).toFixed( accuracy_measurements ), //Периметр откосов дверей
+              s_otkos_door: ( door.getSlope3Area() * area_unit.c ).toFixed( area_accuracy_measurements ), //Площадь откосов (периметр двери * глубину)
+              door_lintel_length: ( door.width * current_unit.c ).toFixed( accuracy_measurements ),//Длина перемычек
+              p_door: ( door.getPerimeter4() * current_unit.c ).toFixed( accuracy_measurements )
 
             });
 
             break;
           case 'WindowBlock':
 
-            this.windows.push( door );
-            this.windowsParams.push({
+            self.windows.push( door );
+            self.windowsParams.push({
 
-              P_otkos_window : door.getPerimeter3(), //Периметр откосов дверей
-              S_otkos_window: door.getSlope3Area(), //Площадь откосов (периметр двери * глубину)
-              window_lintel_length: door.width //Длина перемычек
+              p_otkos_window : ( door.getPerimeter3() * current_unit.c ).toFixed( accuracy_measurements ), //Периметр откосов дверей
+              s_otkos_window: ( door.getSlope3Area() * area_unit.c ).toFixed( area_accuracy_measurements ), //Площадь откосов (периметр двери * глубину)
+              window_lintel_length: ( door.width * current_unit.c ).toFixed( accuracy_measurements ), //Длина перемычек
+              p_window: ( door.getPerimeter4() * current_unit.c ).toFixed( accuracy_measurements )
 
             });
 
             break;
           case 'Niche':
             //TODO Belonging
-            this.niches.push( door );
-            this.nichesParams.push({
+            self.niches.push( door );
+            self.nichesParams.push({
 
-              P_niche: door.getPerimeter4(), //Периметр
-              S_niche_wall: door.getArea(), //Периметр
-              depth_niche: door.thickness, //Площадь откосов (периметр двери * глубину)
-              S_side_niche: door.getPerimeter4() * door.thickness //Длина перемычек
+              p_niche: ( door.getPerimeter4() * current_unit.c ).toFixed( accuracy_measurements ), //Периметр
+              s_niche_wall: (door.getArea() * area_unit.c ).toFixed( area_accuracy_measurements ), //Периметр
+              depth_niche: ( door.thickness * current_unit.c ).toFixed( accuracy_measurements ), //Площадь откосов (периметр двери * глубину)
+              s_side_niche: ( door.getPerimeter4() * door.thickness * current_unit.c ).toFixed( accuracy_measurements ) //Длина перемычек
 
             });
 
@@ -182,22 +203,105 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
     });
   },
 
-  getAreaWithoutOpenings: function(){
+  getPerimeter3Doors: function(){
 
     var result = 0;
-    var openingArea = 0;
 
-    this.walls.forEach(function ( item, index, arr ) {
+    this.doorsParams.forEach(function (item, index, arr) {
 
-      if( ! exception)
-      openingArea += item.getOpeningsArea();
+      result += item.p_otkos_door;
 
     });
 
-    result = this.getArea - openingArea;
+    return result;
+
+  },
+  getPerimeter3Windows: function(){
+
+    var result = 0;
+
+    this.windowsParams.forEach(function (item, index, arr) {
+
+      result += item.p_otkos_window;
+
+    });
 
     return result;
+
+  },
+  getPerimeter4Doors: function(){
+
+    var result = 0;
+
+    this.doorsParams.forEach(function (item, index, arr) {
+
+      result += item.p_door;
+
+    });
+
+    return result;
+
+  },
+  getPerimeter4Windows: function(){
+
+    var result = 0;
+
+    this.windowsParams.forEach(function (item, index, arr) {
+
+      result += item.p_window;
+
+    });
+
+    return result;
+
+  },
+  getLintelLength: function(){
+
+    var result = 0;
+
+    this.doors.forEach(function (item, index, arr) {
+
+      result += item.width;
+
+    });
+
+    this.windows.forEach(function (item, index, arr) {
+
+      result += item.width;
+
+    });
+
+    return result;
+
+  },
+  getAreaDoors: function(){
+
+    var result = 0;
+
+    this.doors.forEach(function (item, index, arr) {
+
+      result += item.getArea();
+
+    });
+
+    return result;
+
+  },
+  getAreaWindows: function(){
+
+    var result = 0;
+
+    this.windows.forEach(function (item, index, arr) {
+
+      result += item.getArea();
+
+    });
+
+    return result;
+
   }
+
+
 
 });
 

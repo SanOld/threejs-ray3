@@ -6,8 +6,8 @@ function RoomDoorway( doorway ){
 
   switch (doorway.type) {
     case 'Doorway':
-    case 'Doorblock':
-    case 'DoorblockFloor':
+    case 'DoorBlock':
+    case 'DoorBlockFloor':
     case 'DoubleDoorBlock':
     case 'DoubleDoorBlockFloor':
 

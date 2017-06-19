@@ -375,8 +375,8 @@ function Editor(obj){
           switch (door.type) {
             case 'Doorway':
             case 'Niche':
-            case 'Doorblock':
-            case 'DoorblockFloor':
+            case 'DoorBlock':
+            case 'DoorBlockFloor':
             case 'WindowBlock':
             case 'DoubleDoorBlock':
             case 'DoubleDoorBlockFloor':
@@ -2704,7 +2704,6 @@ function initWallEditor( obj ){
     });
   };
 
-
   obj.activateControlPoint = function(){
     obj.walls.forEach(function(item){
       item.controlPoint1.activate();
@@ -2833,7 +2832,7 @@ function initWallEditor( obj ){
       });
       $('.left_panel_custom').css({'bottom':'10px'});
 
-    } else if( obj.selected.type == 'DoorblockFloor' || obj.selected.type == 'DoubleDoorBlockFloor' ){
+    } else if( obj.selected.type == 'DoorBlockFloor' || obj.selected.type == 'DoubleDoorBlockFloor' ){
 
       $projection.showObjParams({
         height: {val: obj.selected.height, label: 'Высота'},
@@ -2919,7 +2918,6 @@ function initWallEditor( obj ){
 
         var rooms = obj.getRooms();
 
-        var all_walls_lengths = 0;
         var s_floors  = 0; //Площадь полов
         var s_floors_without_openings = 0; //Чистая площадь полов за вычетом отверстий
         var p_outer_contur = 0; //Внешний периметр здания
@@ -2951,48 +2949,27 @@ function initWallEditor( obj ){
 
           if( ! room.external ){
 
-            if( room._type != 'freeRoom'){
-
-              all_walls_lengths += +room.getWallslength();
-
-              s_floors  += +room.area;; //Площадь полов
-              s_floors_without_openings = 0; //Чистая площадь полов за вычетом отверстий
-              p_outer_contur = 0; //Внешний периметр здания
-              s_inner_walls  = 0; //Площадь внутренних стен
-              s_inner_walls_without_openings = 0; //Площадь внутренних стен без проемов
-              s_outer_walls = 0; //Площадь внешних стен
-              s_outer_walls_without_opnening = 0;//Площадь внешних стен с вычетом проемов
-              p_otkos = 0; //Периметр наружных дверных откосов и окон
-              outer_lintel_length = 0;//Длина перемычек на наружных стенах верхней линии над входными дверьми и окнами
-              num_out_doors = 0; //Количество дверей входных
-              num_doors = 0; //Количество межкомнатных дверей
-              num_windows = 0;//Количество окон
-              outer_angle90_length  = 0; //Длина прямых углов внешних стен (длина углов здания которые равны 90 )
-              outer_angle_N90_length  = 0; //Длина непрямых углов внешних стен
-              p_outer_openings = 0; //Периметр наружных проёмов(окна+двери)
-              s_outer_openings  = 0; //Площадь наружных проёмов (окна+двери)
-              p_otkos_door  = 0; //Периметр наружных дверных откосов
-
-            }
 
             export_data.floors[0].rooms[ room_index ] =
-              {
-                "id": room.uuid,
-                "furniture": [],
-                "closedRoom": room.closedRoom,
-                "roomID": "",
-                "room_type": room._type,
-                "room_name": "",
-                "room_number": "",
-                "room_zone": "",
-                "room_area": ( room.area * area_unit.c ).toFixed( area_accuracy_measurements ),
-                "s_room_without_openings": ( room.getAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ),,
-                "p_room": ( room.getFloorPerimeter() * current_unit.c ).toFixed( accuracy_measurements ),
-                "n_outer_angle90_room": room.numberAnglesEquals90,
-                "n_outer_angle_N90_room": room.numberAnglesNotEquals90,
-                "walls": [],
-                "elements": room.getElements()
-              };
+            {
+              "id": room.uuid,
+              "furniture": [],
+              "closedRoom": room.closedRoom,
+              "roomID": "",
+              "room_type": room._type,
+              "room_name": "",
+              "room_number": "",
+              "room_zone": "",
+              "room_area": ( room.area * area_unit.c ).toFixed( area_accuracy_measurements ),
+              "s_room_without_openings": ( room.getAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ),
+              "p_room": ( room.getFloorPerimeter() * current_unit.c ).toFixed( accuracy_measurements ),
+              "n_outer_angle90_room": room.numberAnglesEquals90,
+              "n_outer_angle_N90_room": room.numberAnglesNotEquals90,
+              "walls": [],
+              "elements": room.getElements()
+            };
+
+
 
 
             //стены комнаты
@@ -3004,11 +2981,11 @@ function initWallEditor( obj ){
 
               arrSurfaces.push({
 
-                wall_length: item.getLength(),
-                h_wall: item.geHeight(),
-                P_wall: item.getPerimeter(),
-                S_wall: item.getArea(),
-                S_wall_without_openings: item.getAreaWithoutOpenings(),
+                wall_length: ( item.getLength() * current_unit.c ).toFixed( accuracy_measurements ),
+                h_wall: ( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements ),
+                p_wall: ( item.getPerimeter() * current_unit.c ).toFixed( accuracy_measurements ),
+                s_wall: (item.getArea() * area_unit.c ).toFixed( area_accuracy_measurements ),
+                s_wall_without_openings: ( item.getAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ),
                 openings: {
                   doors: item.doorsParams,
                   windows: item.windowsParams,
@@ -3020,21 +2997,55 @@ function initWallEditor( obj ){
             }
 
 
+            if( room._type != 'freeRoom'){
+
+                s_floors  = +( room.area * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь полов
+                s_floors_without_openings += +( room.getAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ); //Чистая площадь полов за вычетом отверстий
+                s_inner_walls  += +(( room.getSurfacesArea() * area_unit.c ).toFixed( area_accuracy_measurements )); //Площадь внутренних стен
+                s_inner_walls_without_openings += +( room.getSurfacesAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь внутренних стен без проемов
+
+              }
+
+
           } else { //если не внешняя комната
 
-            P_outer_contur += room.getFloorPerimeter();
+            p_outer_contur += +( room.getFloorPerimeter() * current_unit.c ).toFixed( accuracy_measurements );//Внешний периметр здания
+            s_outer_walls += +( room.getSurfacesArea() * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь внешних стен
+            s_outer_walls_without_opnening += +( room.getSurfacesAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements );//Площадь внешних стен с вычетом проемов
+            p_otkos += +( ( room.getPerimeter3Doors() + room.getPerimeter3Windows() ) * current_unit.c ).toFixed( accuracy_measurements ); //Периметр наружных дверных откосов и окон
+            outer_lintel_length += +( room.getLintelLength() * current_unit.c ).toFixed( accuracy_measurements );//Длина перемычек на наружных стенах верхней линии над входными дверьми и окнами
+
+
+            p_outer_openings += +( ( room.getPerimeter4Doors() + room.getPerimeter4Windows() ) * current_unit.c ).toFixed( accuracy_measurements );; //Периметр наружных проёмов(окна+двери)
+            s_outer_openings  += +( room.getAreaDoors() * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь наружных проёмов (окна+двери)
+            p_otkos_door  += +( room.getPerimeter3Doors() * current_unit.c ).toFixed( accuracy_measurements ); //Периметр наружных дверных откосов
+
+            outer_angle90_length  += +( room.lengthAnglesEquals90 * current_unit.c ).toFixed( accuracy_measurements ); //Длина прямых углов внешних стен (длина углов здания которые равны 90 )
+            outer_angle_N90_length  += +( room.lengthAnglesEquals90 * current_unit.c ).toFixed( accuracy_measurements ); //Длина непрямых углов внешних стен
 
           }
 
         });
 
-        export_data.floors[0].total_area = ( total_area * area_unit.c ).toFixed( area_accuracy_measurements );
-        export_data.floors[0].all_walls_lengths = all_walls_lengths.toFixed( accuracy_measurements );
+        export_data.floors[0].s_floors = s_floors;
+        export_data.floors[0].s_floors_without_openings = s_floors_without_openings;
+        export_data.floors[0].s_inner_walls = s_inner_walls;
+        export_data.floors[0].s_inner_walls_without_openings = s_inner_walls_without_openings;
 
-        export_data.floors[0].total_inner_wall_area_without_openings = (total_inner_wall_area_without_openings * area_unit.c ).toFixed( area_accuracy_measurements );;
-        export_data.floors[0].total_outer_wall_area_without_openings = (total_outer_wall_area_without_openings * area_unit.c ).toFixed( area_accuracy_measurements );;
-        export_data.floors[0].total_walls_volume_without_openings = (total_walls_volume_without_openings * volume_unit.c ).toFixed( volume_accuracy_measurements );;
-        export_data.floors[0].total_floor_area_without_openings = (total_floor_area_without_openings * area_unit.c ).toFixed( area_accuracy_measurements );;
+        export_data.floors[0].p_outer_contur = p_outer_contur;
+        export_data.floors[0].s_outer_walls = s_outer_walls;
+        export_data.floors[0].s_outer_walls_without_opnening = s_outer_walls_without_opnening;
+        export_data.floors[0].p_otkos = p_otkos;
+        export_data.floors[0].outer_lintel_length = outer_lintel_length;
+        export_data.floors[0].p_outer_openings = p_outer_openings;
+        export_data.floors[0].s_outer_openings = s_outer_openings;
+        export_data.floors[0].p_otkos_door = p_otkos_door;
+        export_data.floors[0].outer_angle90_length = outer_angle90_length;
+        export_data.floors[0].outer_angle_N90_length = outer_angle_N90_length;
+
+        export_data.floors[0].num_out_doors = obj.getNumberEntryDoors();//Количество дверей входных
+        export_data.floors[0].num_doors = obj.getNumberInterroomDoors();//Количество межкомнатных дверей
+        export_data.floors[0].num_windows = obj.getNumberWindows();//Количество окон
 
         callback( JSON.stringify(export_data) );
     });
@@ -3773,6 +3784,62 @@ function initWallEditor( obj ){
 
   };
 
+  obj.getNumberEntryDoors = function(){
+
+    var result = 0;
+    obj.walls.forEach(function ( wall, index, arr ) {
+
+      wall.doors.forEach(function (door, index, arr) {
+
+        if( door.isEntryDoor ){
+          result += 1;
+        }
+
+      });
+
+    });
+
+    return result;
+  };
+  obj.getNumberInterroomDoors = function(){
+
+    var result = 0;
+    obj.walls.forEach(function ( wall, index, arr ) {
+
+      wall.doors.forEach(function (door, index, arr) {
+
+        if( door.type == 'DoorBlock' ||
+            door.type == 'DoorBlockFloor' ||
+            door.type == 'DoubleDoorBlock' ||
+            door.type == 'DoubleDoorBlockFloor' )
+        if( ! door.isEntryDoor ){
+          result += 1;
+        }
+
+      });
+
+    });
+
+    return result;
+  };
+  obj.getNumberWindows = function(){
+
+    var result = 0;
+    obj.walls.forEach(function ( wall, index, arr ) {
+
+      wall.doors.forEach(function (door, index, arr) {
+
+        if( door.type == 'WindowBlock'){
+          result += 1;
+        }
+
+      });
+
+    });
+
+    return result;
+  };
+
   obj.getMainDoorwayParams = function( doorway ){
 
     var element = doorway;
@@ -3917,7 +3984,7 @@ function initWallEditor( obj ){
     obj.lastDoorway.doorway = obj.selected.uuid;
 
 	});
-  $('.ActiveElementMenu').on('click', '[action = addDoorblockFloor]', function(){
+  $('.ActiveElementMenu').on('click', '[action = addDoorBlockFloor]', function(){
 		obj.selected.addDoorway( $(this).data('type') );
 
     obj.lastDoorway.type = $(this).data('type');
@@ -5545,14 +5612,14 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       if( type == 'Doorway' ){
         var obj = new Doorway(this, parameters);
-      } else if( type == 'Doorblock' ){
-        var obj = new Doorblock(this, parameters);
+      } else if( type == 'DoorBlock' ){
+        var obj = new DoorBlock(this, parameters);
       } else if( type == 'DoubleDoorBlock' ){
         parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1800;
         parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
         var obj = new DoubleDoorBlock(this, parameters);
-      } else if( type == 'DoorblockFloor' ){
-        var obj = new DoorblockFloor(this, parameters);
+      } else if( type == 'DoorBlockFloor' ){
+        var obj = new DoorBlockFloor(this, parameters);
       } else if( type == 'DoubleDoorBlockFloor' ){
         parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1800;
         parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
@@ -5565,7 +5632,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       } else if( type == 'Niche' ){
         var obj = new Niche(this, parameters);
       } else if( type == 'Arch' ){
-  //      var obj = new Doorblock(this);
+  //      var obj = new DoorBlock(this);
       }
 
       this._checkDoorwayOffset( obj );
@@ -7929,8 +7996,11 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   getArea: function(){
     return  this.width * this.height;
   },
-  getSlopeArea: function(){
+  getSlope3Area: function(){
     return this.getPerimeter3() * this.getSlope();
+  },
+  getSlope4Area: function(){
+    return this.getPerimeter4() * this.getSlope();
   },
   getVolume: function(){
 
@@ -8052,14 +8122,14 @@ Niche.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
 });
 //Дверной блок входной
-function Doorblock( wall, parameters ){
+function DoorBlock( wall, parameters ){
 
   Doorway.apply( this, [wall, parameters] );
 
   var parameters = parameters || {};
   var self = this;
 
-  this.type = 'Doorblock';
+  this.type = 'DoorBlock';
   this.name = 'singleDoor';
 
   this.json_type = 'floorDoor';
@@ -8090,34 +8160,34 @@ function Doorblock( wall, parameters ){
   this.loadObject();
 
 }
-Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
+DoorBlock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
-  constructor: Doorblock,
+  constructor: DoorBlock,
 
-    set: function( prop, val ){
+  set: function( prop, val ){
 
-      switch (prop) {
-        case 'isEntryDoor':
-          this[ prop ] = val;
+    switch (prop) {
+      case 'isEntryDoor':
+        this[ prop ] = val;
 
-          if(val){
+        if(val){
 
-            this.json_type = 'entry_door';
-            this.json_systype = 'entry_door';
+          this.json_type = 'entry_door';
+          this.json_systype = 'entry_door';
 
-          } else {
+        } else {
 
-            this.json_type = 'floorDoor';
-            this.json_systype = 'floorDoor';
+          this.json_type = 'floorDoor';
+          this.json_systype = 'floorDoor';
 
-          }
+        }
 
-          break;
+        break;
 
-        default:
-          this[ prop ] = val;
-          break;
-      }
+      default:
+        this[ prop ] = val;
+        break;
+    }
 
   },
 
@@ -8349,9 +8419,6 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     scene.remove( this.depObject );
   },
 
-
-
-
   setLocation: function(location){
 
     this.setDepObjectLocation(location);
@@ -8477,14 +8544,14 @@ Doorblock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
 });
 //Дверной блок межкомнатный
-function DoorblockFloor( wall, parameters ){
+function DoorBlockFloor( wall, parameters ){
 
-  Doorblock.apply( this, [wall, parameters] );
+  DoorBlock.apply( this, [wall, parameters] );
 
   var parameters = parameters || {};
   var self = this;
 
-  this.type = 'DoorblockFloor';
+  this.type = 'DoorBlockFloor';
   this.name = 'singleDoor';
 
   this.json_type = 'floorDoor';
@@ -8495,13 +8562,13 @@ function DoorblockFloor( wall, parameters ){
   this.rkmMenu = '.DoorwayMenu';
 
 }
-DoorblockFloor.prototype = Object.assign( Object.create( Doorblock.prototype ),{
-  constructor: DoorblockFloor
+DoorBlockFloor.prototype = Object.assign( Object.create( DoorBlock.prototype ),{
+  constructor: DoorBlockFloor
 });
 //Окно
 function WindowBlock( wall, parameters ){
 
-  Doorblock.apply( this, [wall, parameters] );
+  DoorBlock.apply( this, [wall, parameters] );
 
   var parameters = parameters || {};
   var self = this;
@@ -8519,7 +8586,7 @@ function WindowBlock( wall, parameters ){
   this.slope = parameters.hasOwnProperty("slope") ? parameters["slope"] : this.getSlope();
 
 }
-WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
+WindowBlock.prototype = Object.assign( Object.create( DoorBlock.prototype ),{
 
   constructor: WindowBlock,
 
@@ -8706,7 +8773,7 @@ WindowBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
 //Двойная дверь входная
 function DoubleDoorBlock( wall, parameters ){
 
-  Doorblock.apply( this, [wall, parameters] );
+  DoorBlock.apply( this, [wall, parameters] );
 
   var parameters = parameters || {};
   var self = this;
@@ -8724,7 +8791,7 @@ function DoubleDoorBlock( wall, parameters ){
   this.slope = parameters.hasOwnProperty("slope") ? parameters["slope"] : this.getSlope();
 
 }
-DoubleDoorBlock.prototype = Object.assign( Object.create( Doorblock.prototype ),{
+DoubleDoorBlock.prototype = Object.assign( Object.create( DoorBlock.prototype ),{
 
   constructor: DoubleDoorBlock,
 

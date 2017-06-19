@@ -28,6 +28,8 @@ function Room( parameters ){
 
   this.numberAnglesEquals90 = 0;
   this.numberAnglesNotEquals90 = 0;
+  this.lengthAnglesEquals90 = 0;
+  this.lengthAnglesNotEquals90 = 0;
 
   this.init();
 
@@ -48,6 +50,8 @@ Room.prototype = Object.assign( {}, {
       this.area = this.getArea( this.countur );
       this.area_coords_3D = this.getAreaCoords( this.countur );
       this.area_coords = { x: this.area_coords_3D.x, y: this.area_coords_3D.z };
+
+      this.selectedAllSurfaces = false;
 
 
       //отрисовка контура комнаты
@@ -300,11 +304,14 @@ Room.prototype = Object.assign( {}, {
 
     var perimeter = 0;
 
-    for (var i = 1; i < this.countur.length-1; i++) {
+    for (var i = 1; i < this.countur.length; i++) {
 
       perimeter += this.countur[i-1].distanceTo( this.countur[i] );
 
     }
+    //от последнего к первому
+    perimeter += this.countur[i-1].distanceTo( this.countur[0] );
+
 
     return perimeter;
   },
@@ -326,7 +333,15 @@ Room.prototype = Object.assign( {}, {
     scene.add( this.selectAllWallsTool );
 
     this.selectAllWallsTool.select = function(){
-      self.selectAllWalls();
+
+      if( this.selectedAllSurfaces ){
+        self.unSelectAllWalls();
+      } else {
+        self.selectAllWalls();
+      }
+
+      this.selectedAllSurfaces = !this.selectedAllSurfaces;
+
     };
     this.selectAllWallsTool.unselect = function(){
       self.unSelectAllWalls();
@@ -410,6 +425,30 @@ Room.prototype = Object.assign( {}, {
       item.visible = false;
     });
 
+  },
+  getSurfacesArea: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function(item){
+
+      result += item.getArea();
+
+    });
+
+    return result;
+  },
+  getSurfacesAreaWithoutOpenings: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function(item){
+
+      result += item.getAreaWithoutOpenings();
+
+    });
+
+    return result;
   },
 
   getDoorways: function( chain ){
@@ -784,6 +823,7 @@ Room.prototype = Object.assign( {}, {
       var event = {
         object: item
       };
+      if( ! item.actived )
       $selectMode.select( event );
 
     });
@@ -791,13 +831,22 @@ Room.prototype = Object.assign( {}, {
   },
   unSelectAllWalls: function(){
 
+    this.surfaces.forEach(function(item, index, arr){
+      var event = {
+        object: item
+      };
+
+      if( item.actived )
+      $selectMode.select( event );
+
+    });
 
   },
 
   defineAngles: function(){
 
 
-    for (var i = 1; i < max; i++) {
+    for (var i = 1; i < this.surfaces.length - 1; i++) {
       var prev_item = this.surfaces[ i - 1 ];
       var next_item = this.surfaces[ i ];
       var prev_vector = prev_item.source.clone().sub( prev_item.target.clone() );
@@ -806,15 +855,110 @@ Room.prototype = Object.assign( {}, {
       if( Math.abs( prev_vector.dot( next_vector ) ) < 0.001 ){
 
         this.numberAnglesEquals90 += 1;
+        this.lengthAnglesEquals90 += prev_item.walls[0].height < next_item.walls[0].height ? prev_item.walls[0].height : next_item.walls[0].height;
 
       } else {
 
         this.numberAnglesNotEquals90 += 1;
+        this.lengthAnglesNotEquals90 += prev_item.walls[0].height < next_item.walls[0].height ? prev_item.walls[0].height : next_item.walls[0].height;
 
       }
 
     }
-    
+
+  },
+
+
+  getPerimeter3Doors: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getPerimeter3Doors();
+
+    });
+
+    return result;
+
+  },
+  getPerimeter3Windows: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getPerimeter3Windows();
+
+    });
+
+    return result;
+
+  },
+  getPerimeter4Doors: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getPerimeter4Doors();
+
+    });
+
+    return result;
+
+  },
+  getPerimeter4Windows: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getPerimeter4Windows();
+
+    });
+
+    return result;
+
+  },
+  getLintelLength: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getLintelLength();
+
+    });
+
+    return result;
+
+  },
+  getAreaDoors: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getAreaDoors();
+
+    });
+
+    return result;
+
+  },
+  getAreaWindows: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getAreaWindows();
+
+    });
+
+    return result;
+
   }
 
 

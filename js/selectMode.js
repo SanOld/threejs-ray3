@@ -199,6 +199,8 @@ function initSelectMode( obj ){
 
 //    if( obj.selected && ('unselect' in obj.selected) )
 //    obj.selected.unselect(event);
+
+
     obj.selected = null;
 
   };
@@ -293,7 +295,7 @@ function initSelectMode( obj ){
       } else if( item.type == 'WindowBlock'){
 
 
-      } else if( item.type == 'DoorblockFloor' || item.type == 'DoubleDoorBlockFloor' ){
+      } else if( item.type == 'DoorBlockFloor' || item.type == 'DoubleDoorBlockFloor' ){
 
 
       } else if( item.type == 'Doorway' || item.type == 'Niche' ){
