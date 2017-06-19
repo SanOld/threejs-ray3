@@ -1784,7 +1784,7 @@ function initWallCreator(obj){
 
   function pointerHelperAdd(){
 
-    var geometry = new THREE.SphereBufferGeometry( 50, 32, 32 );
+    var geometry = new THREE.SphereBufferGeometry( 150, 32, 32 );
     obj.pointerHelper = new THREE.Mesh( geometry, pointHelper_material );
     scene.add( obj.pointerHelper );
 
@@ -7188,7 +7188,7 @@ function WallControlPoint( wall, point ){
   this.referencePoint = point;
 
   this.radius = 45;
-  this.geometry = new THREE.SphereBufferGeometry( this.radius , 32, 32 );
+  this.rebuildGeometry();
   this.material = wallControlPointMaterial;
 
   //позиционирование
@@ -7231,18 +7231,22 @@ function WallControlPoint( wall, point ){
   this.hoveron =    function ( event ) {
 
     self.material = wallControlPointMaterial_hover;
-    this.radius = 50;
+    self.radius = 100;
+    self.rebuildGeometry();
 
     if( self.wall.mover ){
+
       self.wall.mover.hoveroff();
       self.wall.mover.deactivate();
+
     }
 
   };
   this.hoveroff =   function ( event ) {
 
     self.material = wallControlPointMaterial;
-    this.radius = 30;
+    self.radius = 45;
+    self.rebuildGeometry();
 
     if(self.wall.mover)
     self.wall.mover.activate();
@@ -7264,6 +7268,9 @@ function WallControlPoint( wall, point ){
 WallControlPoint.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   constructor: WallControlPoint,
 
+  rebuildGeometry: function(){
+    this.geometry = new THREE.SphereBufferGeometry( this.radius , 32, 32 );
+  },
   setStartPosition: function(){
 
     this.rotation.x = this.wall.rotation.x;
