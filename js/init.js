@@ -32,15 +32,15 @@ $(document).ready(function() {
   include("data/arc_wall_data.js?"+HASH);
 
   include("js/ray_module.js?"+HASH);
-  include("js/script.js?"+HASH);
-
-
+  
   include("js/Room.js?"+HASH);
   include("js/RoomObject.js?"+HASH);
   include("js/RoomFloor.js?"+HASH);
   include("js/RoomSurface.js?"+HASH);
   include("js/RoomDoorway.js?"+HASH);
   include("js/selectMode.js?"+HASH);
+
+  include("js/script.js?"+HASH);
 
 
 });

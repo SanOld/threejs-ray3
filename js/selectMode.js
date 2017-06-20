@@ -203,6 +203,7 @@ function initSelectMode( obj ){
 
     obj.doorways.forEach(function ( item, index, arr ) {
 
+      if(item.type == 'Room_Doorway')
       obj.select( { object: item } );
 
     });
@@ -210,14 +211,55 @@ function initSelectMode( obj ){
   };
   obj.selectAllWindows = function(){
 
+    obj.doorways.forEach(function ( item, index, arr ) {
+
+      if(item.type == 'Room_WindowBlock')
+      obj.select( { object: item } );
+
+    });
+
   };
   obj.selectAllFloors = function(){
+
+    obj.rooms.forEach(function ( item, index, arr ) {
+
+      item.floor.select( { object: item } );
+
+    });
 
   };
   obj.selectAllOuterSurfaces = function(){
 
+    obj.rooms.forEach(function ( item, index, arr ) {
+
+      if( item.external ){
+
+        item.surfaces.forEach(function ( surface, index, arr ) {
+
+          surface.select( { object: surface } );
+
+        });
+
+      }
+
+    });
+
   };
   obj.selectAllInnerSurfaces = function(){
+
+    obj.rooms.forEach(function ( item, index, arr ) {
+
+      if( ! item.external ){
+
+        item.surfaces.forEach(function ( surface, index, arr ) {
+
+          surface.select( { object: surface } );
+
+        });
+
+      }
+
+    });
 
   };
 
@@ -411,8 +453,8 @@ function initSelectMode( obj ){
 
     if (!obj.enabled)
       return false;
-     event.preventDefault();
-    event.stopPropagation();
+//     event.preventDefault();
+//    event.stopPropagation();
 
     switch( event.keyCode ) {
       case 46: /*del*/

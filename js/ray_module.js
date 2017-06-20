@@ -601,6 +601,13 @@ function Editor(obj){
         }
       }
       break;
+    case 51: /*3*/
+      if(event.altKey){
+        if( $selectMode.enabled ){
+          $selectMode.selectAllDoors();
+        }
+      }
+      break;
 
   }
 }
@@ -1142,7 +1149,7 @@ function initProjection(obj){
           obj.toggleModeIn2D('edition');
 
         }
-        
+
         break;
       case 67: /*c*/
         if( event.altKey ){
