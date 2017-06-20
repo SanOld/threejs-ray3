@@ -2906,18 +2906,29 @@ function initWallEditor( obj ){
 
   };
 
-  obj.getJSON = function( callback ){
+  obj.getJSON = function( callback, selectMode ){
 
+    var selectMode = selectMode || false;
+    var toDelete = []; //фиксация индексов и удаление внешних комнат
     var export_data;
 
-    $.getJSON("data/export_example.json", function( data ) {
+    $.getJSON("data/architectural.json", function( data ) {
 
         export_data = data;
-        export_data.drawing = $Editor.prepareDataToSave();
-        window.localStorage.setItem( 'cad5',  export_data.drawing  );
 
-        var rooms = obj.getRooms();
+        if( ! selectMode ){
 
+          export_data.drawing = $Editor.prepareDataToSave();
+          window.localStorage.setItem( 'cad5',  export_data.drawing  );
+          var rooms = obj.getRooms();
+          obj.defineFreeRoom( rooms );
+
+        } else {
+
+          var rooms = selectMode.rooms;
+        }
+
+        //totals sum parameters
         var s_floors  = 0; //Площадь полов
         var s_floors_without_openings = 0; //Чистая площадь полов за вычетом отверстий
         var p_outer_contur = 0; //Внешний периметр здания
@@ -2932,24 +2943,51 @@ function initWallEditor( obj ){
         var outer_angle_N90_length  = 0; //Длина непрямых углов внешних стен
         var p_outer_openings = 0; //Периметр наружных проёмов(окна+двери)
         var s_outer_openings  = 0; //Площадь наружных проёмов (окна+двери)
-        var p_otkos_door  = 0; //Периметр наружных дверных откосов
+        var p_outer_otkos_door  = 0; //Периметр наружных дверных откосов
 
         var num_out_doors = 0; //Количество дверей входных
         var num_doors = 0; //Количество межкомнатных дверей
         var num_windows = 0;//Количество окон
+
+        //selected sum parameters
+        var s_room_without_openings = 0;
+        var p_room = 0;
+        var n_outer_angle90_room = 0;
+        var n_outer_angle_N90_room = 0;
+
+        var wall_length = 0;
+        var h_wall = 0;
+        var p_wall = 0;
+        var s_wall_without_openings = 0;
+
+        var p_otkos_door = 0;
+        var s_otkos_door = 0;
+        var door_lintel_length = 0;
+
+        var p_otkos_window = 0;
+        var s_otkos_window = 0;
+        var window_lintel_length = 0;
+
+        var p_nichee = 0;
+        var s_niche_wall = 0;
+        var window_lintel_length = 0;
+
 
 
 //        obj.defineExternalWall( rooms );
 //        obj.setRoomWallNumbers( rooms );
 //        obj.resetOuterWallNumber();
 //        obj.setOuterWallNumbers( rooms );
-        obj.defineFreeRoom( rooms );
+
 
         rooms.forEach(function( room, room_index ){
 
           window.console.log('room: ' + room.area );
 
           if( ! room.external ){
+
+
+
 
             export_data.floors[0].rooms[ room_index ] =
             {
@@ -2969,6 +3007,14 @@ function initWallEditor( obj ){
               "walls": [],
               "elements": room.getElements()
             };
+
+            if( room.floor.actived ){
+              s_room_without_openings += +export_data.floors[0].rooms[ room_index ].s_room_without_openings;
+              p_room += +export_data.floors[0].rooms[ room_index ].p_room;
+              n_outer_angle90_room += +export_data.floors[0].rooms[ room_index ].n_outer_angle90_room;
+              n_outer_angle_N90_room += +export_data.floors[0].rooms[ room_index ].n_outer_angle_N90_room;
+            }
+
 
 
             //стены комнаты
@@ -2992,6 +3038,14 @@ function initWallEditor( obj ){
                 }
 
               });
+
+
+              if( item.actived ){
+                wall_length += +arrSurfaces[arrSurfaces.length - 1].wall_length;
+                h_wall += +arrSurfaces[arrSurfaces.length - 1].h_wall;
+                p_wall += +arrSurfaces[arrSurfaces.length - 1].p_wall;
+                s_wall_without_openings += +arrSurfaces[arrSurfaces.length - 1].s_wall_without_openings;
+              }
 
             }
 
@@ -3017,14 +3071,23 @@ function initWallEditor( obj ){
 
             p_outer_openings += +( ( room.getPerimeter4Doors() + room.getPerimeter4Windows() ) * current_unit.c ).toFixed( accuracy_measurements );; //Периметр наружных проёмов(окна+двери)
             s_outer_openings  += +( room.getAreaDoors() * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь наружных проёмов (окна+двери)
-            p_otkos_door  += +( room.getPerimeter3Doors() * current_unit.c ).toFixed( accuracy_measurements ); //Периметр наружных дверных откосов
+            p_outer_otkos_door  += +( room.getPerimeter3Doors() * current_unit.c ).toFixed( accuracy_measurements ); //Периметр наружных дверных откосов
 
             outer_angle90_length  += +( room.lengthAnglesEquals90 * current_unit.c ).toFixed( accuracy_measurements ); //Длина прямых углов внешних стен (длина углов здания которые равны 90 )
-            outer_angle_N90_length  += +( room.lengthAnglesEquals90 * current_unit.c ).toFixed( accuracy_measurements ); //Длина непрямых углов внешних стен
+            outer_angle_N90_length  += +( room.lengthAnglesNotEquals90 * current_unit.c ).toFixed( accuracy_measurements ); //Длина непрямых углов внешних стен
+
+            //фиксация индекса внешней комнаты
+            toDelete.push( room_index );
 
           }
 
         });
+
+        //удаление внешней комнаты из массива
+        toDelete.forEach(function (item, index, arr) {
+           export_data.floors[0].rooms.splice(item,1) ;
+        });
+
 
         export_data.floors[0].totals.s_floors = s_floors;
         export_data.floors[0].totals.s_floors_without_openings = s_floors_without_openings;
@@ -3046,11 +3109,32 @@ function initWallEditor( obj ){
         export_data.floors[0].totals.num_doors = obj.getNumberInterroomDoors();//Количество межкомнатных дверей
         export_data.floors[0].totals.num_windows = obj.getNumberWindows();//Количество окон
 
+        if( selectMode ){
+          export_data.floors[0].selected = {
+            rooms:{
+              s_room_without_openings: s_room_without_openings,
+              p_room: p_room,
+              n_outer_angle90_room: n_outer_angle90_room,
+              n_outer_angle_N90_room: n_outer_angle_N90_room
+            },
+            walls:{
+              wall_length: wall_length,
+              h_wall: h_wall,
+              p_wall: p_wall,
+              s_wall_without_openings: s_wall_without_openings
+            },
+            doors: selectMode.doorwayParams.doors,
+            windows: selectMode.doorwayParams.windows,
+            niches: selectMode.doorwayParams.niches
+          };
+        }
+
         callback( JSON.stringify(export_data) );
     });
 
 
   };
+
 //    window.console.timeEnd('t');
 
   obj.removeRooms = function(){

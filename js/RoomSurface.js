@@ -149,9 +149,12 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
     this.walls.forEach(function( wall, index ){
 
-      wall.doors.forEach(function( door ){
 
-        switch (door.type) {
+
+      wall.doors.forEach(function( door ){
+        //Duplicated code
+        if( door )
+        switch ( door.type ) {
           case 'Doorway':
           case 'DoorBlock':
           case 'DoorBlockFloor':
@@ -184,15 +187,19 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
             break;
           case 'Niche':
             //TODO Belonging
-            self.niches.push( door );
-            self.nichesParams.push({
+            if( $wallEditor.isPointInCountur( self.room.walls, door.getWorldPosition().multiply ( new THREE.Vector3(1,0,1) ) ) ){
 
-              p_niche: ( door.getPerimeter4() * current_unit.c ).toFixed( accuracy_measurements ), //Периметр
-              s_niche_wall: (door.getArea() * area_unit.c ).toFixed( area_accuracy_measurements ), //Периметр
-              depth_niche: ( door.thickness * current_unit.c ).toFixed( accuracy_measurements ), //Площадь откосов (периметр двери * глубину)
-              s_side_niche: ( door.getPerimeter4() * door.thickness * current_unit.c ).toFixed( accuracy_measurements ) //Длина перемычек
+              self.niches.push( door );
+              self.nichesParams.push({
 
-            });
+                p_niche: ( door.getPerimeter4() * current_unit.c ).toFixed( accuracy_measurements ), //Периметр
+                s_niche_wall: (door.getArea() * area_unit.c ).toFixed( area_accuracy_measurements ), //Периметр
+                depth_niche: ( door.thickness * current_unit.c ).toFixed( accuracy_measurements ), //Площадь откосов (периметр двери * глубину)
+                s_side_niche: ( door.getPerimeter4() * door.thickness * area_unit.c ).toFixed( area_accuracy_measurements ) //Длина перемычек
+
+              });
+
+            }
 
             break;
 

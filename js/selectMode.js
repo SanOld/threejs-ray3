@@ -158,7 +158,10 @@ function initSelectMode( obj ){
           if(response){
 
             obj.unselectAll();
+
             obj.arraySelected.push( obj.selected );
+            obj.putData();
+
             if( 'select' in event.object )
             event.object.select(event);//вызываем select на выбранном объекте
 
@@ -170,21 +173,21 @@ function initSelectMode( obj ){
     } else if( obj.arraySelected.indexOf( obj.selected ) != -1){
 
       obj.arraySelected.splice( obj.arraySelected.indexOf( obj.selected ), 1);
+      obj.putData();
+
       obj.selected.unselect();
       obj.selected = null;
 
     } else {
 
       obj.arraySelected.push( obj.selected );
+      obj.putData();
 
       if( 'select' in event.object )
       event.object.select(event);//взываем select на выбранном объекте
 
     }
 
-
-    //TODO расчет параметров
-    obj.calculateSelectedParams();
 
   };
   obj.select_contextmenu = function(event){
@@ -218,7 +221,9 @@ function initSelectMode( obj ){
   };
 
   obj.calculateRooms = function(){
+//    $wallEditor.on();
     obj.rooms = $wallEditor.getRooms();
+//    $wallEditor.off();
   };
   obj.showRoomsFloor = function(){
 
@@ -283,27 +288,57 @@ function initSelectMode( obj ){
     obj.arraySelected.length = 0;
 
   };
-  obj.calculateSelectedParams = function(){
+  obj.getDoorwaySelectedParams = function(){
+
+    var result = {
+        doors:{
+          p_otkos_door:0,
+          s_otkos_door:0,
+          door_lintel_length:0,
+          p_door:0
+        },
+        windows:{
+          p_otkos_window:0,
+          s_otkos_window:0,
+          window_lintel_length:0,
+          p_window:0
+        },
+        niches:{
+          p_niche:0,
+          s_niche_wall:0,
+          depth_niche:0,
+          s_side_niche:0
+        }
+      };
 
     obj.arraySelected.forEach( function( item ){
 
+      if( item.type == 'Room_Doorway'){
 
-      //по типу отображаем свойства
-      if( item.type == 'Wall'){
+        result.doors.p_otkos_door += +( item.doorsParams.p_otkos_door * current_unit.c ).toFixed( accuracy_measurements );
+        result.doors.s_otkos_door += +( item.doorsParams.s_otkos_door * area_unit.c ).toFixed( area_accuracy_measurements );
+        result.doors.door_lintel_length += +( item.doorsParams.door_lintel_length * current_unit.c ).toFixed( accuracy_measurements );
+        result.doors.p_door += +(item.doorsParams.p_door * current_unit.c ).toFixed( accuracy_measurements );
 
+      } else if( item.type == 'Room_WindowBlock'){
 
-      } else if( item.type == 'WindowBlock'){
+        result.windows.p_otkos_window += +( item.windowsParams.p_otkos_window * current_unit.c ).toFixed( accuracy_measurements );
+        result.windows.s_otkos_window += +( item.windowsParams.s_otkos_window * area_unit.c ).toFixed( area_accuracy_measurements );;
+        result.windows.window_lintel_length += +( item.windowsParams.window_lintel_length * current_unit.c ).toFixed( accuracy_measurements );
+        result.windows.p_window += +( item.windowsParams.p_window * current_unit.c ).toFixed( accuracy_measurements );
 
+      } else if( item.type == 'Room_Niche' ){
 
-      } else if( item.type == 'DoorBlockFloor' || item.type == 'DoubleDoorBlockFloor' ){
-
-
-      } else if( item.type == 'Doorway' || item.type == 'Niche' ){
-
+        result.niches.p_niche += +( item.nichesParams.p_niche * current_unit.c ).toFixed( accuracy_measurements );
+        result.niches.s_niche_wall += +( item.nichesParams.s_niche_wall * area_unit.c ).toFixed( area_accuracy_measurements );;
+        result.niches.depth_niche += +( item.nichesParams.depth_niche * current_unit.c ).toFixed( accuracy_measurements );
+        result.niches.s_side_niche += +( item.nichesParams.s_side_niche * area_unit.c ).toFixed( area_accuracy_measurements );;
 
       }
 
     });
+
+    return result;
   };
 
   obj.calculateDoorways = function(){
@@ -334,6 +369,19 @@ function initSelectMode( obj ){
 
     });
 
+  };
+
+
+  obj.putData = function(){
+
+    //определение параметров дверных блоков вне комнат
+    var doorwayParams = obj.getDoorwaySelectedParams();
+
+    $wallEditor.getJSON(function(result){
+      //window.console.log( result );
+      post_ok(result);
+
+    }, {rooms: obj.rooms, doorwayParams: doorwayParams} ) ;
   };
 
   function onKeyDownSelectMode ( event ){

@@ -32,8 +32,14 @@
       "paperWidth": 0,
       "paperHeight": 0,
       "scaling": 1,
-      "totals": [],
-      "selected": []
+      "totals": {},
+      "selected": {
+        "rooms":{},
+        "walls":{},
+        "doors":{},
+        "windows":{},
+        "niches":{}
+      }
     }
   ]
 }

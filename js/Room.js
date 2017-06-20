@@ -738,7 +738,7 @@ Room.prototype = Object.assign( {}, {
                         obj_thickness: doorway.depObject_thickness
                       }
                     );
-      })
+      });
 
       volume = item.getVolume();
 
@@ -847,9 +847,9 @@ Room.prototype = Object.assign( {}, {
   defineAngles: function(){
 
 
-    for (var i = 1; i < this.surfaces.length - 1; i++) {
-      var prev_item = this.surfaces[ i - 1 ];
-      var next_item = this.surfaces[ i ];
+    for (var i = 0; i < this.surfaces.length; i++) {
+      var prev_item = this.surfaces[ i ];
+      var next_item = (i + 1) == this.surfaces.length ? this.surfaces[ 0 ] : this.surfaces[ i + 1 ];
       var prev_vector = prev_item.source.clone().sub( prev_item.target.clone() );
       var next_vector = next_item.source.clone().sub( next_item.target.clone() );
 
@@ -866,6 +866,8 @@ Room.prototype = Object.assign( {}, {
       }
 
     }
+
+
 
   },
 
