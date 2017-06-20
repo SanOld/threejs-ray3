@@ -163,12 +163,27 @@ function Editor(obj){
 //    scene.add( Areas );//глобальный объект-хранилище размеров площадей комнат
 //    scene.add( AreaCounturs );//глобальный объект-хранилище размеров контуров комнат
     //режим чертежа
-    if( ! $projection.enabled){
+    switch (MODE) {
+      case 'selection':
 
-      toggleMode('2D');
-      $projection.toggleModeIn2D( 'creation' );
+        toggleMode('2D');
+        $projection.toggleModeIn2D( 'selection' );
 
+        break;
+        
+      default:
+
+        if( ! $projection.enabled){
+
+          toggleMode('2D');
+          $projection.toggleModeIn2D( 'creation' );
+
+        }
+
+        break;
     }
+
+
 
   };
   obj.off = function(){

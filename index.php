@@ -3,6 +3,17 @@
 <head>
 <?php include('hash.php'); ?>  
 <?php include('head.php'); ?>
+
+<?php
+  if( isset( $_GET['mode'] ) ){
+    $mode = $_GET['mode'];
+  } else {
+    $mode = 'creation';
+  }
+?>
+<script type="text/javascript">
+  var MODE = '<?php echo $mode; ?>';
+</script>  
 </head>
 
 <body id="bd">
