@@ -397,10 +397,11 @@ Room.prototype = Object.assign( {}, {
 
       if ( w1.isCollinear( w2 ) && w1.width == w2.width && w1.height == w2.height   ){
         var surface = new RoomSurface( this, [ w1, w2 ], [ s1.source, s2.target, s1.sourceBase, s2.targetBase ], s2.movePoint );
+//        if(surface.geometry === null){debugger;}
         surfaces.splice(i, 2, surface );
         scene.remove( s1, s2 );
         scene.add(surface);
-        this.combineColinearSurfaces(surfaces);
+        this.combineColinearSurfaces( surfaces );
         break;
       }
     }

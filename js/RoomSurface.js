@@ -64,10 +64,10 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
     } catch (e){
 
-      return null;
+      return new THREE.Geometry();
 
     }
-    return geometry;
+    return geometry || new THREE.Geometry();
   },
 
   getBasePoint: function( firstPoint, secondPoint ){
