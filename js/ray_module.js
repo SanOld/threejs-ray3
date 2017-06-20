@@ -170,7 +170,7 @@ function Editor(obj){
         $projection.toggleModeIn2D( 'selection' );
 
         break;
-        
+
       default:
 
         if( ! $projection.enabled){
@@ -1135,8 +1135,14 @@ function initProjection(obj){
 
     switch( event.keyCode ) {
       case 27: /*esc*/
-        scene.remove( obj.selected1,obj.selected2 );
-        obj.toggleModeIn2D('edition');
+
+        if( ! $selectMode.enabled ){
+
+          scene.remove( obj.selected1,obj.selected2 );
+          obj.toggleModeIn2D('edition');
+
+        }
+        
         break;
       case 67: /*c*/
         if( event.altKey ){
@@ -4569,11 +4575,10 @@ function Dimension( param1, param2, plane, parameters ){
       this.dragControls.removeEventListener( 'hoveron', this.hoveron );
       this.dragControls.removeEventListener( 'hoveroff', this.hoveroff );
 
-      document.removeEventListener( 'keydown', this.onkeydown, false );
-
       this.dragControls.deactivate();
 
     }
+    document.removeEventListener( 'keydown', this.onkeydown, false );
 
     if( this.editable ){
 

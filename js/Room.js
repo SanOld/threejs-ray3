@@ -322,14 +322,14 @@ Room.prototype = Object.assign( {}, {
 
     this.selectAllWallsTool = new noteSimple(
                                       null,
-                                      'Стены',
+                                      'Все стены',
                                       {
                                         backgroundColor: { r:255, g:255, b:255, a:0 },
-                                        borderColor:     { r:0, g:0, b:0, a:0 },
+                                        borderColor:     { r:0, g:0, b:0, a:1 },
                                         fontsize: 36
                                       }
                                       );
-    this.selectAllWallsTool.position.copy( this.area_coords_3D.clone().add( new THREE.Vector3(0,0,200)) );
+    this.selectAllWallsTool.position.copy( this.area_coords_3D.clone().add( new THREE.Vector3(0,0,400)) );
     scene.add( this.selectAllWallsTool );
 
     this.selectAllWallsTool.select = function(){

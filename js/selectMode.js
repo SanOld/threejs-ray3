@@ -46,7 +46,7 @@ function initSelectMode( obj ){
   obj.activate = function(){
 //    document.addEventListener( 'mousedown', onDocumentMouseDownWallEditor, false );
 //    document.addEventListener( 'mousemove', onDocumentMouseMoveWallEditor, false );
-    document.addEventListener( 'keydown', onKeyDownSelectMode, false );
+    document.addEventListener( 'keydown', onKeyDownSelectMode );
 
 //    document.addEventListener( 'wheel', onDocumentMouseWheel, false );
   };
@@ -160,7 +160,7 @@ function initSelectMode( obj ){
             obj.unselectAll();
 
             obj.arraySelected.push( obj.selected );
-            obj.putData();
+            obj.sendData();
 
             if( 'select' in event.object )
             event.object.select(event);//вызываем select на выбранном объекте
@@ -173,7 +173,7 @@ function initSelectMode( obj ){
     } else if( obj.arraySelected.indexOf( obj.selected ) != -1){
 
       obj.arraySelected.splice( obj.arraySelected.indexOf( obj.selected ), 1);
-      obj.putData();
+      obj.sendData();
 
       obj.selected.unselect();
       obj.selected = null;
@@ -181,7 +181,7 @@ function initSelectMode( obj ){
     } else {
 
       obj.arraySelected.push( obj.selected );
-      obj.putData();
+      obj.sendData();
 
       if( 'select' in event.object )
       event.object.select(event);//взываем select на выбранном объекте
@@ -198,6 +198,29 @@ function initSelectMode( obj ){
     }
 
   };
+
+  obj.selectAllDoors = function(){
+
+    obj.doorways.forEach(function ( item, index, arr ) {
+
+      obj.select( { object: item } );
+
+    });
+
+  };
+  obj.selectAllWindows = function(){
+
+  };
+  obj.selectAllFloors = function(){
+
+  };
+  obj.selectAllOuterSurfaces = function(){
+
+  };
+  obj.selectAllInnerSurfaces = function(){
+
+  };
+
   obj.unselect = function( event ){
 
 //    if( obj.selected && ('unselect' in obj.selected) )
@@ -372,7 +395,7 @@ function initSelectMode( obj ){
   };
 
 
-  obj.putData = function(){
+  obj.sendData = function(){
 
     //определение параметров дверных блоков вне комнат
     var doorwayParams = obj.getDoorwaySelectedParams();
@@ -388,12 +411,13 @@ function initSelectMode( obj ){
 
     if (!obj.enabled)
       return false;
-//    event.preventDefault();
+     event.preventDefault();
+    event.stopPropagation();
 
     switch( event.keyCode ) {
       case 46: /*del*/
       case 27: /*esc*/
-        obj.unselect();
+        obj.unselectAll();
         break;
     }
   };
