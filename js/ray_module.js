@@ -138,6 +138,9 @@ function Editor(obj){
     },
     RoomDoorway:{
       main_color: '#A0A0A0'
+    },
+    PointerHelper:{
+      radius: 175
     }
   };
 
@@ -605,6 +608,34 @@ function Editor(obj){
       if(event.altKey){
         if( $selectMode.enabled ){
           $selectMode.selectAllDoors();
+        }
+      }
+      break;
+    case 52: /*4*/
+      if(event.altKey){
+        if( $selectMode.enabled ){
+          $selectMode.selectAllWindows();
+        }
+      }
+      break;
+    case 53: /*5*/
+      if(event.altKey){
+        if( $selectMode.enabled ){
+          $selectMode.selectAllFloors();
+        }
+      }
+      break;
+    case 54: /*6*/
+      if(event.altKey){
+        if( $selectMode.enabled ){
+          $selectMode.selectAllOuterSurfaces();
+        }
+      }
+      break;
+    case 55: /*7*/
+      if(event.altKey){
+        if( $selectMode.enabled ){
+          $selectMode.selectAllInnerSurfaces();
         }
       }
       break;
@@ -1812,7 +1843,7 @@ function initWallCreator(obj){
 
   function pointerHelperAdd(){
 
-    var geometry = new THREE.SphereBufferGeometry( 150, 32, 32 );
+    var geometry = new THREE.SphereBufferGeometry( $Editor.default_params.PointerHelper.radius, 32, 32 );
     obj.pointerHelper = new THREE.Mesh( geometry, pointHelper_material );
     scene.add( obj.pointerHelper );
 
@@ -2500,7 +2531,7 @@ function initWallCreator(obj){
   };
   obj.createDimensions = function(){
 
-    var params = {direction: obj.dimHelper.direction, offset_direction: 200, editable: true, noteState: 'hide'};
+    var params = {direction: obj.dimHelper.direction, offset_direction: 400, editable: true, noteState: 'hide'};
 
     obj.dimensions.push( new Dimension( obj.dimHelper.p1,   obj.dimHelper.p2, $projection.plane, params ) );
 
@@ -4742,7 +4773,8 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
     var l_m =        m.clone().projectOnVector( n );
     var l1  = p1_start.clone().projectOnVector( n );
     var l2  = p2_start.clone().projectOnVector( n );
-    var dist1 = dist2 = 0;
+    var dist1 = 0;
+    var dist2 = 0;
 
     if( this.offset_direction ){
       dist1 = dist2 = this.offset_direction;
@@ -4753,8 +4785,8 @@ Dimension.prototype = Object.assign( Object.create( THREE.Group.prototype ),{
       p2_end = point_var1.clone();
 
     } else {
-      var dist1 = l_m.distanceTo ( l1 );
-      var dist2 = l_m.distanceTo ( l2 );
+      dist1 = l_m.distanceTo ( l1 );
+      dist2 = l_m.distanceTo ( l2 );
 
       var point_var1 = new THREE.Vector3().addVectors(p1_start, n.clone().multiplyScalar( dist1 ));
       var point_var2 = new THREE.Vector3().addVectors(p1_start, n.clone().negate().multiplyScalar( dist1 ));
@@ -5845,7 +5877,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     var params = {
       direction: this.direction90,
-      offset_direction: self.width/2 + 100,
+      offset_direction: self.width/2 + 400,
       editable: true,
       arrow: true,
       dragable: false,
@@ -5860,7 +5892,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     //по осевой
     var params = {
       direction: this.direction90,
-      offset_direction: self.width/2 + 100,
+      offset_direction: self.width/2 + 400,
       editable: true,
       arrow: true,
       dragable: false,
@@ -5907,9 +5939,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       this.dimensions[1].const_direction = this.direction90.clone().negate();
       this.dimensions[2].const_direction = this.direction90;
 
-      this.dimensions[0].offset_direction = this.width/2 + 100;
-      this.dimensions[1].offset_direction = this.width/2 + 100;
-      this.dimensions[2].offset_direction = this.width/2 + 100;
+      this.dimensions[0].offset_direction = this.width/2 + 400;
+      this.dimensions[1].offset_direction = this.width/2 + 400;
+      this.dimensions[2].offset_direction = this.width/2 + 400;
     }
 
     this.dimensions.forEach(function(item){
@@ -7964,7 +7996,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
     var self = this;
 
-    var params = {direction: this.wall.direction90, offset_direction: 200, editable: true};
+    var params = {direction: this.wall.direction90, offset_direction: 800, editable: true};
 
     this.dimensions.push( new Dimension( this.p11,   this.p_11, $projection.plane, params ) );
     this.dimensions.push( new Dimension( this.p_21,  this.p21, $projection.plane, params ) );

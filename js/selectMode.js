@@ -223,7 +223,8 @@ function initSelectMode( obj ){
 
     obj.rooms.forEach(function ( item, index, arr ) {
 
-      item.floor.select( { object: item } );
+      if( ! item.external )
+      obj.select( { object: item.floor } );
 
     });
 
