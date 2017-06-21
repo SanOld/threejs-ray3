@@ -28,19 +28,26 @@ $(document).ready(function() {
 
   include("js/lib/threex-rendererstats/threex.rendererstats.js");
 
+  include("js/controls.js?"+HASH);
+  include("js/notes.js?"+HASH);
+  include("js/doorways.js?"+HASH);
+  include("js/Floor.js?"+HASH);
+  include("js/Dimension.js?"+HASH);
 
-  include("data/arc_wall_data.js?"+HASH);
 
-  include("js/ray_module.js?"+HASH);
-  
+  include("js/WallControlPoint.js?"+HASH);
+  include("js/WallMover.js?"+HASH);
+  include("js/Wall.js?"+HASH);
+
+  include("js/Editor.js?"+HASH);
+  include("js/script.js?"+HASH);
+
   include("js/Room.js?"+HASH);
   include("js/RoomObject.js?"+HASH);
   include("js/RoomFloor.js?"+HASH);
   include("js/RoomSurface.js?"+HASH);
   include("js/RoomDoorway.js?"+HASH);
   include("js/selectMode.js?"+HASH);
-
-  include("js/script.js?"+HASH);
 
 
 });
