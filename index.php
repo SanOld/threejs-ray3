@@ -3,6 +3,17 @@
 <head>
 <?php include('hash.php'); ?>  
 <?php include('head.php'); ?>
+
+<?php
+  if( isset( $_GET['mode'] ) ){
+    $mode = $_GET['mode'];
+  } else {
+    $mode = 'creation';
+  }
+?>
+<script type="text/javascript">
+  var MODE = '<?php echo $mode; ?>';
+</script>  
 </head>
 
 <body id="bd">
@@ -23,6 +34,8 @@
                    <!-- <div  class="wall_type" ><span class="wall_len_custom">Толщина стены</span ><input type="text"></div> -->
                   <div  class="wall_type" data-type = "bear_wall"><span class="menu_text_custom hover_label_custom" >Несущая</span ></div>
                   <div  class="wall_type" data-type = "pillar"><span class="menu_text_custom hover_label_custom" >Колонна</span ></div>
+                  <div class="wall_type"><span  class="menu_text_custom hover_label_custom" data-type = "stairs">Лестница</span></div>
+                  <div class="border_custom"></div>
                   <span class="menu_text_custom">Перегородка:</span>
                   <div class="radio_menu_custom">
                         <span data-type = "notChangable">
@@ -89,7 +102,7 @@
                   <!--</div>-->
                 <!-- </li> -->
                 <!-- <li  class="wall_type" data-type = "pillar"><a>Колонна</a></li> -->
-                <li  class="wall_type" data-type = "stairs"><a>Лестница</a></li>
+                <!-- <li  class="wall_type" data-type = "stairs"><a>Лестница</a></li> -->
                 <!--<li  data-type = "divider"><a>Разделитель зон</a></li>-->
               <!-- </ul> -->
 
@@ -225,30 +238,21 @@
 </body>
 
 <div class="ActiveElementMenu" style="top: 187px; left: 500px; display: none;">
-<!--  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -80.8112px; top: 40.8112px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addSingleEntryDoorblock" title="Дверь входная">
+<!--  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -80.8112px; top: 40.8112px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addSingleEntryDoorBlock" title="Дверь входная">
   </div>
   
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -103.07px; top: 5px; background-position: left -160px; opacity: 1; width: 40px; height: 40px;" action="addDoubleEntryDoorblock" title="Двойная входная дверь">
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -103.07px; top: 5px; background-position: left -160px; opacity: 1; width: 40px; height: 40px;" action="addDoubleEntryDoorBlock" title="Двойная входная дверь">
   </div>-->
-
-  <div target="_blank" ee="11" class="ActiveElementMenuAnimated" style="left: -103.07px; top: 5px; background-position: left 0px; opacity: 1; width: 40px; height: 40px;" action="scaleFloor" title="Масштабировать чертеж">
-  </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -103.07px; top: -42.2584px; background-position: left -280px; opacity: 1; width: 40px; height: 40px;" action="addNiche" title="Ниша">
-  </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -80.8112px; top: -80.8112px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="addWindow" title="Окно">
-  </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -42.2584px; top: -103.07px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addSingleDoorblock" title="Дверь межкомнатная">
-  </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 2.25844px; top: -103.07px; background-position: left -160px; opacity: 1; width: 40px; height: 40px;" action="addDoubleDoorblock"title="Двойная межкомнатная дверь">
-  </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40.8112px; top: -80.8112px; background-position: left -200px; opacity: 1; width: 40px; height: 40px;" action="addDoorway" title="Дверной проем (портал)">
-  </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: -42.2584px; background-position: left -80px; opacity: 1; width: 40px; height: 40px;" action="remove" title="Удалить">
-  </div>
-  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: 5px; background-position: left -320px; opacity: 1; width: 40px; height: 40px;" action="changeWidth" title="Толщина">
-  </div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -20px; top: 55px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addCopy" title="Установить копию"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -103.07px; top: 5px; background-position: left 0px; opacity: 1; width: 40px; height: 40px;" action="scaleFloor" title="Масштабировать чертеж"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -103.07px; top: -42.2584px; background-position: left -280px; opacity: 1; width: 40px; height: 40px;" action="addNiche" data-type="Niche" title="Ниша"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -80.8112px; top: -80.8112px; background-position: left -40px; opacity: 1; width: 40px; height: 40px;" action="addWindow" data-type="WindowBlock" title="Окно"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: -42.2584px; top: -103.07px; background-position: left -120px; opacity: 1; width: 40px; height: 40px;" action="addDoorBlockFloor" data-type="DoorBlockFloor" title="Дверь межкомнатная"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 2.25844px; top: -103.07px; background-position: left -160px; opacity: 1; width: 40px; height: 40px;" action="addDoubleDoorBlockFloor" data-type="DoubleDoorBlockFloor" title="Двойная межкомнатная дверь"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40.8112px; top: -80.8112px; background-position: left -200px; opacity: 1; width: 40px; height: 40px;" action="addDoorway" data-type="Doorway" title="Дверной проем (портал)"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: -42.2584px; background-position: left -80px; opacity: 1; width: 40px; height: 40px;" action="remove" title="Удалить"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: 5px; background-position: left -320px; opacity: 1; width: 40px; height: 40px;" action="changeWidth" title="Толщина"></div>
   
-
 
 </div>
 
@@ -295,6 +299,6 @@
 </div>
 
 <div id="dimToolTip" title="Внимание" style="display: none;">
-  <p>Выберите направление изменения длины стены</p>
+  <p>text</p>
 </div>
 </html>

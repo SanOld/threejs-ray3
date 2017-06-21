@@ -32,13 +32,39 @@
       function listener(event) {
         var mess = event.originalEvent.data.message;
 
-        if (mess && mess.cmd == 'put_data') {
+        if ( mess && mess.cmd == 'put_data' ) {
           parentURL = event.originalEvent.origin;
-          serverData = mess.data;
+          serverData = mess.data || {};
 
           init();
           animate();
+        } else if( mess && mess.cmd == 'selectAllDoors' ){
+
+          if( $selectMode.enabled )
+          $selectMode.selectAllDoors();
+
+        } else if( mess && mess.cmd == 'selectAllWindows' ){
+
+          if( $selectMode.enabled )
+          $selectMode.selectAllWindows();
+
+        } else if( mess && mess.cmd == 'selectAllFloors' ){
+
+          if( $selectMode.enabled )
+          $selectMode.selectAllFloors();
+
+        } else if( mess && mess.cmd == 'selectAllOuterSurfaces' ){
+
+          if( $selectMode.enabled )
+          $selectMode.selectAllOuterSurfaces();
+
+        } else if( mess && mess.cmd == 'selectAllInnerSurfaces' ){
+
+          if( $selectMode.enabled )
+          $selectMode.selectAllInnerSurfaces();
+        
         }
+
       }
 
   });

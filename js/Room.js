@@ -12,6 +12,7 @@ function Room( parameters ){
   this.closedRoom = true;
 
   this._type = parameters.hasOwnProperty("_type") ? parameters["_type"] : 'closedRoom';
+  this.external = parameters.hasOwnProperty("external") ? parameters["external"] : false;
 
   this.nodes = parameters.hasOwnProperty("nodes") ? parameters["nodes"] : [];
   this.chain = parameters.hasOwnProperty("chain") ? parameters["chain"] : [];
@@ -20,9 +21,17 @@ function Room( parameters ){
   this.external_walls = [];
   this.elements = [];
   this.isClockWise = parameters.hasOwnProperty("isClockWise") ? parameters["isClockWise"] : false;
+  this.surfaces = [];
+  this.floor = null;
+  this.counturLine =  new THREE.Object3D(0,1,0);
 
+  this.numberAnglesEquals90 = 0;
+  this.numberAnglesNotEquals90 = 0;
+  this.lengthAnglesEquals90 = 0;
+  this.lengthAnglesNotEquals90 = 0;
 
   this.init();
+
 }
 
 Room.prototype = Object.assign( {}, {
@@ -34,18 +43,40 @@ Room.prototype = Object.assign( {}, {
 
       this.countur = this.getCountur( this.chain );
       this.walls = this.getWalls( this.chain );
-      var objArea = this.getArea(this.countur);
-      this.area = objArea.area;
-      this.area_coords = { x: objArea.coord.x, y: objArea.coord.z },
-      this.area_coords_3D = objArea.area.coord;
+      this._defineWallsParams();
+
+      this.objArea = this.getArea( this.countur );
+      this.area = this.getArea( this.countur );
+      this.area_coords_3D = this.getAreaCoords( this.countur );
+      this.area_coords = { x: this.area_coords_3D.x, y: this.area_coords_3D.z };
+
+      this.selectedAllSurfaces = false;
 
 
       //отрисовка контура комнаты
-      this.drawCounturLine( this.chain, this.nodes );
+      if( !this.external ){
+
+
+        this.addCounturLine( this.chain, this.nodes );
+        scene.add( this.counturLine );
+        this.showCounturLine();
+
+
+        this.defineAreaNotification();
+        this.showAreaNotification();
+
+        this.addSelectAllWallsTool();
+        this.hideSelectAllWallsTool();
+
+        this.floor = new RoomFloor( this );
+        scene.add( this.floor );
+        this.hideFloor();
+
+      }
 
     } else {
 
-      this.closedRoom = false
+      this.closedRoom = false;
       this.walls = this.getWalls( this.chain );
       this.area = 0;
       this.area_coords = {x: 0, y: 0};
@@ -54,17 +85,25 @@ Room.prototype = Object.assign( {}, {
 
     }
 
+    this.surfaces = this.getSurfaces( this.chain );
+    this.combineColinearSurfaces( this.surfaces );
+    this.hideSurfaces();
+
+//    this.doorways = this.getDoorways ( this.chain );
+
+    this.defineAngles(); // определение количества прямых непрямых углов
+
   },
 
   getCountur: function( chain ){
     var countur = [];
     var nodes = this.nodes;
     chain.forEach(function( item ){
-
+//      if( ! countur.length == 0 && ! nodes[item.source.id] )debugger;
       if( countur.length == 0 ){
         countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
         countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
-      } else if(countur[countur.length-1].x == nodes[item.target.id].position.x && countur[countur.length-1].y == nodes[item.target.id].position.z ){
+      } else if(countur[countur.length-1].x == nodes[item.target.id].position.x && countur[countur.length-1].y == nodes[item.target.id].position.z && nodes[item.source.id] ){
         countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
       } else {
         countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
@@ -92,10 +131,11 @@ Room.prototype = Object.assign( {}, {
 
         //в случае внутренней перегородки (но не "толстой" стены)
         if( wall.mover.v1_neighbors.length == 0 || wall.mover.v2_neighbors.length == 0){
-          self.externalWallsAdd(item.wall_uuid, false)
-          wall.external_wall = false;
-        }
 
+          self.externalWallsAdd(item.wall_uuid, false);
+          wall.external_wall = false;
+
+        }
 
       }
 
@@ -104,9 +144,7 @@ Room.prototype = Object.assign( {}, {
     return walls;
 
   },
-  externalWallsAdd: function(uuid, value){
-    this.external_walls.push(uuid);
-  },
+
   getElements: function(){
 
     var self = this;
@@ -145,7 +183,7 @@ Room.prototype = Object.assign( {}, {
       }
 
 
-    })
+    });
 
 
     this.elements = elements;
@@ -153,13 +191,15 @@ Room.prototype = Object.assign( {}, {
   },
   getArea: function( countur ){
 
-    return $wallEditor.getArea( countur );
+    var nativeArea = THREE.ShapeUtils.area( countur );
+    var area = Math.abs( nativeArea );
+    return  area ;
 
   },
   getAreaWithoutOpenings: function(){
 
     var self = this;
-    var area = this.getArea( this.countur ).area;
+    var area = this.getArea( this.countur );
     var countur = this.getCountur( this.chain );
 
     //исключаем площадь колонн, лестниц?
@@ -185,22 +225,323 @@ Room.prototype = Object.assign( {}, {
     })
      return area;
   },
-  drawCounturLine: function( chain, nodes ){
+  getAreaCoords: function( countur ){
+
+    var area_coord = new THREE.Vector3();
+    var max_area = 0;
+    var triangles = THREE.ShapeUtils.triangulate( countur );
+
+    if(triangles)
+    triangles.forEach(function( item2 ){
+
+      var triangle = new THREE.Triangle(
+                                    new THREE.Vector3(item2[0].x, 0, item2[0].y),
+                                    new THREE.Vector3(item2[1].x, 0, item2[1].y),
+                                    new THREE.Vector3(item2[2].x, 0, item2[2].y)
+                                    );
+
+
+      var current_area = triangle.area();
+      if( current_area > max_area ){
+        max_area = current_area;
+        area_coord = triangle.midpoint();
+      }
+
+    });
+
+
+    return area_coord;
+
+  },
+  defineAreaNotification: function(){
+
+    //приведение единиц измерения для отображения
+    var area = (this.area * area_unit.c).toFixed( area_accuracy_measurements );
+
+    if( this.areaNotification ){
+
+      this.areaNotification.position.copy( this.area_coords_3D );
+      this.areaNotification.setMessage( area + " " + area_unit.short_name );
+      this.areaNotification.update();
+      this.areaNotification.material.visible = true;
+
+    } else {
+
+      this.addAreaNotification( this.area_coords_3D, area );
+
+    }
+
+  },
+  addAreaNotification: function( area_coord, area ){
+
+    this.areaNotification = new noteSimple(
+                                      null,
+                                      area + " " + area_unit.short_name,
+                                      {
+                                        backgroundColor: { r:255, g:255, b:255, a:0 },
+                                        borderColor:     { r:255, g:255, b:255, a:0 },
+                                        fontsize: 36
+                                      }
+                                      );
+    this.areaNotification.position.copy( area_coord );
+    scene.add( this.areaNotification );
+
+  },
+  showAreaNotification: function(){
+
+    if( this.areaNotification )
+    this.areaNotification.material.visible = true;
+
+  },
+  hideAreaNotification: function(){
+
+       if( this.areaNotification )
+         this.areaNotification.material.visible = false;
+
+  },
+
+  getFloorPerimeter: function(){
+
+    var perimeter = 0;
+
+    for (var i = 1; i < this.countur.length; i++) {
+
+      perimeter += this.countur[i-1].distanceTo( this.countur[i] );
+
+    }
+    //от последнего к первому
+    perimeter += this.countur[i-1].distanceTo( this.countur[0] );
+
+
+    return perimeter;
+  },
+
+  addSelectAllWallsTool: function(area_coord){
+
+    var self = this;
+
+    this.selectAllWallsTool = new noteSimple(
+                                      null,
+                                      'Все стены',
+                                      {
+                                        backgroundColor: { r:255, g:255, b:255, a:0 },
+                                        borderColor:     { r:0, g:0, b:0, a:1 },
+                                        fontsize: 36
+                                      }
+                                      );
+    this.selectAllWallsTool.position.copy( this.area_coords_3D.clone().add( new THREE.Vector3(0,0,400)) );
+    scene.add( this.selectAllWallsTool );
+
+    this.selectAllWallsTool.select = function(){
+
+      if( this.selectedAllSurfaces ){
+        self.unSelectAllWalls();
+      } else {
+        self.selectAllWalls();
+      }
+
+      this.selectedAllSurfaces = !this.selectedAllSurfaces;
+
+    };
+    this.selectAllWallsTool.unselect = function(){
+      self.unSelectAllWalls();
+    };
+
+  },
+  showSelectAllWallsTool: function(){
+
+    if( this.selectAllWallsTool )
+    this.selectAllWallsTool.material.visible = true;
+
+  },
+  hideSelectAllWallsTool: function(){
+
+       if( this.selectAllWallsTool )
+         this.selectAllWallsTool.material.visible = false;
+
+  },
+
+  getSurfaces: function( chain ){
+    var self = this;
+    var surfaces = [];
+    var vertieces = [];
+    chain.forEach(function( item, index ){
+
+      var next_index = ( index == chain.length-1 ) ? 0 : index + 1;
+      var prev_index = ( index == 0 ) ? chain.length-1 : index - 1;
+      // случай путей на  одной стене
+      var moveBasicPoint = chain[ next_index ].wall_uuid == item.wall_uuid || chain[ prev_index ].wall_uuid == item.wall_uuid;
+
+      var wall = scene.getObjectByProperty( 'uuid', item.wall_uuid );
+      vertieces[0] = self.nodes[item.source.id].position;
+      vertieces[1] = self.nodes[item.target.id].position;
+      var exception = item.id.split('_').indexOf('e') != -1; // для торцевых поверхностей
+      var surface = new RoomSurface( self, [ wall ], vertieces, moveBasicPoint, exception );
+      surfaces.push( surface );
+      scene.add( surface );
+
+    });
+
+    return surfaces;
+
+  },
+  combineColinearSurfaces: function( surfaces ){
+
+    var surfaces = surfaces || [];
+
+    for (var i = 0; i < surfaces.length - 1; i++ ) {
+      var s1 = surfaces[i];
+      var s2 = surfaces[i+1];
+      var w1 = surfaces[i].walls[0];
+      var w2 = surfaces[i+1].walls[0];
+
+      if ( w1.isCollinear( w2 ) && w1.width == w2.width && w1.height == w2.height   ){
+        var surface = new RoomSurface( this, [ w1, w2 ], [ s1.source, s2.target, s1.sourceBase, s2.targetBase ], s2.movePoint );
+//        if(surface.geometry === null){debugger;}
+        surfaces.splice(i, 2, surface );
+        scene.remove( s1, s2 );
+        scene.add(surface);
+        this.combineColinearSurfaces( surfaces );
+        break;
+      }
+    }
+
+
+
+  },
+  showSurfaces: function(){
+
+    if( this.surfaces )
+    this.surfaces.forEach(function( item ){
+
+      item.visible = true;
+
+    });
+
+  },
+  hideSurfaces: function(){
+
+    if( this.surfaces )
+    this.surfaces.forEach(function(item){
+      item.visible = false;
+    });
+
+  },
+  getSurfacesArea: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function(item){
+
+      result += item.getArea();
+
+    });
+
+    return result;
+  },
+  getSurfacesAreaWithoutOpenings: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function(item){
+
+      result += item.getAreaWithoutOpenings();
+
+    });
+
+    return result;
+  },
+
+  getDoorways: function( chain ){
+
+    var self = this;
+    var doorways = [];
+
+    this.surfaces.forEach(function(item){
+
+      doorways.concat(doorways, item.doors, item.windows, item.niches);
+
+    });
+
+    return doorways;
+
+  },
+
+  addCounturLine: function( chain, nodes ){
+
+    var self = this;
+
+
     chain.forEach(function(item){
 
       var geometry = new THREE.Geometry();
       if(nodes[item.source.id] && nodes[item.target.id]){
-        geometry.vertices.push( nodes[item.source.id].position, nodes[item.target.id].position );
+        geometry.vertices.push( nodes[item.source.id].position.clone(), nodes[item.target.id].position.clone() );
         var line = new THREE.Line(geometry, LineBasicMaterialRed);
         line.name = 'room_line';
+        line.visible = true;
 
-        AreaCounturs.add( line );
+        self.counturLine.add( line );
       }
 
-    })
+    });
+  },
+  removeCounturLine: function(){
+
+    scene.remove( this.counturLine );
+
+  },
+  showCounturLine: function(){
+
+    if( this.counturLine ){
+
+      this.counturLine.visble = true;
+
+    }
+
+  },
+  showFloor: function(){
+
+    if( this.floor && !this.external && this._type != 'freeRoom')
+    this.floor.visible = true;
+
+  },
+  hideFloor: function(){
+
+    if( this.floor )
+    this.floor.visible = false;
+
   },
 
-  defineWallsParams: function(){
+  clear: function(){
+
+    //удаляем пол
+    scene.remove( this.floor );
+
+
+    //удаляем контур
+    scene.remove( this.counturLine );
+
+    //удаляем примечание площади
+    scene.remove( this.areaNotification );
+
+    //удаляем примечание выбора всех стен
+    scene.remove( this.selectAllWallsTool );
+
+    //удаляем стены комнаты
+    this.surfaces.forEach(function( surface ){
+      scene.remove( surface );
+    });
+
+    this.floor = this.counturLine = this.areaNotification = this.selectAllWallsTool = this.surfaces = null;
+
+
+  },
+
+  externalWallsAdd: function(uuid, value){
+    this.external_walls.push(uuid);
+  },
+  _defineWallsParams: function(){
 
     var j = this.walls.length;
     while (j--) {
@@ -403,7 +744,7 @@ Room.prototype = Object.assign( {}, {
                         obj_thickness: doorway.depObject_thickness
                       }
                     );
-      })
+      });
 
       volume = item.getVolume();
 
@@ -429,7 +770,7 @@ Room.prototype = Object.assign( {}, {
     var result = 0;
     var self = this;
 
-    this.defineWallsParams();
+    //after defineWallsParams();
     this.walls.forEach(function( item ){
 
       result += self.wallsParams[item].inner_wall_area_without_openings;
@@ -443,7 +784,7 @@ Room.prototype = Object.assign( {}, {
     var result = 0;
     var self = this;
 
-    this.defineWallsParams();
+    //after defineWallsParams();
     this.walls.forEach(function( item ){
 
     var wall = scene.getObjectByProperty( 'uuid', item );
@@ -460,7 +801,7 @@ Room.prototype = Object.assign( {}, {
     var result = 0;
     var self = this;
 
-    this.defineWallsParams();
+    //after defineWallsParams();
     this.walls.forEach(function( item ){
 
       result += self.wallsParams[item].volume;
@@ -473,7 +814,7 @@ Room.prototype = Object.assign( {}, {
     var result = 0;
     var self = this;
 
-    this.defineWallsParams();
+    //after defineWallsParams();
     this.walls.forEach(function( item ){
 
       result += self.wallsParams[item].length;
@@ -481,7 +822,155 @@ Room.prototype = Object.assign( {}, {
     });
 
     return result;
+  },
+
+  selectAllWalls: function(){
+
+    this.surfaces.forEach(function(item, index, arr){
+      var event = {
+        object: item
+      };
+      if( ! item.actived )
+      $selectMode.select( event );
+
+    });
+
+  },
+  unSelectAllWalls: function(){
+
+    this.surfaces.forEach(function(item, index, arr){
+      var event = {
+        object: item
+      };
+
+      if( item.actived )
+      $selectMode.select( event );
+
+    });
+
+  },
+
+  defineAngles: function(){
+
+
+    for (var i = 0; i < this.surfaces.length; i++) {
+      var prev_item = this.surfaces[ i ];
+      var next_item = (i + 1) == this.surfaces.length ? this.surfaces[ 0 ] : this.surfaces[ i + 1 ];
+      var prev_vector = prev_item.source.clone().sub( prev_item.target.clone() );
+      var next_vector = next_item.source.clone().sub( next_item.target.clone() );
+
+      if( Math.abs( prev_vector.dot( next_vector ) ) < 0.001 ){
+
+        this.numberAnglesEquals90 += 1;
+        this.lengthAnglesEquals90 += prev_item.walls[0].height < next_item.walls[0].height ? prev_item.walls[0].height : next_item.walls[0].height;
+
+      } else {
+
+        this.numberAnglesNotEquals90 += 1;
+        this.lengthAnglesNotEquals90 += prev_item.walls[0].height < next_item.walls[0].height ? prev_item.walls[0].height : next_item.walls[0].height;
+
+      }
+
+    }
+
+
+
+  },
+
+
+  getPerimeter3Doors: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getPerimeter3Doors();
+
+    });
+
+    return result;
+
+  },
+  getPerimeter3Windows: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getPerimeter3Windows();
+
+    });
+
+    return result;
+
+  },
+  getPerimeter4Doors: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getPerimeter4Doors();
+
+    });
+
+    return result;
+
+  },
+  getPerimeter4Windows: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getPerimeter4Windows();
+
+    });
+
+    return result;
+
+  },
+  getLintelLength: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getLintelLength();
+
+    });
+
+    return result;
+
+  },
+  getAreaDoors: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getAreaDoors();
+
+    });
+
+    return result;
+
+  },
+  getAreaWindows: function(){
+
+    var result = 0;
+
+    this.surfaces.forEach(function (item, index, arr) {
+
+      result += item.getAreaWindows();
+
+    });
+
+    return result;
+
   }
+
+
 });
 
 
