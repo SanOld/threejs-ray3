@@ -22,7 +22,6 @@ function Room( parameters ){
   this.elements = [];
   this.isClockWise = parameters.hasOwnProperty("isClockWise") ? parameters["isClockWise"] : false;
   this.surfaces = [];
-  this.counturLine = null;
   this.floor = null;
   this.counturLine =  new THREE.Object3D(0,1,0);
 
@@ -57,8 +56,9 @@ Room.prototype = Object.assign( {}, {
       //отрисовка контура комнаты
       if( !this.external ){
 
-        scene.add( this.counturLine );
+
         this.addCounturLine( this.chain, this.nodes );
+        scene.add( this.counturLine );
         this.showCounturLine();
 
 
@@ -479,7 +479,7 @@ Room.prototype = Object.assign( {}, {
         geometry.vertices.push( nodes[item.source.id].position.clone(), nodes[item.target.id].position.clone() );
         var line = new THREE.Line(geometry, LineBasicMaterialRed);
         line.name = 'room_line';
-        line.visible = false;
+        line.visible = true;
 
         self.counturLine.add( line );
       }
@@ -518,16 +518,22 @@ Room.prototype = Object.assign( {}, {
     //удаляем пол
     scene.remove( this.floor );
 
+
     //удаляем контур
     scene.remove( this.counturLine );
 
     //удаляем примечание площади
     scene.remove( this.areaNotification );
 
+    //удаляем примечание выбора всех стен
+    scene.remove( this.selectAllWallsTool );
+
     //удаляем стены комнаты
     this.surfaces.forEach(function( surface ){
       scene.remove( surface );
     });
+
+    this.floor = this.counturLine = this.areaNotification = this.selectAllWallsTool = this.surfaces = null;
 
 
   },

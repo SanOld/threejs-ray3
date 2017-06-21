@@ -418,6 +418,15 @@ function initSelectMode( obj ){
     });
 
   };
+  obj.removeDoorways = function(){
+
+    obj.doorways.forEach(function ( doorway, index, arr ) {
+
+      scene.remove( doorway );
+
+    });
+
+  };
   obj.showDoorways = function(){
 
     obj.doorways.forEach(function ( item, index, arr ) {
