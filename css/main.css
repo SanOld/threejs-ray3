@@ -145,7 +145,7 @@
     left: 26px!important;
     top: 3px!important;
     font-weight: bold;
-} 
+}
 
 .border_custom{
     background: black;
@@ -214,7 +214,7 @@
     position: relative;
     bottom: 60px;
     right: 143px;
-    background: rgba(0,0,0,.8); 
+    background: rgba(0,0,0,.8);
 }
 
 .doors_label_{
@@ -278,7 +278,7 @@ input.slope{
     color: white!important;
 }
 
-.isEmDoor1{
+.entryDoor{
     position: relative;
     right: 43px;
 

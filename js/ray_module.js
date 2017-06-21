@@ -1081,11 +1081,17 @@ function initProjection(obj){
     }
 
     //отображаем необходимые
-    for(var param in parameters){
+    for( var param in parameters ){
 
       if( parameters[ param ].hasOwnProperty('checked') ){
 
         $('.objParams').find('[param = '+ param +']').prop('checked', parameters[ param ].checked );
+
+      } else if( param == 'isEntryDoor' ){
+
+        var els = $('.objParams').find('[param = '+ param +']');
+        $( els[0] ).prop('checked',  ! parameters[ param ].isEntryDoor);
+        $( els[1] ).prop('checked', parameters[ param ].isEntryDoor);
 
       } else {
 
@@ -2890,13 +2896,12 @@ function initWallEditor( obj ){
         width: {val: obj.selected.width, label: 'Ширина'},
         depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
         elevation: {val: obj.selected.elevation, label: 'От пола'},
-        slope: {val: obj.selected.slope, label: 'Откос'}, 
+        slope: {val: obj.selected.slope, label: 'Откос'},
 
-        elevation_ed_izm:{label:'мм'},
-        slope_ed_izm:{label:'мм'},
-        width_ed_izm:{label:'мм'},
-        height_ed_izm:{label:'мм'},
-        slope_ed_izm:{label:'мм'}
+        elevation_ed_izm:{label: current_unit.short_name},
+        slope_ed_izm:{label: current_unit.short_name},
+        width_ed_izm:{label: current_unit.short_name},
+        height_ed_izm:{label: current_unit.short_name}
 
       });
       $('.left_panel_custom').css({'bottom':'10px'});
@@ -2910,15 +2915,14 @@ function initWallEditor( obj ){
         depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
         elevation: {val: obj.selected.elevation, label: 'От пола'},
         slope: {val: obj.selected.slope, label: 'Откос'},
-        // isEntryDoor: {checked: obj.selected.isEntryDoor, label: 'Входная'},
-        isEntryDoor: {val: obj.selected.isEntryDoor, label: 'Входная'},
-        isEmDoor:{label:'Межкомнатная'},
-        isEmDoor1:{label:'Входная'},
-        width_ed_izm:{label:'мм'},
-        height_ed_izm:{label:'мм'},
-        elevation_ed_izm:{label:'мм'},
-        dep_th_ed_izm:{label:'мм'},
-        slope_ed_izm:{label:'мм'}
+        isEntryDoor: {isEntryDoor: obj.selected.isEntryDoor, label: 'Входная'},
+        notEntryDoor:{label:'Межкомнатная'},
+        entryDoor:{label:'Входная'},
+        width_ed_izm:{label: current_unit.short_name},
+        height_ed_izm:{label: current_unit.short_name},
+        elevation_ed_izm:{label: current_unit.short_name},
+        dep_th_ed_izm:{label: current_unit.short_name},
+        slope_ed_izm:{label: current_unit.short_name}
       });
       $('.left_panel_custom').css({'bottom':'78px'});
       $('#border-div').css({'display':'block'});
@@ -2931,10 +2935,10 @@ function initWallEditor( obj ){
         width: {val: obj.selected.width, label: 'Ширина'},
         thickness: {val: obj.selected.thickness, label: 'Толщина'},
         elevation: {val: obj.selected.elevation, label: 'От пола'},
-        th_ed_izm:{label:'мм'},
-        width_ed_izm:{label:'мм'},
-        height_ed_izm:{label:'мм'},
-        elevation_ed_izm:{label:'мм'},
+        th_ed_izm:{label: current_unit.short_name},
+        width_ed_izm:{label: current_unit.short_name},
+        height_ed_izm:{label: current_unit.short_name},
+        elevation_ed_izm:{label: current_unit.short_name}
         // dep_th_ed_izm:{label:'мм'},
         // slope_ed_izm:{label:'мм'}
 
@@ -4267,6 +4271,8 @@ function initWallEditor( obj ){
 
   $('.footer').on('change','[param]',function(event){
 
+      obj.changingObject = obj.changingObject ? obj.changingObject : obj.selected;
+
       var param = $(this).attr('param');
 
       if( obj.changingObject && $(this).val() != '' ){
@@ -4304,6 +4310,8 @@ function initWallEditor( obj ){
         $wallCreator.updateWalls();
 
       }
+
+      obj.changingObject = null;
 
   });
   $('.footer').on('click','[param]',function(event){
@@ -5167,7 +5175,7 @@ function Wall( vertices, parameters ){
 
       } else if( !dimension.leftArrowActivated && !dimension.rightArrowActivated ){
 
-        $Editor.msg({text:'Выберите направление изменения длины стены'})
+        $Editor.msg({text:'Выберите направление изменения длины стены'});
         //Подсказка
 
 
@@ -8745,6 +8753,8 @@ function DoorBlockFloor( wall, parameters ){
 
   this.lkmMenu = '.FourStateSwitcher';
   this.rkmMenu = '.DoorwayMenu';
+
+  this.isEntryDoor = true;
 
 }
 DoorBlockFloor.prototype = Object.assign( Object.create( DoorBlock.prototype ),{

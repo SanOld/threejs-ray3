@@ -181,8 +181,8 @@
                     <span>Дверь</span>
                   </div>
                   <div class="objParams door_div_custom">
-                    <input type="radio" name="doors_radio" class="isEntryDoor" param="isEntryDoor" value="0" checked> <span class="isEmDoor"></span>
-                    <input type="radio" name="doors_radio" class="isEntryDoor" param="isEntryDoor" value="1" > <span class="isEmDoor1"></span>
+                    <input type="radio" name="doors_radio" class="isEntryDoor" param="isEntryDoor" value="0" checked> <span class="notEntryDoor"></span>
+                    <input type="radio" name="doors_radio" class="isEntryDoor" param="isEntryDoor" value="1" > <span class="entryDoor"></span>
                   </div>
                 </div>
 
