@@ -57,7 +57,7 @@
                                 <div class="radio">
                                   <label>
                                       <input type="radio" name="wall_action" id="notChangable" >
-                                      <span class="menu_label_position_custom label_lp_custom">Не менять</span>
+                                      <span class="menu_label_position_custom label_lp_custom">Без изменений</span>
                                     </label>
                                 </div>
                               </span>
