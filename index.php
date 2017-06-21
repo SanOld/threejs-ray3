@@ -37,12 +37,12 @@
                   <div class="lp_radio_div">
                    <!-- <div  class="wall_type" ><span class="wall_len_custom">Толщина стены</span ><input type="text"></div> -->
                   <div class="left_panel_type"><b >Тип:</b></div>
-                   <div style="margin-right:5px">
-                  <div  class="wall_type" data-type = "bear_wall"><span class="menu_text_custom hover_label_custom" ><input id="bearing_wall_radio" type="radio" name="walls_type_radio" checked><label for="bearing_wall_radio" class="label_lp_custom">Несущая</label></span ></div>
-                  <div  class="wall_type" data-type = "pillar"><span class="menu_text_custom hover_label_custom" ><input id="column_radio" type="radio" name="walls_type_radio"><label for="column_radio" class="label_lp_custom">Колонна</label></span ></div>
-                  <div class="wall_type"><span  class="menu_text_custom hover_label_custom" data-type = "stairs"><input id="stairs_radio" type="radio" name="walls_type_radio"><label for="stairs_radio" class="label_lp_custom"> Лестница</label></span></div>
+                  <div style="margin-right:5px">
+                  <div  class="wall_type" data-type = "bear_wall"><span class="menu_text_custom hover_label_custom" ><input id="bear_wall" type="radio" name="walls_type_radio" checked><label for="bear_wall" class="label_lp_custom">Несущая</label></span ></div>
+                  <div  class="wall_type" data-type = "pillar"><span class="menu_text_custom hover_label_custom" ><input id="pillar" type="radio" name="walls_type_radio"><label for="pillar" class="label_lp_custom">Колонна</label></span ></div>
+                  <div class="wall_type"><span  class="menu_text_custom hover_label_custom" data-type = "stairs"><input id="stairs" type="radio" name="walls_type_radio"><label for="stairs" class="label_lp_custom"> Лестница</label></span></div>
                   <!-- <div class="border_custom"></div> -->
-                  <div class="wall_type"><span  class="menu_text_custom hover_label_custom"><input id="partition_radio" type="radio" name="walls_type_radio"><label for="partition_radio" class="label_lp_custom">Перегородка</label></span></div>
+                  <div class="wall_type"><span  class="menu_text_custom hover_label_custom"><input id="partition_wall" type="radio" name="walls_type_radio"><label for="partition_wall" class="label_lp_custom">Перегородка</label></span></div>
                   </div>
 
                   </div>

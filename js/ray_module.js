@@ -1034,24 +1034,12 @@ function initProjection(obj){
 
   obj.setWallBearingTypeValue = function( type, action ){
 
-    var part = '';
+//    var part = '';
 
     if( type && type != '' ){
 
       $('.wall_type').show();
-
-      switch ( type ) {
-        case 'partition_wall':
-        case 'notChangable':
-        case 'installation':
-        case 'deinstallation':
-              type = 'partition_wall';
-          break;
-      }
-
-      part = $Editor.wallBearingType[ type ];
-
-      $('.wall_type').find('button').html( part + ' <span class="caret"></span>' );
+      $('#' + type).prop('checked', 'checked' );
 
     }
 
@@ -1061,9 +1049,6 @@ function initProjection(obj){
     if( action && action != '' ){
 
       $('#' + action).prop('checked', 'checked' );
-
-      var part = $('.wall_action').find('[data-type =' + action + ']').find('a').text();
-      $('.wall_action').find('button').html( part + ' <span class="caret"></span>' );
 
     }
 
@@ -1332,31 +1317,13 @@ function initProjection(obj){
 
 
 
-  $('.wall_type').on('click','li.wall_type',function(){
+  $('[name = walls_type_radio]').on('click',function(){
 
-    var part = '';
+//    var part = '';
 
     if($wallEditor.selected && $wallEditor.selected.type == 'Wall'){
 
-      $wallEditor.selected.changeBearingType( $(this).attr('data-type') );
-
-      switch ($(this).attr('data-type')) {
-        case 'partition_wall':
-        case 'notChangable':
-        case 'installation':
-        case 'deinstallation':
-
-          part = $Editor.wallBearingType[ $(this).attr('data-type') ];
-          $('.wall_type').find('button.wall_type').html(part + ' <span class="caret"></span>');
-          break;
-
-        default:
-          part = $Editor.wallBearingType[ $(this).attr('data-type') ];
-          $('.wall_type').find('button.wall_type').html(part + ' <span class="caret"></span>');
-          $wallEditor.selected.changeAction( 'notChangable' );
-          break;
-      }
-
+      $wallEditor.selected.changeBearingType( $(this).attr('id') );
 
     }
 
@@ -2886,7 +2853,7 @@ function initWallEditor( obj ){
       $('div.wall_type').parents('div').css('display','block');
       $('.left_panel_custom').css({'bottom':'213px'});
 
-      $projection.setWallBearingTypeValue( obj.selected.bearingType, obj.selected.action );
+      $projection.setWallBearingTypeValue( obj.selected.bearingType );
       $projection.setWallAction( obj.selected.action );
 
     } else if( obj.selected.type == 'WindowBlock'){
