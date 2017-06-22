@@ -696,6 +696,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     }
 
+    $wallEditor.deactivateSelectControls();
+    $wallEditor.activateSelectControls();
+
   },
 
   setActiveMode: function( state ){

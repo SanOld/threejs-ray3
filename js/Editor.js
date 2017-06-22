@@ -1056,7 +1056,7 @@ function initProjection(obj){
 
   };
 
-  obj.setWallBearingTypeValue = function( type, action ){
+  obj.setWallBearingTypeValue = function( type ){
 
 //    var part = '';
     $('.wall_type').show();
@@ -1072,7 +1072,7 @@ function initProjection(obj){
   obj.setWallAction = function( action ){
 
 
-    $('[type=radio]').prop('checked', false );
+    $('[name=wall_action][type=radio]').prop('checked', false );
 
     if( action && action != '' ){
 
@@ -2776,7 +2776,9 @@ function initWallEditor( obj ){
 
       //добавление размеров стен в массив выбора
       wall.dimensions.forEach(function(dim){
+
           objects = objects.concat(dim.note);
+
       });
 
       //добавление размеров проемов в массив выбора
@@ -2847,7 +2849,7 @@ function initWallEditor( obj ){
           response: function(response){
             if(response){
 
-              obj.objectSelectedRemove(event);
+              obj.objectSelectedClear(event);
               obj.selectedArray.push( object.uuid );
               obj.selected = object;
               callback(true);
@@ -2869,7 +2871,7 @@ function initWallEditor( obj ){
 		}
 
   };
-  obj.objectSelectedRemove = function( event ){
+  obj.objectSelectedClear = function( event ){
 
     obj.selected = null;
     obj.selectedArray.forEach(function (item, index, arr) {
@@ -2986,8 +2988,9 @@ function initWallEditor( obj ){
 
     var object = scene.getObjectByProperty('uuid', obj.selectedArray[0] );
 
+
     //первое значение
-    if( property in object )
+    if( object && property in object )
     var result = object[ property ];
 
 
@@ -2996,7 +2999,7 @@ function initWallEditor( obj ){
 
       object = scene.getObjectByProperty('uuid', obj.selectedArray[i] );
 
-      if( property in object && object[ property ] != result){
+      if( object&& property in object && object[ property ] != result){
         return '';
       }
 
@@ -3021,7 +3024,18 @@ function initWallEditor( obj ){
     if( obj.selected && ('unselect' in obj.selected) )
     obj.selected.unselect(event);
 
-    obj.objectSelectedRemove( event );
+    obj.objectSelectedClear( event );
+
+  };
+  obj.deleteSelected = function(){
+
+    obj.selectedArray.forEach(function (item, index, arr) {
+
+      var item = scene.getObjectByProperty('uuid', item);
+      item.remove();
+      obj.unselect();
+
+    });
 
   };
   obj.hoveron = function( event ){
@@ -4159,6 +4173,7 @@ function initWallEditor( obj ){
 
     switch( event.keyCode ) {
       case 46: /*del*/
+        obj.deleteSelected();
       case 27: /*esc*/
         obj.unselect();
         break;
