@@ -2890,6 +2890,7 @@ function initWallEditor( obj ){
       if( el && 'unselect' in el)
       el.unselect( event );
     });
+    obj.selectedArray = [];
 
   };
 
