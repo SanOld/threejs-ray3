@@ -901,7 +901,7 @@ function initProjection(obj){
         $wallCreator.walls.forEach( function( item ){
 
 
-          if( item.material.color == new THREE.Color( $Editor.default_params.Wall.main_color) )
+          if( item.material.color.equals ( new THREE.Color( $Editor.default_params.Wall.main_color ) )  )
           item.material.color = new THREE.Color( $Editor.default_params.Wall.color_3D );//acsWallMaterial2;
 
         });

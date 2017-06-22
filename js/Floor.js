@@ -10,8 +10,8 @@ function Floor( parameters ){
 
   var self = this;
 
-  this.length = parameters.hasOwnProperty("length") ? parameters["length"] : 20000;
-  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 12000;
+  this.length = parameters.hasOwnProperty("length") ? parameters["length"] : 29700;
+  this.width = parameters.hasOwnProperty("width") ? parameters["width"] : 21000;
   this.textureFile = parameters.hasOwnProperty("textureFile") ? parameters["textureFile"] : '';
 
   this.geometry = parameters.hasOwnProperty("geometry") ? parameters["geometry"] : this.buildGeometry();
