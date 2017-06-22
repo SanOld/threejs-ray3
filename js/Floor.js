@@ -8,6 +8,8 @@ function Floor( parameters ){
   this.type = 'Floor';
   this.name = 'floor';
 
+
+
   var self = this;
 
   this.length = parameters.hasOwnProperty("length") ? parameters["length"] : 29700;
@@ -18,10 +20,10 @@ function Floor( parameters ){
   this.material = parameters.hasOwnProperty("material") ? parameters["material"] : floorMaterial;
   this.material.visible = false;
 
-  var gridHelper = new THREE.GridHelper( 1000000, 2000, 0x0000ff, 0x808080 );
-  gridHelper.position.z = -10;
-  gridHelper.rotation.x = -Math.PI / 2;
-  this.add( gridHelper );
+  this.gridHelper = new THREE.GridHelper( 1000000, 2000, 0x0000ff, 0x808080 );
+  this.gridHelper.position.z = -10;
+  this.gridHelper.rotation.x = -Math.PI / 2;
+  this.add( this.gridHelper );
 
   var parent_toJson = this.toJSON;
 

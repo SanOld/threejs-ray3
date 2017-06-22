@@ -350,8 +350,8 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
     }
 
-    $wallEditor.deactivateSelectControls();
-    $wallEditor.activateSelectControls();
+//    $wallEditor.deactivateSelectControls();
+//    $wallEditor.activateSelectControls();
   },
 
   activate:   function() {

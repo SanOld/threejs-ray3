@@ -784,26 +784,26 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       var obj = null;
 
       if( type == 'Doorway' ){
-        var obj = new Doorway(this, parameters);
+        obj = new Doorway(this, parameters);
       } else if( type == 'DoorBlock' ){
-        var obj = new DoorBlock(this, parameters);
+        obj = new DoorBlock(this, parameters);
       } else if( type == 'DoubleDoorBlock' ){
         parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1800;
         parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
-        var obj = new DoubleDoorBlock(this, parameters);
+        obj = new DoubleDoorBlock(this, parameters);
       } else if( type == 'DoorBlockFloor' ){
         var obj = new DoorBlockFloor(this, parameters);
       } else if( type == 'DoubleDoorBlockFloor' ){
         parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1800;
         parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 2100;
-        var obj = new DoubleDoorBlockFloor(this, parameters);
+        obj = new DoubleDoorBlockFloor(this, parameters);
       } else if( type == 'WindowBlock' ){
         parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1450;
         parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 1450;
         parameters["elevation"] = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 800;
-        var obj = new WindowBlock(this, parameters );
+        obj = new WindowBlock(this, parameters );
       } else if( type == 'Niche' ){
-        var obj = new Niche(this, parameters);
+        obj = new Niche(this, parameters);
       } else if( type == 'Arch' ){
   //      var obj = new DoorBlock(this);
       }

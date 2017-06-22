@@ -247,6 +247,11 @@
               </li>
               <li class="" data-type = "center">
                 <!--<button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>-->
+                <a  action="changeGridVisible">Сетка <i class="fa fa-eye" aria-hidden=""></i></span></a>
+                <img class = "" style="display: none">
+              </li>
+              <li class="" data-type = "center">
+                <!--<button type="button" class="btn btn-default" action="hideWalls">Cтены <i class="fa fa-eye" aria-hidden="true"></i></span></button>-->
                 <a  action="changeFloorVisible">Подложка <i class="fa fa-eye" aria-hidden=""></i></span></a>
                 <img class = "" style="display: none">
               </li>

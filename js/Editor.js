@@ -475,6 +475,11 @@ function Editor(obj){
       obj.hidedFloorTexture = null;
     }
   };
+  obj.changeGridVisible = function(){
+
+    obj.floor.gridHelper.material.visible  = ! obj.floor.gridHelper.material.visible;
+
+  };
   obj.setFloorTexture = function(filename) {
 	// instantiate a loader
 	var loader = new THREE.TextureLoader();
@@ -1315,6 +1320,11 @@ function initProjection(obj){
   $('.footer').on('click','[action = changeFloorVisible]',function(){
 
     $Editor.changeFloorVisible();
+
+  });
+   $('.footer').on('click','[action = changeGridVisible]',function(){
+
+    $Editor.changeGridVisible();
 
   });
 
@@ -4248,34 +4258,37 @@ function initWallEditor( obj ){
   $('.ActiveElementMenu').on('click', '[action = addDoorway]', function(){
 
 		var uuid = obj.selected.addDoorway( $(this).data('type') );
-
     obj.lastDoorway.type = $(this).data('type');
     obj.lastDoorway.doorway = uuid;
 
 	});
   $('.ActiveElementMenu').on('click', '[action = addDoorBlockFloor]', function(){
-		var uuid = obj.selected.addDoorway( $(this).data('type') );
 
+		var uuid = obj.selected.addDoorway( $(this).data('type') );
     obj.lastDoorway.type = $(this).data('type');
     obj.lastDoorway.doorway = uuid;
+
 	});
   $('.ActiveElementMenu').on('click', '[action = addDoubleDoorBlockFloor]', function(){
-		var uuid = obj.selected.addDoorway( $(this).data('type') );
 
+		var uuid = obj.selected.addDoorway( $(this).data('type') );
     obj.lastDoorway.type = $(this).data('type');
     obj.lastDoorway.doorway = uuid;
+
 	});
   $('.ActiveElementMenu').on('click', '[action = addWindow]', function(){
-		var uuid = obj.selected.addDoorway( $(this).data('type') );
 
+		var uuid = obj.selected.addDoorway( $(this).data('type') );
     obj.lastDoorway.type = $(this).data('type');
     obj.lastDoorway.doorway = uuid;
+
 	});
   $('.ActiveElementMenu').on('click', '[action = addNiche]', function(){
-		obj.selected.addDoorway( $(this).data('type') );
 
+		var uuid = obj.selected.addDoorway( $(this).data('type') );
     obj.lastDoorway.type = $(this).data('type');
     obj.lastDoorway.doorway = obj.selected.uuid;
+
 	});
   $('.ActiveElementMenu').on('click', '[action = scaleFloor]', function(event){
 
