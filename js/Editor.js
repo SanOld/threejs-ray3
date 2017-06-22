@@ -490,6 +490,7 @@ function Editor(obj){
       floorTexture.needsUpdate = true;
       floorTexture.repeat.set( 1, 1 );
       $Editor.floor.material = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
+      $Editor.floor.material.anisotropy = maxAnisotropy;
       $Editor.floor.textureFile = filename;
 
 		},
@@ -834,7 +835,7 @@ function initProjection(obj){
                                           frustumSize / 2,
                                           frustumSize / - 2,
                                           1,
-                                          100000
+                                          1000000
                                         );
 
 

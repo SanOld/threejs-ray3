@@ -162,9 +162,9 @@ function initMain()
 
 
 	// SKYBOX/FOG
-	var skyBoxGeometry = new THREE.BoxGeometry( 10000000, 10000000, 10000000 );
-	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.BackSide } );
-//  var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 'white', side: THREE.DoubleSide } );
+	var skyBoxGeometry = new THREE.BoxGeometry( 1000000, 1000000, 1000000 );
+//	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.BackSide } );
+  var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 'white', side: THREE.DoubleSide } );
 	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
   skyBox.name = "skyBox";
 	scene.add(skyBox);

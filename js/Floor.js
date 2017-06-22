@@ -16,9 +16,10 @@ function Floor( parameters ){
 
   this.geometry = parameters.hasOwnProperty("geometry") ? parameters["geometry"] : this.buildGeometry();
   this.material = parameters.hasOwnProperty("material") ? parameters["material"] : floorMaterial;
+  this.material.visible = false;
 
-  var gridHelper = new THREE.GridHelper( 100000, 200, 0x0000ff, 0x808080 );
-  gridHelper.position.z = 1;
+  var gridHelper = new THREE.GridHelper( 1000000, 2000, 0x0000ff, 0x808080 );
+  gridHelper.position.z = -10;
   gridHelper.rotation.x = -Math.PI / 2;
   this.add( gridHelper );
 
@@ -47,9 +48,9 @@ Floor.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
   setLocation: function(){
 
-    this.position.x = this.length * this.scale.x/2;
-    this.position.z = this.width * this.scale.y/2;
-    this.position.y = -1;
+//    this.position.x = this.length * this.scale.x/2;
+//    this.position.z = this.width * this.scale.y/2;
+    this.position.z = -1;
     this.rotation.x = -Math.PI / 2;
 
   },
