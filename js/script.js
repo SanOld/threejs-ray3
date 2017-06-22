@@ -62,7 +62,7 @@
 
           if( $selectMode.enabled )
           $selectMode.selectAllInnerSurfaces();
-        
+
         }
 
       }
@@ -163,7 +163,8 @@ function initMain()
 
 	// SKYBOX/FOG
 	var skyBoxGeometry = new THREE.BoxGeometry( 10000000, 10000000, 10000000 );
-	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
+	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.BackSide } );
+//  var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 'white', side: THREE.DoubleSide } );
 	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
   skyBox.name = "skyBox";
 	scene.add(skyBox);
@@ -184,12 +185,6 @@ function init()
 //	////////////
 //	// CUSTOM //
 //	////////////
-
-//$wallCreator.addWall([ new THREE.Vector3(-2000,0,-2000), new THREE.Vector3(2000,0,-2000) ]);
-//$wallCreator.addWall([ new THREE.Vector3(2000,0,-2000), new THREE.Vector3(2000,0,2000) ]);
-//$wallCreator.addWall([ new THREE.Vector3(2000,0,2000), new THREE.Vector3(-2000,0,2000) ]);
-//$wallCreator.addWall([ new THREE.Vector3(-2000,0,2000), new THREE.Vector3(-2000,0,-2000) ]);
-
 
 //loadScene();
 //loadCamera();

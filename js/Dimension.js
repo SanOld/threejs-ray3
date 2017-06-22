@@ -222,6 +222,12 @@ function Dimension( param1, param2, plane, parameters ){
 
     });
 
+    self.editableField.off('click');
+    self.editableField.on('click', function( event ){
+      this.selectionStart = this.value.length;
+    });
+
+
     self.leftArrow.off('click');
     self.leftArrow.on('click', function(){
 

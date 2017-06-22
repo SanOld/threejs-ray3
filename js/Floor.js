@@ -17,6 +17,11 @@ function Floor( parameters ){
   this.geometry = parameters.hasOwnProperty("geometry") ? parameters["geometry"] : this.buildGeometry();
   this.material = parameters.hasOwnProperty("material") ? parameters["material"] : floorMaterial;
 
+  var gridHelper = new THREE.GridHelper( 100000, 200, 0x0000ff, 0x808080 );
+  gridHelper.position.z = 1;
+  gridHelper.rotation.x = -Math.PI / 2;
+  this.add( gridHelper );
+
   var parent_toJson = this.toJSON;
 
   this.toJSON = function ( meta ) {
