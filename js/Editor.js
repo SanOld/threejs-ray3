@@ -114,9 +114,9 @@ function Editor(obj){
                         };
 
   obj.wallColors = {
-    notChangable: projectionWallMaterial_black,
-    installation: projectionWallMaterial_green,
-    deinstallation: projectionWallMaterial_red
+    notChangable: 'black',
+    installation: 'green',
+    deinstallation: 'red'
   };
 
   obj.default_params = {
@@ -125,6 +125,7 @@ function Editor(obj){
     opacity: 0.8,
     Wall:{
       main_color: 'black',
+      color_3D: '#d5c7ac',
       active_color: '#00FFFF'
     },
     wallMover:{
@@ -885,9 +886,9 @@ function initProjection(obj){
         $wallCreator.walls.forEach( function( item ){
 
           if( item.action && item.action.length > 0){
-            item.material = $Editor.wallColors[item.action];
+            item.material.color = new THREE.Color( $Editor.wallColors[item.action] );
           } else {
-            item.material = $Editor.wallColors[ $Editor.wallActions[0] ];
+            item.material.color = new THREE.Color( $Editor.default_params.Wall.main_color );
           }
 
         });
@@ -898,7 +899,9 @@ function initProjection(obj){
 
         $wallCreator.walls.forEach( function( item ){
 
-          item.material = acsWallMaterial2;
+
+          if( item.material.color == new THREE.Color( $Editor.default_params.Wall.main_color) )
+          item.material.color = new THREE.Color( $Editor.default_params.Wall.color_3D );//acsWallMaterial2;
 
         });
 
@@ -1056,16 +1059,20 @@ function initProjection(obj){
   obj.setWallBearingTypeValue = function( type, action ){
 
 //    var part = '';
+    $('.wall_type').show();
+    $('.wall_type').find('[type=radio]').prop('checked', false );
 
     if( type && type != '' ){
 
-      $('.wall_type').show();
       $('#' + type).prop('checked', 'checked' );
 
     }
 
   };
   obj.setWallAction = function( action ){
+
+
+    $('[type=radio]').prop('checked', false );
 
     if( action && action != '' ){
 
@@ -1101,13 +1108,12 @@ function initProjection(obj){
 
       } else {
 
-        $('.objParams').find('[param = '+ param +']').val( +parameters[ param ].val );
+        $('.objParams').find('[param = '+ param +']').val( parameters[ param ].val );
 
       }
 
       $('.objParams').find('.' + param).show();
       $('.objParams').find('span.' + param).text( parameters[ param ].label );
-
 
       $('.objParams').find('.' + param).parent().show();
     }
@@ -1338,30 +1344,7 @@ function initProjection(obj){
 
 
 
-  $('[name = walls_type_radio]').on('click',function(){
 
-//    var part = '';
-
-    if($wallEditor.selected && $wallEditor.selected.type == 'Wall'){
-
-      $wallEditor.selected.changeBearingType( $(this).attr('id') );
-
-    }
-
-	});
-  $('[name = wall_action]').on('click',function(){
-
-		if($wallEditor.selected && $wallEditor.selected.type == 'Wall'){
-
-      $wallEditor.selected.changeAction( $(this).attr('id') );
-
-      $(this).prop('checked', 'checked' );
-
-      obj.hideObjParams();
-    }
-
-
-	});
 
 }
 $projection = {};
@@ -2648,7 +2631,7 @@ function initWallEditor( obj ){
   obj.selected = null;
   obj.selectedArray = [];// мультивыбор
   obj.multySelectMode = false;
-  obj.changingObject = null;
+//  obj.changingObject = null;
   obj.lastDoorway = {};// объект с информацией о последнем добавленом проеме
 
   obj.maxNeighboorsDistance = 0.5;
@@ -2669,7 +2652,6 @@ function initWallEditor( obj ){
     obj.activateDoorway();
     obj.activateControlPoint();
     obj.activateWallDimensions();
-
 
     obj.deactivateSelectControls();
     obj.activateSelectControls();
@@ -2854,8 +2836,6 @@ function initWallEditor( obj ){
       obj.selectedArray = [];
     }
 
-
-
 		if ( object !== null && obj.selectedArray.indexOf(object.uuid) == -1    ) {
 
       if( obj.selectedArray.length > 0 && scene.getObjectByProperty( 'uuid', obj.selectedArray[0] ).type != object.type ){
@@ -2886,10 +2866,7 @@ function initWallEditor( obj ){
         callback(true);
       }
 
-
 		}
-
-
 
   };
   obj.objectSelectedRemove = function( event ){
@@ -2902,6 +2879,7 @@ function initWallEditor( obj ){
     });
 
   };
+
   obj.select = function(event){
 
     //фиксируем выбранный объект
@@ -2912,7 +2890,6 @@ function initWallEditor( obj ){
           obj.hideAllMenu();
           $projection.hideObjParams();
 
-
           //взываем select на выбранном объекте
           if( 'select' in event.object )
           event.object.select(event);
@@ -2921,8 +2898,8 @@ function initWallEditor( obj ){
           if( obj.selected.type == 'Wall'){
 
             $projection.showObjParams({
-              height: {val: obj.selected.height, label: 'Высота'},
-              width: {val: obj.selected.width, label: 'Толщина'},
+              height: {val: obj.getSelectedPropertyByName('height'), label: 'Высота'},
+              width: {val: obj.getSelectedPropertyByName('width'), label: 'Толщина'},
               width_ed_izm:{label: current_unit.short_name},
               height_ed_izm:{label: current_unit.short_name},
               // elevation_ed_izm:{label:'мм'},
@@ -2933,17 +2910,17 @@ function initWallEditor( obj ){
             $('div.wall_type').parents('div').css('display','block');
             $('.left_panel_custom').css({'bottom':'213px'});
 
-            $projection.setWallBearingTypeValue( obj.selected.bearingType );
-            $projection.setWallAction( obj.selected.action );
+            $projection.setWallBearingTypeValue( obj.getSelectedPropertyByName('bearingType') );
+            $projection.setWallAction( obj.getSelectedPropertyByName('action') );
 
           } else if( obj.selected.type == 'WindowBlock'){
 
             $projection.showObjParams({
-              height: {val: obj.selected.height, label: 'Высота'},
-              width: {val: obj.selected.width, label: 'Ширина'},
+              height: {val: obj.getSelectedPropertyByName('height'), label: 'Высота'},
+              width: {val: obj.getSelectedPropertyByName('width'), label: 'Ширина'},
               depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
-              elevation: {val: obj.selected.elevation, label: 'От пола'},
-              slope: {val: obj.selected.slope, label: 'Откос'},
+              elevation: {val: obj.getSelectedPropertyByName('elevation'), label: 'От пола'},
+              slope: {val: obj.getSelectedPropertyByName('slope'), label: 'Откос'},
 
               elevation_ed_izm:{label: current_unit.short_name},
               slope_ed_izm:{label: current_unit.short_name},
@@ -2956,13 +2933,13 @@ function initWallEditor( obj ){
           } else if( obj.selected.type == 'DoorBlockFloor' || obj.selected.type == 'DoubleDoorBlockFloor' ){
 
             $projection.showObjParams({
-              height: {val: obj.selected.height, label: 'Высота'},
-              width: {val: obj.selected.width, label: 'Ширина'},
+              height: {val: obj.getSelectedPropertyByName('height'), label: 'Высота'},
+              width: {val: obj.getSelectedPropertyByName('width'), label: 'Ширина'},
 
-              depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
-              elevation: {val: obj.selected.elevation, label: 'От пола'},
-              slope: {val: obj.selected.slope, label: 'Откос'},
-              isEntryDoor: {isEntryDoor: obj.selected.isEntryDoor, label: 'Входная'},
+              depObject_thickness: {val: obj.getSelectedPropertyByName('depObject_thickness'), label: 'Толщина'},
+              elevation: {val: obj.getSelectedPropertyByName('elevation'), label: 'От пола'},
+              slope: {val: obj.getSelectedPropertyByName('slope'), label: 'Откос'},
+              isEntryDoor: {isEntryDoor: obj.getSelectedPropertyByName('isEntryDoor'), label: 'Входная'},
               notEntryDoor:{label:'Межкомнатная'},
               entryDoor:{label:'Входная'},
               width_ed_izm:{label: current_unit.short_name},
@@ -2978,10 +2955,10 @@ function initWallEditor( obj ){
 
           } else if( obj.selected.type == 'Doorway' || obj.selected.type == 'Niche' ){
             $projection.showObjParams({
-              height: {val: obj.selected.height, label: 'Высота'},
-              width: {val: obj.selected.width, label: 'Ширина'},
-              thickness: {val: obj.selected.thickness, label: 'Толщина'},
-              elevation: {val: obj.selected.elevation, label: 'От пола'},
+              height: {val: obj.getSelectedPropertyByName('height'), label: 'Высота'},
+              width: {val: obj.getSelectedPropertyByName('width'), label: 'Ширина'},
+              thickness: {val: obj.getSelectedPropertyByName('thickness'), label: 'Толщина'},
+              elevation: {val: obj.getSelectedPropertyByName('elevation'), label: 'От пола'},
               th_ed_izm:{label: current_unit.short_name},
               width_ed_izm:{label: current_unit.short_name},
               height_ed_izm:{label: current_unit.short_name},
@@ -2998,6 +2975,34 @@ function initWallEditor( obj ){
         return;
       }
     } );
+
+
+  };
+  obj.getSelectedPropertyByName = function( property ){
+
+
+    if( obj.selectedArray.length == 0)
+    return '';
+
+    var object = scene.getObjectByProperty('uuid', obj.selectedArray[0] );
+
+    //первое значение
+    if( property in object )
+    var result = object[ property ];
+
+
+    for (var i = 1; i < obj.selectedArray.length; i++) {
+
+
+      object = scene.getObjectByProperty('uuid', obj.selectedArray[i] );
+
+      if( property in object && object[ property ] != result){
+        return '';
+      }
+
+    }
+
+    return result;
 
 
   };
@@ -4162,9 +4167,9 @@ function initWallEditor( obj ){
       break;
     }
 
-    if( event.ctrlKey){
-      obj.multySelectMode = true;
-    }
+//    if( event.ctrlKey){
+//      obj.multySelectMode = true;
+//    }
 
   };
   function onKeyUpWallEditor ( event ){
@@ -4226,29 +4231,29 @@ function initWallEditor( obj ){
 	});
   $('.ActiveElementMenu').on('click', '[action = addDoorway]', function(){
 
-		obj.selected.addDoorway( $(this).data('type') );
+		var uuid = obj.selected.addDoorway( $(this).data('type') );
 
     obj.lastDoorway.type = $(this).data('type');
-    obj.lastDoorway.doorway = obj.selected.uuid;
+    obj.lastDoorway.doorway = uuid;
 
 	});
   $('.ActiveElementMenu').on('click', '[action = addDoorBlockFloor]', function(){
-		obj.selected.addDoorway( $(this).data('type') );
+		var uuid = obj.selected.addDoorway( $(this).data('type') );
 
     obj.lastDoorway.type = $(this).data('type');
-    obj.lastDoorway.doorway = obj.selected.uuid;
+    obj.lastDoorway.doorway = uuid;
 	});
   $('.ActiveElementMenu').on('click', '[action = addDoubleDoorBlockFloor]', function(){
-		obj.selected.addDoorway( $(this).data('type') );
+		var uuid = obj.selected.addDoorway( $(this).data('type') );
 
     obj.lastDoorway.type = $(this).data('type');
-    obj.lastDoorway.doorway = obj.selected.uuid;
+    obj.lastDoorway.doorway = uuid;
 	});
   $('.ActiveElementMenu').on('click', '[action = addWindow]', function(){
-		obj.selected.addDoorway( $(this).data('type') );
+		var uuid = obj.selected.addDoorway( $(this).data('type') );
 
     obj.lastDoorway.type = $(this).data('type');
-    obj.lastDoorway.doorway = obj.selected.uuid;
+    obj.lastDoorway.doorway = uuid;
 	});
   $('.ActiveElementMenu').on('click', '[action = addNiche]', function(){
 		obj.selected.addDoorway( $(this).data('type') );
@@ -4336,56 +4341,100 @@ function initWallEditor( obj ){
     }
 
   });
-  $('.footer').on('keydown','[param]',function(event){
 
-    //фиксируем изменяемый объект для использовании в событии по change
-    obj.changingObject  = obj.selected;
+  $('[name = walls_type_radio]').on('click',function(){
 
-  });
+    var self = this;
+
+    obj.selectedArray.forEach(function (item, index, arr) {
+
+      var changingObject = scene.getObjectByProperty('uuid', item);
+
+      if( changingObject ){
+
+        changingObject.changeBearingType( $(self).attr('id') );
+        $(self).prop('checked', 'checked' );
+
+      }
+
+    });
+
+	});
+  $('[name = wall_action]').on('click',function(){
+
+    var self = this;
+
+    obj.selectedArray.forEach(function (item, index, arr) {
+
+      var changingObject = scene.getObjectByProperty('uuid', item);
+
+      if( changingObject ){
+
+        changingObject.changeAction( $(self).attr('id') );
+        $(self).prop('checked', 'checked' );
+
+      }
+
+    });
+
+    $projection.hideObjParams();
+
+	});
+//  $('.footer').on('keydown','[param]',function(event){
+//
+//    //фиксируем изменяемый объект для использовании в событии по change
+//    obj.changingObject  = obj.selected;
+//
+//  });
 
   $('.footer').on('change','[param]',function(event){
 
-      obj.changingObject = obj.changingObject ? obj.changingObject : obj.selected;
+    var self = this;
 
-      var param = $(this).attr('param');
+    obj.selectedArray.forEach(function (item, index, arr) {
 
-      if( obj.changingObject && $(this).val() != '' ){
+      var changingObject = scene.getObjectByProperty('uuid', item);
 
-        var val = +$(this).val()/current_unit.c;
+      var param = $(self).attr('param');
+
+      if( changingObject && $(self).val() != '' ){
+
+        var val = +$(self).val()/current_unit.c;
 
         switch (param) {
-
           case 'depObject_thickness':
 
-            obj.changingObject.setDepObjectThickness( val );
+            changingObject.setDepObjectThickness( val );
 
             break;
           case 'width':
 
-            if ( obj.changingObject.type == 'Wall' ){
+            if ( changingObject.type == 'Wall' ){
 
-              obj.changingObject.setWidth( val );
+              changingObject.setWidth( val );
 
             } else {
 
-              obj.changingObject[ param ] = val;
+              changingObject[ param ] = val;
 
             }
 
             break;
           default:
 
-            obj.changingObject[ param ] = val;
+            changingObject[ param ] = val;
 
             break;
         }
 
-        obj.changingObject.wall ? obj.changingObject.wall.update() : obj.changingObject.update();
+        changingObject.wall ? changingObject.wall.update() : changingObject.update();
         $wallCreator.updateWalls();
 
       }
 
-      obj.changingObject = null;
+      changingObject = null;
+
+    });
 
   });
   $('.footer').on('click','[param]',function(event){

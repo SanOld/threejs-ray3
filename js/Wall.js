@@ -650,7 +650,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
 
   },
-  remove: function(object){
+  remove: function( object ){
 
     if(object){
 
@@ -700,14 +700,19 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
   setActiveMode: function( state ){
 
-    if( state){
+    if( state ){
 
       this.material.color = new THREE.Color( $Editor.default_params.Wall.active_color );
 
     } else {
 
-//    if( $wallEditor.selectedArray.indexOf( self.wall.uuid ) == -1 && ($wallEditor.selected && $wallEditor.selected.uuid != self.wall.uuid ) )
-      this.material.color = new THREE.Color( $Editor.default_params.Wall.main_color );
+//      if( this.action && this.action.length > 0){
+//        this.material.color = $Editor.wallColors[this.action].color;
+//      } else {
+//        this.material.color = $Editor.default_params.Wall.main_color;
+//      }
+
+      this.material.color = new THREE.Color( $Editor.wallColors[this.action] );
 
     }
 
@@ -807,7 +812,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       $wallEditor.deactivateSelectControls();
       $wallEditor.activateSelectControls();
-      $wallEditor.selected = obj;
+
+      return obj ? obj.uuid : false;
+
 
     }
 
@@ -1381,7 +1388,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
   changeAction: function( action ){
 
-    this.material = $Editor.wallColors[ action ];
+    this.material.color = new THREE.Color( $Editor.wallColors[ action ] );
     this.action = action;
 
   },
