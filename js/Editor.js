@@ -1425,7 +1425,7 @@ function initDimensionEditorMode(obj){
   obj.off = function(){
     obj.enabled = false;
     Dimensions.visible = false;
-    Dimensions.children.forEach(function(item){
+    Dimensions.children.forEach(function( item ){
       item.deactivate();
     });
     obj.deactivate();
@@ -1433,8 +1433,8 @@ function initDimensionEditorMode(obj){
 
   obj.edgesAdd = function(){
 
-    scene.traverse(function(item, idx) {
-      if(item.name == 'wall'){
+    scene.traverse(function( item, idx ) {
+      if( item.type == 'Wall' ){
         var edges = new THREE.EdgesGeometry( item.geometry );
         var positions = edges.attributes.position.array;
         for(var i = 0; i < positions.length;i+=2)
@@ -1462,7 +1462,7 @@ function initDimensionEditorMode(obj){
     scene.add( obj.currentPoint );
 
     scene.traverse(function(item, idx) {
-      if(item.name == 'wall'){
+      if( item.type == 'Wall' ){
 
           var material2 = new THREE.PointsMaterial({
             color: 'red',
@@ -1942,6 +1942,7 @@ function initWallCreator(obj){
     var parameters = parameters || {};
 
     var needUpdate = parameters.hasOwnProperty("needUpdate") ? parameters["needUpdate"] : true;
+    var isRadial = parameters.hasOwnProperty("isRadial") ? parameters["isRadial"] : false;
 
     vertices[0] = parameters.hasOwnProperty("v1") ? parameters["v1"] : vertices[0].clone();
     vertices[1] = parameters.hasOwnProperty("v2") ? parameters["v2"] : vertices[1].clone();
@@ -1956,7 +1957,16 @@ function initWallCreator(obj){
 
     }
 
-    var wall = new Wall( vertices, parameters );
+    if ( isRadial ){
+
+      var wall = new RadialWall( vertices, parameters );
+
+    } else {
+
+      var wall = new Wall( vertices, parameters );
+
+    }
+
     if( wall ){
 
 //Простой вариант построения по типу размера
@@ -2260,7 +2270,7 @@ function initWallCreator(obj){
     //наполнение массива точек
     scene.children.forEach(function(item, idx) {
 
-      if(item.name == 'wall'){
+      if( item.type == 'Wall' ){
 
         $Editor.getMagnitVerticies({ v1: item.v1, v2: item.v2 }, function(response){
           if(response){
@@ -4370,6 +4380,11 @@ function initWallEditor( obj ){
   $('.ActiveElementMenu').on('click', '[action = changeWidth]', function(event){
 
 		obj.selected.changeWidth(event);
+
+	});
+  $('.ActiveElementMenu').on('click', '[action = changeRadial]', function( event ){
+
+		obj.selected.changeRadial();
 
 	});
 

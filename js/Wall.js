@@ -18,6 +18,7 @@ function Wall( vertices, parameters ){
   this.doors = parameters.hasOwnProperty("doors") ? parameters["doors"] : [];
   this.bearingType = parameters.hasOwnProperty("bearingType") ? parameters["bearingType"] : 'bear_wall';
   this.action = parameters.hasOwnProperty("action") ? parameters["action"] : $Editor.wallActions[0];
+  this.isRadial = false;
 
   this.doors = [];
   this.dimensions = []; //массив хранения объектов размеров стены
@@ -1534,6 +1535,20 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       }
     }
+  },
+
+  changeRadial: function(){
+
+    var v1 = this.v1.clone();
+    var v2 = this.v2.clone();
+    var isRadial = this.isRadial;
+
+    this.remove();
+    $wallEditor.removeWall( this );
+
+    $wallCreator.addWall( [ v1, v2 ], { isRadial: !isRadial});
+    window.console.log($wallEditor.walls);
+
   }
 
 });

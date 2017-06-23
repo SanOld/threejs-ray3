@@ -328,6 +328,7 @@
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40.8112px; top: -80.8112px; background-position: left -200px; opacity: 1; width: 40px; height: 40px;" action="addDoorway" data-type="Doorway" title="Дверной проем (портал)"></div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: -42.2584px; background-position: left -80px; opacity: 1; width: 40px; height: 40px;" action="remove" title="Удалить"></div>
   <div target="_blank" class="ActiveElementMenuAnimated" style="left: 63.0696px; top: 5px; background-position: left -320px; opacity: 1; width: 40px; height: 40px;" action="changeWidth" title="Толщина"></div>
+  <div target="_blank" class="ActiveElementMenuAnimated" style="left: 40.8112px; top: 43px; background-position: left -320px; opacity: 1; width: 40px; height: 40px;" action="changeRadial" title="Радиусная стена"></div>
   
 
 </div>

@@ -39,6 +39,7 @@ $(document).ready(function() {
   include("js/WallControlPoint.js?"+HASH);
   include("js/WallMover.js?"+HASH);
   include("js/Wall.js?"+HASH);
+  include("js/RadialWall.js?"+HASH);
 
   include("js/Editor.js?"+HASH);
   include("js/script.js?"+HASH);
