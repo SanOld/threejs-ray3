@@ -35,6 +35,7 @@ function Wall( vertices, parameters ){
   this.direction = this.axisLine.delta().normalize();
   this.direction90 = new THREE.Vector3( this.direction.z, 0 , -this.direction.x );
   this.axisLength = this.axisLine.distance();
+  this.angle = this.direction.angleTo( new THREE.Vector3(1,0,0));
 
   var response = $Editor.getAdditionalPoints({v1: this.v1, v2: this.v2, width: this.width, direction90: this.direction90 });
 
