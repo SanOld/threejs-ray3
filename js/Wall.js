@@ -347,11 +347,11 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     if( target && target.isRadial ){
 
-      result_point = target_point();
+      result_point = target_point.bind( target, this.walls )();
 
     }
 
-    return result_point.equals(new THREE.Vector3()) ? null : result_point;
+    return !result_point || result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
   getV21: function ( walls ){
 
@@ -380,7 +380,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_point = item.v11;
+            target_point = item.getV11;
             target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
           }
         }
@@ -396,7 +396,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_point = item.v22;
+            target_point = item.getV22;
             target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
           }
         }
@@ -442,11 +442,11 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     if( target && target.isRadial ){
 
-      result_point = target_point;
+      result_point = target_point.bind( target, this.walls )();
 
     }
 
-    return result_point.equals(new THREE.Vector3()) ? null : result_point;
+    return !result_point || result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
   getV12: function ( walls ){
     var result_point =  new THREE.Vector3();
@@ -474,7 +474,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_point = item.v22;
+            target_point = item.getV22;
             target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
           }
         }
@@ -490,7 +490,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_point = item.v11;
+            target_point = item.getV11;
             target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
           }
         }
@@ -535,11 +535,11 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     if( target && target.isRadial ){
 
-      result_point = target_point;
+      result_point = target_point.bind( target, this.walls )();
 
     }
 
-    return result_point.equals(new THREE.Vector3()) ? null : result_point;
+    return !result_point || result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
   getV11: function ( walls ){
     var result_point =  new THREE.Vector3();
@@ -568,7 +568,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_point = item.v21;
+            target_point = item.getV21;
             target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
           }
         }
@@ -584,7 +584,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
-            target_point = item.v12;
+            target_point = item.getV12;
             target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
           }
         }
@@ -632,11 +632,11 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     if( target && target.isRadial ){
 
-      result_point = target_point;
+      result_point = target_point.bind( target, this.walls )();
 
     }
 
-    return result_point.equals(new THREE.Vector3()) ? null : result_point;
+    return !result_point || result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
   //перерасчет при изменении толщины стены
   recalculatePoints: function (){
