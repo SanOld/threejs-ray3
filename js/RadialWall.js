@@ -30,17 +30,18 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
 				wallShape.lineTo( this.v11.x, this.v11.z );
 
+        var r = Math.abs( this.v1.distanceTo( this.v2 ) ) / 2;
+        var delta = this.width/2;
+        var r1 = r + delta;
 
-        var r = Math.abs( this.v11.distanceTo( this.v21 ) ) / 2;
-
-        var coord = new THREE.Line3(this.v11, this.v21).getCenter();
+        var coord = new THREE.Line3(this.v1, this.v2).getCenter();
 
         var curve = new THREE.EllipseCurve(
-                                            coord.x,  coord.z,  // ax, aY
-                                            r, r,             // xRadius, yRadius
+                                            coord.x,  coord.z, // ax, aY
+                                            r1, r1,            // xRadius, yRadius
                                             Math.PI,  0,       // aStartAngle, aEndAngle
-                                            false,              // aClockwise
-                                            this.angle                  // aRotation
+                                            false,             // aClockwise
+                                            -this.angle        // aRotation
                                           );
 
         wallShape.curves.push(curve);
@@ -48,19 +49,17 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         wallShape.currentPoint.x = this.v21.x;
         wallShape.currentPoint.y = this.v21.z;
 
-
         wallShape.lineTo( this.v2.x,  this.v2.z );
 				wallShape.lineTo( this.v22.x, this.v22.z );
 
-        var r2 = Math.abs( this.v22.distanceTo( this.v12 ) ) / 2;
-        var coord2 = new THREE.Line3(this.v22, this.v12).getCenter();
+        var r2 = r - delta;;
 
         var curve2 = new THREE.EllipseCurve(
-                                            coord2.x,  coord2.z,  // ax, aY
-                                            this.radius - this.width/2, this.radius - this.width/2,             // xRadius, yRadius
+                                            coord.x,  coord.z,  // ax, aY
+                                            r2, r2,             // xRadius, yRadius
                                             0, Math.PI,       // aStartAngle, aEndAngle
                                             true,              // aClockwise
-                                            this.angle                  // aRotation
+                                            -this.angle                  // aRotation
                                           );
 
         wallShape.curves.push(curve2);
@@ -97,7 +96,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     }
     return geometry;
   },
-  getV22: function (walls){
+  getV22: function ( walls ){
     var result_point =  new THREE.Vector3();
     var walls = walls || [];
     var angle_max = - Math.PI;
@@ -110,9 +109,11 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     var target_foundation = null;
     var self = this;
 
-    var sphere;
+    var sphere_1;
+    var sphere_2;
 
     walls.forEach(function(item, i){
+
       if(self.uuid != item.uuid){
         if( $wallEditor.isPointsNeighboors( self.v2, item.v1 ) ){
 
@@ -121,17 +122,13 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           angle = cross < 0 ? angle : - angle;
 
           if(angle > angle_max) {
+
             angle_max = angle;
             segment_start = item.v22;
             target = item;
             target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
             target_point = item.v1;
             target_direction = item.direction.clone().negate();
-
-
-            var geometry = new THREE.SphereBufferGeometry( self.radius - self.width/2, 32, 32 );
-            sphere = new THREE.Mesh( geometry, wallControlPointMaterial );
-            sphere.geometry.translate (self.center.x, 0, self.center.z);
 
           }
         }
@@ -143,6 +140,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           angle = cross < 0 ? angle : - angle;
 
           if(angle > angle_max) {
+
             angle_max = angle;
             segment_start = item.v11;
             target = item;
@@ -150,12 +148,17 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
             target_point = item.v2;
             target_direction = item.direction.clone();
 
-            var geometry = new THREE.SphereBufferGeometry( self.radius - self.width/2, 32, 32 );
-            sphere = new THREE.Mesh( geometry, wallControlPointMaterial );
-            sphere.geometry.translate (self.center.x, 0, self.center.z);
-
           }
         }
+
+        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
+        sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
+        sphere_1.geometry.translate (self.center.x, 0, self.center.z);
+
+        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
+        sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
+        sphere_2.geometry.translate (self.center.x, 0, self.center.z);
+
       }
 
     });
@@ -180,9 +183,14 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
       var raycaster = new THREE.Raycaster( segment_start, target_direction );
       var intersects = [];
+      var intersects_1 = [];
+      var intersects_2 = [];
 
-      if( sphere )
-      sphere.raycast( raycaster, intersects );
+
+      sphere_1.raycast( raycaster, intersects_1 );
+      intersects = intersects.concat( intersects_1 );
+      sphere_2.raycast( raycaster, intersects_2 );
+      intersects = intersects.concat( intersects_2 );
 
       if( intersects.length == 1 ){
 
@@ -216,103 +224,149 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
-  getV21: function (walls){
+  getV21: function ( walls ){
 
-    var result_point =  new THREE.Vector3();
-    var walls = walls || [];
-    var angle_max = Math.PI;
+  var result_point =  new THREE.Vector3();
+  var walls = walls || [];
+  var angle_max = Math.PI;
 
-    var segment_start = new THREE.Vector3();
-    var segment_end = new THREE.Vector3();
+  var segment_start = new THREE.Vector3();
 
-    var target = null;
-    var target_foundation = null;
-    var self = this;
+  var target = null;
+  var target_point = new THREE.Vector3();
+  var target_direction = new THREE.Vector3();
+  var target_foundation = null;
+  var self = this;
 
-    walls.forEach(function(item, i){
-      if(self.uuid != item.uuid){
-        if( $wallEditor.isPointsNeighboors( self.v2, item.v1 ) ){
+  var sphere_1;
+  var sphere_2;
 
-          var angle = self.direction.angleTo(item.direction) ;
-          var cross = self.direction.clone().cross(item.direction).getComponent ( 1 );
-          angle = cross < 0 ? angle : - angle;
+  walls.forEach(function(item, i){
+    if(self.uuid != item.uuid){
+      if( $wallEditor.isPointsNeighboors( self.v2, item.v1 ) ){
 
-          if(angle < angle_max) {
-            angle_max = angle;
-            segment_start = item.v21;
-            segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
-            target = item;
-            target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
-          }
-        }
+        var angle = self.direction.angleTo(item.direction) ;
+        var cross = self.direction.clone().cross(item.direction).getComponent ( 1 );
+        angle = cross < 0 ? angle : - angle;
 
-        if( $wallEditor.isPointsNeighboors( self.v2, item.v2 ) ){
+        if(angle < angle_max) {
+          angle_max = angle;
+          segment_start = item.v21;
+          target = item;
+          target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
+          target_point = item.v1;
+          target_direction = item.direction.clone().negate();
 
-          var angle = self.direction.angleTo( item.direction.clone().negate() ) ;
-          var cross = self.direction.clone().cross( item.direction.clone().negate() ).getComponent ( 1 );
-          angle = cross < 0 ? angle : - angle;
-
-          if(angle < angle_max) {
-            angle_max = angle;
-            segment_start = item.v12;
-            segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
-            target = item;
-            target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
-          }
         }
       }
 
-    });
+      if( $wallEditor.isPointsNeighboors( self.v2, item.v2 ) ){
 
+        var angle = self.direction.angleTo( item.direction.clone().negate() ) ;
+        var cross = self.direction.clone().cross( item.direction.clone().negate() ).getComponent ( 1 );
+        angle = cross < 0 ? angle : - angle;
 
-    //при разнице оснований и угол меньше 45 примыкание к основанию
-    var exception = false;
-    self._e_path21 = null;
+        if(angle < angle_max) {
+          angle_max = angle;
+          segment_start = item.v12;
+          target = item;
+          target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
+          target_point = item.v2;
+          target_direction = item.direction.clone();
 
-    if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
+        }
+      }
 
-      segment_start = target_foundation.p1;
-      segment_end = target_foundation.p2;
+      var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
+      sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
+      sphere_1.geometry.translate (self.center.x, 0, self.center.z);
 
+      var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
+      sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
+      sphere_2.geometry.translate (self.center.x, 0, self.center.z);
 
     }
-    if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
 
-      angle_max = 0;
-      exception = true;
+  });
+
+
+  //при разнице оснований и угол меньше 45 примыкание к основанию
+  var exception = false;
+  self._e_path21 = null;
+
+  if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
+
+    segment_start = target_foundation.p1;
+//      segment_end = target_foundation.p2;
+
+  }
+  if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
+
+    angle_max = 0;
+    exception = true;
+
+  }
+  //пересечение
+  if(angle_max < Math.PI && angle_max != 0){
+
+    var raycaster = new THREE.Raycaster( segment_start, target_direction );
+    var intersects = [];
+    var intersects_1 = [];
+    var intersects_2 = [];
+
+
+    sphere_1.raycast( raycaster, intersects_1 );
+    intersects = intersects.concat( intersects_1 );
+    sphere_2.raycast( raycaster, intersects_2 );
+    intersects = intersects.concat( intersects_2 );
+
+    if( intersects.length == 1 ){
+
+      result_point = intersects[0].point;
+
+    } else if( intersects.length > 1 ){
+
+      var i = intersects.length;
+      var dist_min = Infinity;
+      while(i--){
+          var dist = intersects[i].point.distanceToSquared( target_point );
+          if(dist < dist_min){
+            dist_min = dist;
+            result_point = intersects[i].point;
+          }
+      }
 
     }
-    //пересечение
-    if(angle_max < Math.PI && angle_max != 0){
 
-      var ray = new THREE.Ray(self.v11, self.direction);
-      ray.distanceSqToSegment ( segment_start, segment_end, result_point );
+  }
 
-    }
+  if(exception){
+    self._e_path21 = {
+                id: self.uuid + '_e21',
+                wall_uuid: self.uuid,
+                source: { id: self.node21.id },
+                target: { id: target_foundation.node_id },
+                wall_id: this.id
+              };
+  }
 
-    if(exception){
-      self._e_path21 = {
-                  id: self.uuid + '_e21',
-                  wall_uuid: self.uuid,
-                  source: { id: self.node21.id },
-                  target: { id: target_foundation.node_id },
-                  wall_id: this.id
-                };
-    }
-
-    return result_point.equals(new THREE.Vector3()) ? null : result_point;
-  },
-  getV12: function (walls){
+  return result_point.equals(new THREE.Vector3()) ? null : result_point;
+},
+  getV12: function ( walls ){
     var result_point =  new THREE.Vector3();
     var walls = walls || [];
     var angle_max = Math.PI;
 
     var segment_start = new THREE.Vector3();
-    var segment_end = new THREE.Vector3();
 
     var target = null;
+    var target_point = new THREE.Vector3();
+    var target_direction = new THREE.Vector3();
     var target_foundation = null;
     var self = this;
+
+    var sphere_1;
+    var sphere_2;
 
     walls.forEach(function(item, i){
       if(self.uuid != item.uuid){
@@ -323,11 +377,14 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           angle = cross < 0 ? angle : - angle;
 
           if(angle < angle_max) {
+
             angle_max = angle;
             segment_start = item.v12;
-            segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
             target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
+            target_point = item.v2;
+            target_direction = item.direction.clone();
+
           }
         }
 
@@ -338,16 +395,28 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           angle = cross < 0 ? angle : - angle;
 
           if(angle < angle_max) {
+
             angle_max = angle;
             segment_start = item.v21;
-            segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
             target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
+            target_point = item.v1;
+            target_direction = item.direction.clone().negate();
+
           }
         }
+
+        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
+        sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
+        sphere_1.geometry.translate (self.center.x, 0, self.center.z);
+
+        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
+        sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
+        sphere_2.geometry.translate (self.center.x, 0, self.center.z);
+
       }
 
-    })
+    });
 
     //при разнице оснований и угол меньше 45 примыкание к основанию
     var exception = false;
@@ -356,8 +425,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
 
       segment_start = target_foundation.p1;
-      segment_end = target_foundation.p2;
-
+//      segment_end = target_foundation.p2;
 
     }
     if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
@@ -369,8 +437,34 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     //пересечение
     if(angle_max < Math.PI && angle_max != 0){
 
-      var ray = new THREE.Ray(self.v22, self.direction.clone().negate());
-      ray.distanceSqToSegment ( segment_start, segment_end, result_point );
+      var raycaster = new THREE.Raycaster( segment_start, target_direction );
+      var intersects = [];
+      var intersects_1 = [];
+      var intersects_2 = [];
+
+
+      sphere_1.raycast( raycaster, intersects_1 );
+      intersects = intersects.concat( intersects_1 );
+      sphere_2.raycast( raycaster, intersects_2 );
+      intersects = intersects.concat( intersects_2 );
+
+      if( intersects.length == 1 ){
+
+        result_point = intersects[0].point;
+
+      } else if( intersects.length > 1 ){
+
+        var i = intersects.length;
+        var dist_min = Infinity;
+        while(i--){
+            var dist = intersects[i].point.distanceToSquared( target_point );
+            if(dist < dist_min){
+              dist_min = dist;
+              result_point = intersects[i].point;
+            }
+        }
+
+      }
 
     }
 
@@ -387,91 +481,131 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
   getV11: function ( walls ){
-    var result_point =  new THREE.Vector3();
-    var walls = walls || [];
-    var angle_max = - Math.PI;
+      var result_point =  new THREE.Vector3();
+      var walls = walls || [];
+      var angle_max = - Math.PI;
 
-    var segment_start = new THREE.Vector3();
-    var segment_end = new THREE.Vector3();
+      var segment_start = new THREE.Vector3();
 
-    var target = null;
-    var target_foundation = null;
-    var self = this;
+      var target = null;
+      var target_point = new THREE.Vector3();
+      var target_direction = new THREE.Vector3();
+      var target_foundation = null;
+      var self = this;
 
-    walls.forEach(function(item, i){
+      var sphere_1;
+      var sphere_2;
 
-      if(self.uuid != item.uuid){
-        if($wallEditor.isPointsNeighboors( self.v1, item.v2 ) ){
+      walls.forEach(function(item, i){
 
-          var angle = self.direction.clone().negate().angleTo(item.direction.clone().negate()) ;
-          var cross = self.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
-          angle = cross < 0 ? angle : - angle;
+        if(self.uuid != item.uuid){
+          if($wallEditor.isPointsNeighboors( self.v1, item.v2 ) ){
 
-          if(angle > angle_max) {
-            angle_max = angle;
-            segment_start = item.v11;
-            segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
-            target = item;
-            target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
+            var angle = self.direction.clone().negate().angleTo(item.direction.clone().negate()) ;
+            var cross = self.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
+            angle = cross < 0 ? angle : - angle;
+
+            if(angle > angle_max) {
+
+              angle_max = angle;
+              segment_start = item.v11;
+              target = item;
+              target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
+              target_point = item.v2;
+              target_direction = item.direction.clone();
+
+            }
           }
+
+          if($wallEditor.isPointsNeighboors( self.v1, item.v1 ) ){
+
+            var angle = self.direction.clone().negate().angleTo( item.direction.clone() ) ;
+            var cross = self.direction.clone().negate().cross( item.direction.clone() ).getComponent ( 1 );
+            angle = cross < 0 ? angle : - angle;
+
+            if(angle > angle_max) {
+
+              angle_max = angle;
+              segment_start = item.v22;
+              target = item;
+              target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
+              target_point = item.v1;
+              target_direction = item.direction.clone().negate();
+
+            }
+          }
+
+          var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
+          sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
+          sphere_1.geometry.translate (self.center.x, 0, self.center.z);
+
+          var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
+          sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
+          sphere_2.geometry.translate (self.center.x, 0, self.center.z);
+
         }
 
-        if($wallEditor.isPointsNeighboors( self.v1, item.v1 ) ){
+      });
 
-          var angle = self.direction.clone().negate().angleTo( item.direction.clone() ) ;
-          var cross = self.direction.clone().negate().cross( item.direction.clone() ).getComponent ( 1 );
-          angle = cross < 0 ? angle : - angle;
+      //при разнице оснований и угол меньше 45 примыкание к основанию
+      var exception = false;
+      self._e_path11 = null;
+      if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
 
-          if(angle > angle_max) {
-            angle_max = angle;
-            segment_start = item.v22;
-            segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
-            target = item;
-            target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
+        segment_start = target_foundation.p1;
+  //      segment_end = target_foundation.p2;
+
+      }
+      if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
+
+        angle_max = 0;
+        exception = true;
+
+      }
+      //пересечение
+      if(angle_max > -Math.PI && angle_max != 0){
+
+        var raycaster = new THREE.Raycaster( segment_start, target_direction );
+        var intersects = [];
+        var intersects_1 = [];
+        var intersects_2 = [];
+
+
+        sphere_1.raycast( raycaster, intersects_1 );
+        intersects = intersects.concat( intersects_1 );
+        sphere_2.raycast( raycaster, intersects_2 );
+        intersects = intersects.concat( intersects_2 );
+
+        if( intersects.length == 1 ){
+
+          result_point = intersects[0].point;
+
+        } else if( intersects.length > 1 ){
+
+          var i = intersects.length;
+          var dist_min = Infinity;
+          while(i--){
+              var dist = intersects[i].point.distanceToSquared( target_point );
+              if(dist < dist_min){
+                dist_min = dist;
+                result_point = intersects[i].point;
+              }
           }
+
         }
+
       }
 
-    })
+      if(exception){
+          self._e_path11 = {
+                      id: self.uuid + '_e11',
+                      wall_uuid: self.uuid,
+                      source: { id: self.node11.id },
+                      target: { id: target_foundation.node_id },
+                      wall_id: this.id
+                    };
+        }
 
-    //при разнице оснований и угол меньше 45 примыкание к основанию
-    var exception = false;
-    self._e_path11 = null;
-
-    if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
-
-      segment_start = target_foundation.p1;
-      segment_end = target_foundation.p2;
-
-
+      return result_point.equals(new THREE.Vector3()) ? null : result_point;
     }
-    if(target && Math.abs(angle_max) < Math.PI/4 && self.width / target.width > 2 ){
-
-      angle_max = 0;
-      exception = true;
-
-
-
-    }
-    //пересечение
-    if(angle_max > -Math.PI && angle_max != 0){
-
-      var ray = new THREE.Ray(self.v21, self.direction.clone().negate());
-      ray.distanceSqToSegment ( segment_start, segment_end, result_point );
-
-    }
-
-
-    if(exception){
-        self._e_path11 = {
-                    id: self.uuid + '_e11',
-                    wall_uuid: self.uuid,
-                    source: { id: self.node11.id },
-                    target: { id: target_foundation.node_id },
-                    wall_id: this.id
-                  };
-      }
-
-    return result_point.equals(new THREE.Vector3()) ? null : result_point;
-  },
 });

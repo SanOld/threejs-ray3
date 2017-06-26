@@ -264,22 +264,28 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     var target = null;
     var target_foundation = null;
+    var target_point;
     var self = this;
 
     walls.forEach(function(item, i){
       if(self.uuid != item.uuid){
+
         if( $wallEditor.isPointsNeighboors( self.v2, item.v1 ) ){
+
+          if( item.isRadial ){
+
+          }
 
           var angle = self.direction.angleTo(item.direction) ;
           var cross = self.direction.clone().cross(item.direction).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
-
 
           if(angle > angle_max) {
             angle_max = angle;
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
+            target_point = item.getV12;
             target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
           }
         }
@@ -295,9 +301,11 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
+            target_point = item.getV21;
             target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
           }
         }
+
       }
 
     });
@@ -337,6 +345,12 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     }
 
+    if( target && target.isRadial ){
+
+      result_point = target_point();
+
+    }
+
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
   getV21: function ( walls ){
@@ -350,6 +364,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     var target = null;
     var target_foundation = null;
+    var target_point;
     var self = this;
 
     walls.forEach(function(item, i){
@@ -365,6 +380,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
+            target_point = item.v11;
             target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
           }
         }
@@ -380,6 +396,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
+            target_point = item.v22;
             target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
           }
         }
@@ -423,6 +440,12 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                 };
     }
 
+    if( target && target.isRadial ){
+
+      result_point = target_point;
+
+    }
+
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
   getV12: function ( walls ){
@@ -435,6 +458,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     var target = null;
     var target_foundation = null;
+    var target_point;
     var self = this;
 
     walls.forEach(function(item, i){
@@ -450,6 +474,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
+            target_point = item.v22;
             target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
           }
         }
@@ -465,6 +490,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v21;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
+            target_point = item.v11;
             target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
           }
         }
@@ -505,7 +531,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                     target: { id: target_foundation.node_id },
                     wall_id: this.id
                   };
-      }
+    }
+
+    if( target && target.isRadial ){
+
+      result_point = target_point;
+
+    }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
@@ -519,6 +551,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     var target = null;
     var target_foundation = null;
+    var target_point;
     var self = this;
 
     walls.forEach(function(item, i){
@@ -535,6 +568,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
             target = item;
+            target_point = item.v21;
             target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
           }
         }
@@ -550,6 +584,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
             target = item;
+            target_point = item.v12;
             target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
           }
         }
@@ -593,7 +628,13 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
                     target: { id: target_foundation.node_id },
                     wall_id: this.id
                   };
-      }
+    }
+
+    if( target && target.isRadial ){
+
+      result_point = target_point;
+
+    }
 
     return result_point.equals(new THREE.Vector3()) ? null : result_point;
   },
