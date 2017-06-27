@@ -184,7 +184,6 @@ function init()
 
 //setTimeout(addCameraRay,1000,scene);
 //$arcWall.add( scene, wall );
-window.console.log(window);
 $Editor.on();
 
 
