@@ -32,7 +32,7 @@
       function listener(event) {
         var mess = event.originalEvent.data.message;
 
-        if ( mess && mess.cmd == 'put_data' ) {
+        if ( mess && mess.cmd == 'put_data' || mode == 'dev') {
           parentURL = event.originalEvent.origin;
           serverData = mess.data || {};
 
@@ -184,6 +184,7 @@ function init()
 
 //setTimeout(addCameraRay,1000,scene);
 //$arcWall.add( scene, wall );
+window.console.log(window);
 $Editor.on();
 
 
