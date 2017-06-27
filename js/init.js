@@ -28,12 +28,13 @@ $(document).ready(function() {
 
   include("js/lib/threex-rendererstats/threex.rendererstats.js");
 
+  include("js/config.js?"+HASH);
+
   include("js/controls.js?"+HASH);
   include("js/notes.js?"+HASH);
   include("js/doorways.js?"+HASH);
   include("js/Floor.js?"+HASH);
   include("js/Dimension.js?"+HASH);
-
 
   include("js/WallControlPoint.js?"+HASH);
   include("js/WallMover.js?"+HASH);

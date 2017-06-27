@@ -95,18 +95,7 @@
     }
 
 
-
-// standard global variables
-var container, scene, camera, renderer, controls, stats, selection;
-//var keyboard = new THREEx.KeyboardState();
-var clock = new THREE.Clock();
-// custom global variables
-var rendererStats;
-var maxAnisotropy;
-
-var mouse = new THREE.Vector2();
-var offset = new THREE.Vector3();
-
+//===================================
 
 function initMain()
 {
