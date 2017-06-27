@@ -41,8 +41,9 @@ $(document).ready(function() {
   include("js/Wall.js?"+HASH);
   include("js/RadialWall.js?"+HASH);
 
-  include("js/Editor.js?"+HASH);
   include("js/script.js?"+HASH);
+  include("js/Editor.js?"+HASH);
+  
 
   include("js/Room.js?"+HASH);
   include("js/RoomObject.js?"+HASH);

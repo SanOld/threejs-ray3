@@ -1339,6 +1339,56 @@ function initProjection(obj){
     });
 
   });
+  $('.footer').on('click','[action = points]',function(){
+
+    alert ( (new THREE.Vector3(1,0,-1)).angleTo( new THREE.Vector3(1,0,0)) );
+
+    //==========================
+        var curve = new THREE.EllipseCurve(
+          0,  0,            // ax, aY
+          5000, 5000,           // xRadius, yRadius
+          0,  Math.PI,  // aStartAngle, aEndAngle
+          false,            // aClockwise
+          Math.PI/4                // aRotation
+        );
+
+        var path = new THREE.Path( curve.getPoints( 50 ) );
+        var geometry = path.createPointsGeometry( 50 );
+        var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+
+        // Create the final object to add to the scene
+        var ellipse = new THREE.Line( geometry, material );
+        scene.add(ellipse);
+        ellipse.rotation.x = (Math.PI/2);
+
+
+    $wallEditor.walls.forEach(function( item ){
+
+      if( 'subtype' in item && item.subtype == 'RadialWall' ){
+
+        var geometry = new THREE.SphereBufferGeometry( 100, 32, 32 );
+        var material = new THREE.MeshBasicMaterial( {color: 'green'} );
+        var sphere = new THREE.Mesh( geometry, material );
+
+        var sph_v11 = sphere.clone();
+        var sph_v12 = sphere.clone();
+        var sph_v21 = sphere.clone();
+        var sph_v22 = sphere.clone();
+        sph_v11.position.copy( item.v11 );
+        sph_v12.position.copy( item.v12 );
+        sph_v21.position.copy( item.v21 );
+        sph_v22.position.copy( item.v22 );
+        scene.add( sph_v11, sph_v12, sph_v21, sph_v22 );
+
+
+
+
+
+      }
+
+    });
+
+  });
   $('.footer').on('click','[action = changeFloorVisible]',function(){
 
     $Editor.changeFloorVisible();

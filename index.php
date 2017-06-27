@@ -242,6 +242,9 @@
         <div class="row btn-group dropup pull-left">
           <span  class="fa fa-cog dropdown-toggle cog_icon_custom" aria-hidden="true"  data-toggle="dropdown"></span>
             <ul class="dropdown-menu multi-level ul_drop_menu_custom">
+              <li class="" data-type = "points">
+                <a action="points" title="Переключение режима отображения">Radial points</a>
+              </li>
               <li class="" data-type = "without">
                 <a action="mode" title="Переключение режима отображения">2D</a>
               </li>

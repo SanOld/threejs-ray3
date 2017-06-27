@@ -14,6 +14,8 @@ function RadialWall( vertices, parameters ){
 
   alert('new RadialWall create!');
 
+//  self.mover = null;
+
 }
 RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
@@ -151,13 +153,15 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           }
         }
 
-        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
+        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 64, 64 );
         sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
         sphere_1.geometry.translate (self.center.x, 0, self.center.z);
+//        scene.add(sphere_1);
 
-        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
-        sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
+        var geometry2 = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 64, 64 );
+        sphere_2 = new THREE.Mesh( geometry2, projectionWallMaterial_green );
         sphere_2.geometry.translate (self.center.x, 0, self.center.z);
+        scene.add(sphere_2);
 
       }
 
