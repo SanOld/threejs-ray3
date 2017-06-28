@@ -132,7 +132,7 @@ function Dimension( param1, param2, plane, parameters ){
     var obj = event.object;
 
     var element = self.editableFieldWrapper;
-    var coord = getScreenCoord(obj.position.clone(), camera);
+    var coord = $Editor.utils.getScreenCoord(obj.position.clone(), camera);
 
     element.css('left', 0);
     element.css('top', 0);

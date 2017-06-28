@@ -245,7 +245,7 @@ DragControls = function ( _objects, _camera, _domElement, _plane_normal ) {
       //проверка, что не просто клик
 //      _click += 1;
 //      if( event.which == 1 && _click > 1 ){
-        scope.dispatchEvent( { type: 'drag', object: _selected } );
+        scope.dispatchEvent( { type: 'drag', object: _selected, originalEvent: event } );
 //      }
 
 

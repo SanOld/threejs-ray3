@@ -1,5 +1,6 @@
 //объект радиусной стены
 function RadialWall( vertices, parameters ){
+
   Wall.apply( this, [vertices, parameters] );
 
 //  this.type = 'Wall';
@@ -10,11 +11,49 @@ function RadialWall( vertices, parameters ){
 
   this.isRadial = true;
   this.radius = this.axisLength / 2;
-  this.center = this.axisLine.getCenter();
+  this.center = this.getCenter();
 
   alert('new RadialWall create!');
 
 //  self.mover = null;
+
+//события
+  this.dragstart =  function ( event ) {
+
+    self._startPosition = self.position.clone();
+
+    controls.enabled = false;
+
+	};
+  this.drag =       function ( event ) {
+
+    var dir = self._getDirToCenter();//направление расположение центра от хорды
+
+    var cond = event.object.position.clone().sub( self._startPosition ).dot(dir) ;
+    if ( cond < 0 ){
+      self.radius -= 10;
+    } else {
+      self.radius += 10;
+    }
+
+  self.update();
+
+	};
+  this.dragend =    function ( event ) {
+
+    controls.enabled = true;
+
+  };
+  this.hoveron =    function ( event ) {
+
+
+
+  };
+  this.hoveroff =   function ( event ) {
+
+
+
+  };
 
 }
 RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
@@ -22,7 +61,38 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
   constructor: RadialWall,
 
   recalculatePoints: function (){
+
     Wall.prototype.recalculatePoints.apply(this, arguments);
+    this.radius = this.radius < this.axisLength / 2 ? this.axisLength / 2 : this.radius;
+    this.center = this.getCenter();
+
+  },
+  getCenter: function(){
+
+    var result;
+
+    if( ! this.center ){
+
+      result = this.axisLine.getCenter();
+
+    } else {
+
+      var dir = this._getDirToCenter();//направление расположение центра от хорды
+      dir = dir.equals ( new THREE.Vector3() ) ? this.direction90: dir;
+
+      var alpha = $Editor.Math.chordAlpha( this.axisLength, this.radius );
+      var h = $Editor.Math.chordFromCenter( this.radius, alpha );
+
+      result = this.axisLine.getCenter().clone().add( dir.multiplyScalar( h ) );
+
+    }
+
+    return result;
+
+  },
+  _getDirToCenter: function(){
+
+    return this.center.clone().sub( this.axisLine.getCenter() ).projectOnVector( this.direction90 ).normalize();
 
   },
   buildGeometry: function(){
@@ -32,16 +102,19 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
 				wallShape.lineTo( this.v11.x, this.v11.z );
 
-        var r = Math.abs( this.v1.distanceTo( this.v2 ) ) / 2;
         var delta = this.width/2;
-        var r1 = r + delta;
+        var r1 = this.radius + delta;
 
-        var coord = new THREE.Line3(this.v1, this.v2).getCenter();
+        var coord = this.getCenter();
+        var alpha = Math.abs( $Editor.Math.chordAlpha( this.axisLength, this.radius ) );
+        var startAngle = (Math.PI - alpha)/2;
+        var ednAngle = alpha + startAngle;
+
 
         var curve = new THREE.EllipseCurve(
                                             coord.x,  coord.z, // ax, aY
                                             r1, r1,            // xRadius, yRadius
-                                            Math.PI,  0,       // aStartAngle, aEndAngle
+                                            ednAngle,  startAngle,       // aStartAngle, aEndAngle
                                             false,             // aClockwise
                                             -this.angle        // aRotation
                                           );
@@ -54,12 +127,12 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         wallShape.lineTo( this.v2.x,  this.v2.z );
 				wallShape.lineTo( this.v22.x, this.v22.z );
 
-        var r2 = r - delta;;
+        var r2 = this.radius - delta;
 
         var curve2 = new THREE.EllipseCurve(
                                             coord.x,  coord.z,  // ax, aY
                                             r2, r2,             // xRadius, yRadius
-                                            0, Math.PI,       // aStartAngle, aEndAngle
+                                            startAngle, ednAngle,       // aStartAngle, aEndAngle
                                             true,              // aClockwise
                                             -this.angle                  // aRotation
                                           );
@@ -161,7 +234,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         var geometry2 = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 64, 64 );
         sphere_2 = new THREE.Mesh( geometry2, projectionWallMaterial_green );
         sphere_2.geometry.translate (self.center.x, 0, self.center.z);
-        scene.add(sphere_2);
+//        scene.add(sphere_2);
 
       }
 
@@ -611,5 +684,59 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         }
 
       return result_point.equals(new THREE.Vector3()) ? null : result_point;
+    },
+
+  setActiveMode: function( state ){
+
+    Wall.prototype.setActiveMode.apply(this, arguments);
+
+    if( state ){
+
+//      this.material.color = new THREE.Color( $Editor.default_params.Wall.active_color );
+      this.activate();
+
+    } else {
+
+//      this.material.color = new THREE.Color( $Editor.wallColors[this.action] );
+      this.deactivate();
+
     }
+
+  },
+
+  activate:   function() {
+
+    if(this.dragControls){
+
+      this.dragControls.activate();
+
+    } else {
+
+      this.dragControls = new DragControls2( [this], camera, renderer.domElement );
+
+    }
+
+      this.dragControls.addEventListener( 'dragstart', this.dragstart );
+      this.dragControls.addEventListener( 'drag', this.drag );
+      this.dragControls.addEventListener( 'dragend', this.dragend );
+      this.dragControls.addEventListener( 'hoveron', this.hoveron );
+      this.dragControls.addEventListener( 'hoveroff', this.hoveroff );
+
+    this.update();
+
+	},
+  deactivate: function () {
+
+    if(this.dragControls){
+      this.dragControls.removeEventListener( 'dragstart', this.dragstart, false );
+      this.dragControls.removeEventListener( 'drag', this.drag, false );
+      this.dragControls.removeEventListener( 'dragend', this.dragend, false );
+      this.dragControls.removeEventListener( 'hoveron', this.hoveron, false );
+      this.dragControls.removeEventListener( 'hoveroff', this.hoveroff, false );
+
+      this.dragControls.deactivate();
+      this.dragControls = null;
+    }
+
+	}
 });

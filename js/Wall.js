@@ -645,6 +645,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.direction = this.axisLine.delta().normalize();
     this.direction90 = new THREE.Vector3( this.direction.z, 0 , -this.direction.x );
     this.axisLength = this.axisLine.distance();
+    this.angle = this.direction.angleTo( new THREE.Vector3(1,0,0));
 
 
     if(! this.v11.equals( this.v12 ) )

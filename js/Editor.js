@@ -1,9 +1,51 @@
 
-
+_Math = {}
 //Редактор
 function Editor(obj){
 
   obj.lights = [];
+
+  obj.Math = {
+
+    chordL: function( R, alpha ){
+
+      var R = R || 0;
+      var alpha = alpha || 0;
+
+      return 2 * R * Math.sin( alpha/2 );
+
+    },
+
+    chordAlpha: function( L, R ){
+
+      var L = L || 0;
+      var R = R || 0;
+
+      return 2 * Math.asin( L / 2 / R) || Math.PI/2;
+
+    },
+
+    chordFromCenter: function( R, alpha ){
+
+      var R = R || 0;
+      var alpha = alpha || 0;
+
+      return R * Math.cos( alpha / 2 );
+
+    }
+
+  };
+  obj.utils = {
+    getScreenCoord: function ( vector3, camera ) {
+        var p = vector3;
+        var vector = p.project(camera);
+
+        vector.x = (vector.x + 1) / 2 * window.innerWidth;
+        vector.y = -(vector.y - 1) / 2 * window.innerHeight;
+
+        return vector;
+    }
+  };
 
   obj.timerId = undefined; //id интервала сохранения
   obj.timeSaveInterval = 15000;//мс
@@ -4646,21 +4688,7 @@ function toggleMode( mode ){
       break;
   }
 }
-/**
- *
- * @param {type} vector3
- * @param {type} camera
- * @returns {getScreenCoord.vector2}
- */
-function getScreenCoord( vector3, camera ) {
-        var p = vector3;
-        var vector = p.project(camera);
 
-        vector.x = (vector.x + 1) / 2 * window.innerWidth;
-        vector.y = -(vector.y - 1) / 2 * window.innerHeight;
-
-        return vector;
-    }
 //============================
 function setFloorPlan(form) {
 	var thisObj = this;
