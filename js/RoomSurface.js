@@ -166,6 +166,14 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
               inner: {start: {x: +door.p_11.x.toFixed(2), y: +door.p_11.z.toFixed(2) }, end: {x: +door.p_21.x.toFixed(2), y: +door.p_21.z.toFixed(2) } },
               outer: {start: {x: +door.p_12.x.toFixed(2), y: +door.p_12.z.toFixed(2) }, end: {x: +door.p_22.x.toFixed(2), y: +door.p_22.z.toFixed(2) } },
+              type: door.json_type,
+              systype: door.json_systype,
+              height: door.height,
+              heightAboveFloor: door.elevation,
+              width: door.width,
+              slope: door.slope,
+              obj_thickness: door.depObject_thickness,
+
               p_otkos_door: ( door.getPerimeter3() * current_unit.c ).toFixed( accuracy_measurements ), //Периметр откосов дверей
               s_otkos_door: ( door.getSlope3Area() * area_unit.c ).toFixed( area_accuracy_measurements ), //Площадь откосов (периметр двери * глубину)
               door_lintel_length: ( door.width * current_unit.c ).toFixed( accuracy_measurements ),//Длина перемычек
