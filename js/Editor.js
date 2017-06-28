@@ -386,7 +386,12 @@ function Editor(obj){
   };
   obj.changeGridVisible = function(){
 
-    obj.floor.gridHelper.material.visible  = ! obj.floor.gridHelper.material.visible;
+    if( obj.floor.gridHelper ){
+      obj.floor.gridHelper.material.visible  = ! obj.floor.gridHelper.material.visible;
+    } else {
+      obj.floor.addHelper();
+    }
+
 
   };
   obj.setFloorTexture = function(filename) {
@@ -3111,7 +3116,8 @@ function initWallEditor( obj ){
               var arrSurfaces = export_data.floors[0].rooms[ room_index ].walls;
 
               arrSurfaces.push({
-
+                inner:{start:{x: item.source.x, y: item.source.z}, end:{x: item.target.x, y: item.target.z}},
+                center:{start:{x: item.sourceBase.x, y: item.sourceBase.z}, end:{x: item.targetBase.x, y: item.targetBase.z}},
                 wall_length: ( item.getLength() * current_unit.c ).toFixed( accuracy_measurements ),
                 h_wall: ( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements ),
                 p_wall: ( item.getPerimeter() * current_unit.c ).toFixed( accuracy_measurements ),

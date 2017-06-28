@@ -19,15 +19,13 @@ function Floor( parameters ){
   this.geometry = parameters.hasOwnProperty("geometry") ? parameters["geometry"] : this.buildGeometry();
   this.material = parameters.hasOwnProperty("material") ? parameters["material"] : floorMaterial;
   this.material.visible = false;
-
-  this.gridHelper = new THREE.GridHelper( 1000000, 2000, 0x0000ff, 0x808080 );
-  this.gridHelper.position.z = -10;
-  this.gridHelper.rotation.x = -Math.PI / 2;
-  this.add( this.gridHelper );
+  this.gridHelper = null;
 
   var parent_toJson = this.toJSON;
 
   this.toJSON = function ( meta ) {
+
+    this.remove( this.gridHelper );
 
     this.userData.width = this.width;
     this.userData.length = this.length;
@@ -37,6 +35,8 @@ function Floor( parameters ){
     return parent_toJson.call(this);
 
   };
+
+  this.addHelper();
 
 }
 Floor.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
@@ -69,6 +69,12 @@ Floor.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
                     this.scale.z * floorScaleZ
                     );
 
+  },
+  addHelper: function(){
+    this.gridHelper = new THREE.GridHelper( 1000000, 2000, 0x0000ff, 0x808080 );
+    this.gridHelper.position.z = -10;
+    this.gridHelper.rotation.x = -Math.PI / 2;
+    this.add( this.gridHelper );
   }
 
 });
