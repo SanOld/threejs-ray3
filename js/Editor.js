@@ -3116,8 +3116,14 @@ function initWallEditor( obj ){
               var arrSurfaces = export_data.floors[0].rooms[ room_index ].walls;
 
               arrSurfaces.push({
+
                 inner:{start:{x: item.source.x, y: item.source.z}, end:{x: item.target.x, y: item.target.z}},
                 center:{start:{x: item.sourceBase.x, y: item.sourceBase.z}, end:{x: item.targetBase.x, y: item.targetBase.z}},
+                height: {
+                  start: ( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements ),
+                  end:   ( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements )
+                },
+
                 wall_length: ( item.getLength() * current_unit.c ).toFixed( accuracy_measurements ),
                 h_wall: ( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements ),
                 p_wall: ( item.getPerimeter() * current_unit.c ).toFixed( accuracy_measurements ),
