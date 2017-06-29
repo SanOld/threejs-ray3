@@ -3080,17 +3080,17 @@ function initWallEditor( obj ){
 
             export_data.floors[0].rooms[ room_index ] =
             {
-              "id": room.id,
               "furniture": [],
               "closedRoom": room.closedRoom,
-              "roomID": room.id,
+              "roomID": '',//room.id,
               "room_type": room._type,
               "room_name": "",
               "room_number": "",
               "room_zone": "",
-              "room_area": ( room.area * area_unit.c ).toFixed( area_accuracy_measurements ),
-              "s_room_without_openings": ( room.getAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ),
-              "p_room": ( room.getFloorPerimeter() * current_unit.c ).toFixed( accuracy_measurements ),
+              "room_area": +( room.area * area_unit.c ).toFixed( area_accuracy_measurements ),
+              "area_coords":{x: room.getAreaCoords( room.countur ).x, y: room.getAreaCoords( room.countur ).z}, //old
+              "s_room_without_openings": +( room.getAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ),
+              "p_room": +( room.getFloorPerimeter() * current_unit.c ).toFixed( accuracy_measurements ),
               "n_outer_angle90_room": room.numberAnglesEquals90,
               "n_outer_angle_N90_room": room.numberAnglesNotEquals90,
               "walls": [],
@@ -3107,37 +3107,55 @@ function initWallEditor( obj ){
 
 
             //стены комнаты
-            var j = room.surfaces.length;
-            while (j--) {
+            for(var j = 0; j < room.surfaces.length; j++){
+//            var j = room.surfaces.length;
+//            while (j--) {
 
               var item = room.surfaces[j];
               var arrSurfaces = export_data.floors[0].rooms[ room_index ].walls;
 
               arrSurfaces.push({
                 //old
-                id: item.uuid,
+                id: j+1,
                 inner:{start:{x: item.source.x, y: item.source.z}, end:{x: item.target.x, y: item.target.z}},
                 outer:{start:{x: item.sourceBase.x, y: item.sourceBase.z}, end:{x: item.targetBase.x, y: item.targetBase.z}},
                 center:{start:{x: item.sourceBase.x, y: item.sourceBase.z}, end:{x: item.targetBase.x, y: item.targetBase.z}},
                 arcPath: null,
                 mount_type: '',
-                wall_length_mm: ( item.getLength() * current_unit.c ).toFixed( accuracy_measurements ),
-                width_px: '',
+                wall_length_mm: +( item.getLength() * current_unit.c ).toFixed( accuracy_measurements ),
+                width_px: +item.walls[0].width,
+                width_units: +( item.walls[0].width * current_unit.c ).toFixed( accuracy_measurements ),
+                type: item.walls[0].bearingType,
+                wall_action: item.walls[0].wallAction,
                 height: {
-                  start: ( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements ),
-                  end:   ( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements )
+                  start: +( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements ),
+                  end:   +( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements )
                 },
+                external_wall: true,
+                room_wall_num: j+1,
+                outer_wall_num: 0,
 
-                wall_length: ( item.getLength() * current_unit.c ).toFixed( accuracy_measurements ),
-                h_wall: ( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements ),
-                p_wall: ( item.getPerimeter() * current_unit.c ).toFixed( accuracy_measurements ),
-                s_wall: (item.getArea() * area_unit.c ).toFixed( area_accuracy_measurements ),
-                s_wall_without_openings: ( item.getAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ),
-                openings: {
-                  doors: item.doorsParams,
-                  windows: item.windowsParams,
-                  niches: item.nichesParams
-                }
+                //new
+                wall_length: +( item.getLength() * current_unit.c ).toFixed( accuracy_measurements ),
+                h_wall: +( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements ),
+                p_wall: +( item.getPerimeter() * current_unit.c ).toFixed( accuracy_measurements ),
+                s_wall: +(item.getArea() * area_unit.c ).toFixed( area_accuracy_measurements ),
+                s_wall_without_openings: +( item.getAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ),
+//                openings: {
+//                  0: item.doorsParams.concat(item.windowsParams, item.nichesParams),
+//                  doors: item.doorsParams,
+//                  windows: item.windowsParams,
+//                  niches: item.nichesParams
+//                }
+                openings:
+
+                 item.doorsParams.length>0 ||
+                 item.windowsParams.length>0 ||
+                 item.nichesParams.length>0 ?
+                 item.doorsParams.concat(item.windowsParams, item.nichesParams) :
+                 []
+
+
 
               });
 

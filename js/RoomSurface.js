@@ -151,7 +151,7 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
 
 
-      wall.doors.forEach(function( door ){
+      wall.doors.forEach(function( door, index_door ){
         //Duplicated code
         if( door )
         switch ( door.type ) {
@@ -164,8 +164,16 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
             self.doors.push( door );
             self.doorsParams.push({
 
+              //old
+              id: index_door,
               inner: {start: {x: +door.p_11.x.toFixed(2), y: +door.p_11.z.toFixed(2) }, end: {x: +door.p_21.x.toFixed(2), y: +door.p_21.z.toFixed(2) } },
               outer: {start: {x: +door.p_12.x.toFixed(2), y: +door.p_12.z.toFixed(2) }, end: {x: +door.p_22.x.toFixed(2), y: +door.p_22.z.toFixed(2) } },
+              cellPosition: {
+                              x: 0,
+                              y: 0
+                            },
+              cellAngle: 0,
+              flipped: false,
               type: door.json_type,
               systype: door.json_systype,
               height: door.height,
@@ -174,6 +182,7 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
               slope: door.slope,
               obj_thickness: door.depObject_thickness,
 
+              //new
               p_otkos_door: ( door.getPerimeter3() * current_unit.c ).toFixed( accuracy_measurements ), //Периметр откосов дверей
               s_otkos_door: ( door.getSlope3Area() * area_unit.c ).toFixed( area_accuracy_measurements ), //Площадь откосов (периметр двери * глубину)
               door_lintel_length: ( door.width * current_unit.c ).toFixed( accuracy_measurements ),//Длина перемычек
@@ -187,8 +196,26 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
             self.windows.push( door );
             self.windowsParams.push({
 
+              //old
+              id: index_door,
               inner: {start: {x: +door.p_11.x.toFixed(2), y: +door.p_11.z.toFixed(2) }, end: {x: +door.p_21.x.toFixed(2), y: +door.p_21.z.toFixed(2) } },
               outer: {start: {x: +door.p_12.x.toFixed(2), y: +door.p_12.z.toFixed(2) }, end: {x: +door.p_22.x.toFixed(2), y: +door.p_22.z.toFixed(2) } },
+              cellPosition: {
+                              x: 0,
+                              y: 0
+                            },
+              cellAngle: 0,
+              flipped: false,
+              type: door.json_type,
+              systype: door.json_systype,
+              height: door.height,
+              heightAboveFloor: door.elevation,
+              width: door.width,
+              slope: door.slope,
+              obj_thickness: door.depObject_thickness,
+
+              //new
+
               p_otkos_window : ( door.getPerimeter3() * current_unit.c ).toFixed( accuracy_measurements ), //Периметр откосов дверей
               s_otkos_window: ( door.getSlope3Area() * area_unit.c ).toFixed( area_accuracy_measurements ), //Площадь откосов (периметр двери * глубину)
               window_lintel_length: ( door.width * current_unit.c ).toFixed( accuracy_measurements ), //Длина перемычек
@@ -204,8 +231,25 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
               self.niches.push( door );
               self.nichesParams.push({
 
+                //old
+                id: index_door,
                 inner: {start: {x: +door.p_11.x.toFixed(2), y: +door.p_11.z.toFixed(2) }, end: {x: +door.p_21.x.toFixed(2), y: +door.p_21.z.toFixed(2) } },
                 outer: {start: {x: +door.p_12.x.toFixed(2), y: +door.p_12.z.toFixed(2) }, end: {x: +door.p_22.x.toFixed(2), y: +door.p_22.z.toFixed(2) } },
+                cellPosition: {
+                                x: 0,
+                                y: 0
+                              },
+                cellAngle: 0,
+                flipped: false,
+                type: door.json_type,
+                systype: door.json_systype,
+                height: door.height,
+                heightAboveFloor: door.elevation,
+                width: door.width,
+                slope: door.slope,
+                obj_thickness: door.depObject_thickness,
+
+                //new
                 p_niche: ( door.getPerimeter4() * current_unit.c ).toFixed( accuracy_measurements ), //Периметр
                 s_niche_wall: (door.getArea() * area_unit.c ).toFixed( area_accuracy_measurements ), //Периметр
                 depth_niche: ( door.thickness * current_unit.c ).toFixed( accuracy_measurements ), //Площадь откосов (периметр двери * глубину)
