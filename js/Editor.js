@@ -3078,14 +3078,12 @@ function initWallEditor( obj ){
           if( ! room.external ){
 
 
-
-
             export_data.floors[0].rooms[ room_index ] =
             {
-              "id": room.uuid,
+              "id": room.id,
               "furniture": [],
               "closedRoom": room.closedRoom,
-              "roomID": "",
+              "roomID": room.id,
               "room_type": room._type,
               "room_name": "",
               "room_number": "",
@@ -3116,9 +3114,15 @@ function initWallEditor( obj ){
               var arrSurfaces = export_data.floors[0].rooms[ room_index ].walls;
 
               arrSurfaces.push({
-
+                //old
+                id: item.uuid,
                 inner:{start:{x: item.source.x, y: item.source.z}, end:{x: item.target.x, y: item.target.z}},
+                outer:{start:{x: item.sourceBase.x, y: item.sourceBase.z}, end:{x: item.targetBase.x, y: item.targetBase.z}},
                 center:{start:{x: item.sourceBase.x, y: item.sourceBase.z}, end:{x: item.targetBase.x, y: item.targetBase.z}},
+                arcPath: null,
+                mount_type: '',
+                wall_length_mm: ( item.getLength() * current_unit.c ).toFixed( accuracy_measurements ),
+                width_px: '',
                 height: {
                   start: ( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements ),
                   end:   ( item.getHeight() * current_unit.c ).toFixed( accuracy_measurements )
