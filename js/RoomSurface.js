@@ -153,7 +153,27 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
       wall.doors.forEach(function( door, index_door ){
         //Duplicated code
-        if( door )
+//        if( door )
+
+          var cellAngle = 0;
+          if(door.location){
+            switch (door.location) {
+              case 1:
+                cellAngle = 0;
+                break;
+              case 2:
+                cellAngle = 90;
+                break;
+              case 3:
+                cellAngle = 180;
+                break;
+              case 4:
+                cellAngle = 270;
+                break;
+
+            }
+          }
+
         switch ( door.type ) {
           case 'Doorway':
           case 'DoorBlock':
@@ -165,14 +185,14 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
             self.doorsParams.push({
 
               //old
-              id: index_door,
+              id: door.uuid,
               inner: {start: {x: +door.p_11.x.toFixed(2), y: +door.p_11.z.toFixed(2) }, end: {x: +door.p_21.x.toFixed(2), y: +door.p_21.z.toFixed(2) } },
               outer: {start: {x: +door.p_12.x.toFixed(2), y: +door.p_12.z.toFixed(2) }, end: {x: +door.p_22.x.toFixed(2), y: +door.p_22.z.toFixed(2) } },
               cellPosition: {
                               x: 0,
                               y: 0
                             },
-              cellAngle: 0,
+              cellAngle: cellAngle,
               flipped: false,
               type: door.json_type,
               systype: door.json_systype,
@@ -197,14 +217,14 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
             self.windowsParams.push({
 
               //old
-              id: index_door,
+              id: door.uuid,
               inner: {start: {x: +door.p_11.x.toFixed(2), y: +door.p_11.z.toFixed(2) }, end: {x: +door.p_21.x.toFixed(2), y: +door.p_21.z.toFixed(2) } },
               outer: {start: {x: +door.p_12.x.toFixed(2), y: +door.p_12.z.toFixed(2) }, end: {x: +door.p_22.x.toFixed(2), y: +door.p_22.z.toFixed(2) } },
               cellPosition: {
                               x: 0,
                               y: 0
                             },
-              cellAngle: 0,
+              cellAngle: cellAngle,
               flipped: false,
               type: door.json_type,
               systype: door.json_systype,
@@ -232,14 +252,14 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
               self.nichesParams.push({
 
                 //old
-                id: index_door,
+                id: door.uuid,
                 inner: {start: {x: +door.p_11.x.toFixed(2), y: +door.p_11.z.toFixed(2) }, end: {x: +door.p_21.x.toFixed(2), y: +door.p_21.z.toFixed(2) } },
                 outer: {start: {x: +door.p_12.x.toFixed(2), y: +door.p_12.z.toFixed(2) }, end: {x: +door.p_22.x.toFixed(2), y: +door.p_22.z.toFixed(2) } },
                 cellPosition: {
                                 x: 0,
                                 y: 0
                               },
-                cellAngle: 0,
+                cellAngle: cellAngle,
                 flipped: false,
                 type: door.json_type,
                 systype: door.json_systype,

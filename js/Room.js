@@ -52,15 +52,12 @@ Room.prototype = Object.assign( {}, {
 
       this.selectedAllSurfaces = false;
 
-
       //отрисовка контура комнаты
       if( !this.external ){
-
 
         this.addCounturLine( this.chain, this.nodes );
         scene.add( this.counturLine );
         this.showCounturLine();
-
 
         this.defineAreaNotification();
         this.showAreaNotification();
@@ -86,6 +83,7 @@ Room.prototype = Object.assign( {}, {
     }
 
     this.surfaces = this.getSurfaces( this.chain );
+    this.sortSurfacesByPoint( this.surfaces );
     this.combineColinearSurfaces( this.surfaces );
     this.hideSurfaces();
 
@@ -389,7 +387,8 @@ Room.prototype = Object.assign( {}, {
 
     var surfaces = surfaces || [];
 
-    for (var i = 0; i < surfaces.length - 1; i++ ) {
+    for (var i = 0; i < surfaces.length - 1 ; i++ ) {
+
       var s1 = surfaces[i];
       var s2 = surfaces[i+1];
       var w1 = surfaces[i].walls[0];
@@ -404,9 +403,32 @@ Room.prototype = Object.assign( {}, {
         this.combineColinearSurfaces( surfaces );
         break;
       }
+
     }
 
+  },
+  sortSurfacesByPoint: function( surfaces ){
 
+    var surfaces = surfaces || [];
+
+    for (var i = 0; i < surfaces.length - 1 ; i++ ) {
+
+      var s1 = surfaces[i];
+      var s2 = surfaces[i+1];
+
+      if ( s1.target.equals( s2.target )  ){
+
+        var temp1 = s2.source.clone();
+        var temp2 = s2.sourceBase.clone();
+
+        s2.source = s2.target;
+        s2.target = temp1;
+
+        s2.sourceBase = s2.targetBase;
+        s2.targetBase = temp2;
+
+      }
+    }
 
   },
   showSurfaces: function(){

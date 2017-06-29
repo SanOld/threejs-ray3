@@ -3075,7 +3075,7 @@ function initWallEditor( obj ){
 
           window.console.log('room: ' + room.area );
 
-          if( ! room.external ){
+          if( true/*! room.external */){
 
 
             export_data.floors[0].rooms[ room_index ] =
@@ -3097,7 +3097,7 @@ function initWallEditor( obj ){
               "elements": room.getElements()
             };
 
-            if( room.floor.actived ){
+            if( room.floor && room.floor.actived ){
               s_room_without_openings += +export_data.floors[0].rooms[ room_index ].s_room_without_openings;
               p_room += +export_data.floors[0].rooms[ room_index ].p_room;
               n_outer_angle90_room += +export_data.floors[0].rooms[ room_index ].n_outer_angle90_room;
@@ -3116,7 +3116,7 @@ function initWallEditor( obj ){
 
               arrSurfaces.push({
                 //old
-                id: j+1,
+                id: item.uuid,
                 inner:{start:{x: item.source.x, y: item.source.z}, end:{x: item.target.x, y: item.target.z}},
                 outer:{start:{x: item.sourceBase.x, y: item.sourceBase.z}, end:{x: item.targetBase.x, y: item.targetBase.z}},
                 center:{start:{x: item.sourceBase.x, y: item.sourceBase.z}, end:{x: item.targetBase.x, y: item.targetBase.z}},
