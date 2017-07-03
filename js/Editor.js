@@ -1,5 +1,5 @@
 
-_Math = {}
+_Math = {};
 //Редактор
 function Editor(obj){
 
@@ -31,6 +31,22 @@ function Editor(obj){
       var alpha = alpha || 0;
 
       return R * Math.cos( alpha / 2 );
+
+    },
+
+    chordFromMiddlePoint: function( R, alpha ){
+
+      var R = R || 0;
+      var alpha = alpha || 0;
+
+      return R * ( 1 - Math.cos( alpha / 2 ) );
+
+    },
+
+    radiusByDistanceToArcMiddlePoint: function( h, c ){
+      //https://planetcalc.ru/1421/
+
+      return Math.abs( h/2 + c*c / (8 * h) );
 
     }
 
@@ -1389,7 +1405,7 @@ function initProjection(obj){
         var curve = new THREE.EllipseCurve(
           0,  0,            // ax, aY
           5000, 5000,           // xRadius, yRadius
-          0,  Math.PI,  // aStartAngle, aEndAngle
+          0,  Math.PI/4,  // aStartAngle, aEndAngle
           false,            // aClockwise
           Math.PI/4                // aRotation
         );

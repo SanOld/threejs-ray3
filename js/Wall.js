@@ -44,7 +44,6 @@ function Wall( vertices, parameters ){
   self.v21 = parameters.hasOwnProperty("v21") ? parameters["v21"] : new THREE.Vector3(response.v21.x, response.v21.y, response.v21.z);
   self.v22 = parameters.hasOwnProperty("v22") ? parameters["v22"] : new THREE.Vector3(response.v22.x, response.v22.y, response.v22.z);
 
-
   self.p1 =  new THREE.Vector3();
   self.p2 =  new THREE.Vector3();
   self.p11 = new THREE.Vector3();
@@ -196,7 +195,6 @@ function Wall( vertices, parameters ){
     return parent_toJson.call(this);
 
   };
-
 
 }
 Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {

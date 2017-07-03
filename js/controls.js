@@ -136,7 +136,6 @@ DragControls2 = function ( _objects, _camera, _domElement, _plane_normal ) {
 
 		}
 
-
 	}
 
 	function onDocumentMouseUp( event ) {
@@ -146,7 +145,7 @@ DragControls2 = function ( _objects, _camera, _domElement, _plane_normal ) {
 		if ( _selected ) {
 
       scope.dispatchEvent( { type: 'dragend', object: _selected } );
-        _selected = null;
+      _selected = null;
 
 		}
 
