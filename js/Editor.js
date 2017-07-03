@@ -224,9 +224,9 @@ function Editor(obj){
 
   obj.loadData = function(){
 
-$.getJSON("data/project.json", function( data ) {
-
-    serverData = data.drawing ;
+//$.getJSON("data/project.json", function( data ) {
+//
+//    serverData = data.drawing ;
 
     var localData = obj.getLocalData();
     serverData = obj.getServerData();
@@ -246,13 +246,13 @@ $.getJSON("data/project.json", function( data ) {
         }
         break;
 
-      case ( ! serverData ) && !localData:
+      case serverData  && !localData:
         obj.parseData( serverData );
         break;
 
-      case ! serverData && ( ! $Editor.isEmptyObject(localData) ):
-        obj.parseData( localData );
-        break;
+//      case ! serverData && ( ! $Editor.isEmptyObject(localData) ):
+//        obj.parseData( localData );
+//        break;
 
       default:
         window.localStorage.removeItem( 'cad5' );
@@ -264,7 +264,7 @@ $.getJSON("data/project.json", function( data ) {
       obj.localSavingOn();
     }
 
-    });
+//    });
 
   };
   obj.getLocalData = function(){
