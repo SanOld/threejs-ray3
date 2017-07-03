@@ -25,14 +25,18 @@ function Floor( parameters ){
 
   this.toJSON = function ( meta ) {
 
-    this.remove( this.gridHelper );
+    this.remove( this.gridHelper ); //убрал грид
 
     this.userData.width = this.width;
     this.userData.length = this.length;
     this.userData.textureFile = this.textureFile;
     this.userData.scale = this.scale;
 
-    return parent_toJson.call(this);
+    var result = parent_toJson.call(this);
+
+    this.addHelper(); //восстанавливаем grid
+
+    return result;
 
   };
 

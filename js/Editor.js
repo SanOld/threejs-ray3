@@ -222,8 +222,14 @@ function Editor(obj){
 
   obj.loadData = function(){
 
+//$.getJSON("data/project.json", function( data ) {
+
+//    serverData = data;
+
+
     var localData = obj.getLocalData();
-    var serverData = obj.getServerData();
+    serverData = obj.getServerData();
+
 
     switch ( true ) {
 
@@ -231,20 +237,20 @@ function Editor(obj){
         window.localStorage.removeItem( 'cad5' );
         break;
 
-      case ( serverData instanceof Object ) && ( localData instanceof Object ):
+      case ( ! $Editor.isEmptyObject(serverData) ) && ( ! $Editor.isEmptyObject(localData) ):
 
         if( localData.id == serverData.id && localData.timeStamp > serverData.timeStamp ){
           obj.parseData( localData );
-        } else {
+        } else if( ! $Editor.isEmptyObject( serverData ) ){
           obj.parseData( serverData );
         }
         break;
 
-      case ( serverData instanceof Object ) && !localData:
+      case ( ! serverData ) && !localData:
         obj.parseData( serverData );
         break;
 
-//      case ! serverData && (localData instanceof Object):
+//      case ! serverData && ( ! $Editor.isEmptyObject(localData) ):
 //        obj.parseData( localData );
 //        break;
 
@@ -254,11 +260,11 @@ function Editor(obj){
 
     }
 
-
     if(obj.storageEnabled){
       obj.localSavingOn();
     }
 
+//    });
 
   };
   obj.getLocalData = function(){
@@ -277,10 +283,12 @@ function Editor(obj){
     return false;
   };
   obj.getServerData = function(){
+
     if( !obj.isEmptyObject( serverData ) ){
       var data = JSON.parse( serverData );
       return data;
     }
+
     return false;
   };
 
