@@ -91,7 +91,9 @@ function Editor(obj){
       case 'selection':
 
         toggleMode('2D');
-        $projection.toggleModeIn2D( 'selection' );
+        setTimeout(function(){
+          $projection.toggleModeIn2D( 'selection' );
+        }, 500);
 
         break;
 
@@ -222,14 +224,12 @@ function Editor(obj){
 
   obj.loadData = function(){
 
-//$.getJSON("data/project.json", function( data ) {
+$.getJSON("data/project.json", function( data ) {
 
-//    serverData = data;
-
+    serverData = data.drawing ;
 
     var localData = obj.getLocalData();
     serverData = obj.getServerData();
-
 
     switch ( true ) {
 
@@ -250,9 +250,9 @@ function Editor(obj){
         obj.parseData( serverData );
         break;
 
-//      case ! serverData && ( ! $Editor.isEmptyObject(localData) ):
-//        obj.parseData( localData );
-//        break;
+      case ! serverData && ( ! $Editor.isEmptyObject(localData) ):
+        obj.parseData( localData );
+        break;
 
       default:
         window.localStorage.removeItem( 'cad5' );
@@ -264,7 +264,7 @@ function Editor(obj){
       obj.localSavingOn();
     }
 
-//    });
+    });
 
   };
   obj.getLocalData = function(){
