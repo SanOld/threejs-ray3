@@ -91,8 +91,10 @@ function Editor(obj){
       case 'selection':
 
         toggleMode('2D');
+
         setTimeout(function(){
           $projection.toggleModeIn2D( 'selection' );
+          obj.cameraLookAtCenterWalls();
         }, 500);
 
         break;
@@ -102,7 +104,12 @@ function Editor(obj){
         if( ! $projection.enabled){
 
           toggleMode('2D');
+
           $projection.toggleModeIn2D( 'creation' );
+
+          setTimeout(function(){
+            obj.cameraLookAtCenterWalls();
+          });
 
         }
 
@@ -224,18 +231,18 @@ function Editor(obj){
 
   obj.loadData = function(){
 
-//$.getJSON("data/project.json", function( data ) {
-//
-//    serverData = data.drawing ;
+$.getJSON("data/project.json", function( data ) {
+
+    serverData = data.drawing ;
 
     var localData = obj.getLocalData();
     serverData = obj.getServerData();
 
     switch ( true ) {
 
-      case ! serverData :
-        window.localStorage.removeItem( 'cad5' );
-        break;
+//      case ! serverData :
+//        window.localStorage.removeItem( 'cad5' );
+//        break;
 
       case ( ! $Editor.isEmptyObject(serverData) ) && ( ! $Editor.isEmptyObject(localData) ):
 
@@ -250,9 +257,9 @@ function Editor(obj){
         obj.parseData( serverData );
         break;
 
-//      case ! serverData && ( ! $Editor.isEmptyObject(localData) ):
-//        obj.parseData( localData );
-//        break;
+      case ! serverData && ( ! $Editor.isEmptyObject(localData) ):
+        obj.parseData( localData );
+        break;
 
       default:
         window.localStorage.removeItem( 'cad5' );
@@ -264,7 +271,7 @@ function Editor(obj){
       obj.localSavingOn();
     }
 
-//    });
+    });
 
   };
   obj.getLocalData = function(){
@@ -673,7 +680,28 @@ function Editor(obj){
 //	obj.selectionBox.material.transparent = true;
 //	obj.selectionBox.visible = false;
 
+  obj.cameraLookAtCenterWalls = function(){
+    var walls = new THREE.Group();
+    $wallEditor.walls.forEach(function( item ){
+      walls.add( item );
+    });
 
+    var box = new THREE.Box3().setFromObject ( walls );
+
+    $wallEditor.walls.forEach(function( item ){
+      scene.add( item );
+    });
+
+    walls = null;
+
+    var center = box.getCenter();
+    camera.position.setX( center.x );
+    camera.position.setZ( center.z );
+    camera.lookAt( new THREE.Vector3( center.x, 0, center.z) );
+
+    controls.target = new THREE.Vector3( center.x, 0, center.z);
+
+  };
 
 
 
@@ -755,6 +783,7 @@ function initProjection(obj){
 //    $Editor.showPropGui();
 
   };
+
   obj.cameraAdd = function(){
      camera = new THREE.OrthographicCamera(
                                           frustumSize * ASPECT / - 2,
@@ -768,7 +797,6 @@ function initProjection(obj){
 
     camera.position.copy( $Editor.floor.position.clone() );
 
-
     switch (obj.type) {
       case 'top':
         camera.position.add( new THREE.Vector3(0, 30000, 0) );
@@ -781,9 +809,10 @@ function initProjection(obj){
         break;
     }
 
-    camera.lookAt( $Editor.floor.position.clone() );
 
 
+    $Editor.cameraLookAtCenterWalls();
+    camera.updateProjectionMatrix ();
 
   };
   obj.planeHelperAdd = function(){
