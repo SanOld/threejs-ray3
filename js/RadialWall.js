@@ -44,7 +44,11 @@ function RadialWall( vertices, parameters ){
 
       h2 -= distance;
       self.radius = $Editor.Math.radiusByDistanceToArcMiddlePoint( h2, self.axisLength );
-      if( self.radius > 500000){
+
+      window.console.log( self._last_radius - self.radius );
+
+      if( self.radius > 500000 && self._last_radius > self.radius ){
+
         self.radius = 500000;
         self.location = ! self.location;
 //        if(! self.location)
@@ -55,15 +59,17 @@ function RadialWall( vertices, parameters ){
 
       h2 += distance;
       self.radius = $Editor.Math.radiusByDistanceToArcMiddlePoint( h2, self.axisLength );
-      if( self.radius > 500000){
+      if( self.radius > 500000 && self._last_radius > self.radius){
+
         self.radius = 500000;
         self.location = ! self.location;
-        if(! self.location)
-        debugger;
+//        if(! self.location)
+//        debugger;
       }
 
     }
 
+    self._last_radius = self.radius;
     self._lastPosition = position;
 
     self.update();
@@ -132,9 +138,9 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 //    }
 
     if ( this.center && this.location ){
-     return this.direction90.clone();
-    } else {
      return this.direction90.clone().negate();
+    } else {
+     return this.direction90.clone();
     }
 
 
@@ -169,10 +175,10 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         var curve = new THREE.EllipseCurve(
                                             coord.x,  coord.z, // ax, aY
                                             r1, r1,            // xRadius, yRadius
-//                                            endAngle, startAngle,
-                                            this.location ? endAngle : -startAngle, this.location ? startAngle : -endAngle,        // aStartAngle, aEndAngle
-//                                            false,
-                                            this.location ? false : true,              // aClockwise
+                                            endAngle, startAngle,
+//                                            this.location ? endAngle : -startAngle, this.location ? startAngle : -endAngle,        // aStartAngle, aEndAngle
+                                            false,
+//                                            this.location ? false : true,              // aClockwise
                                             -this.angle        // aRotation
                                           );
 
@@ -189,10 +195,10 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         var curve2 = new THREE.EllipseCurve(
                                             coord.x,  coord.z,  // ax, aY
                                             r2, r2,             // xRadius, yRadius
-//                                            startAngle, endAngle,
-                                            this.location ? startAngle : -endAngle, this.location ? endAngle : -startAngle,        // aStartAngle, aEndAngle
-//                                            true,
-                                            this.location ? true : false,              // aClockwise
+                                            startAngle, endAngle,
+//                                            this.location ? startAngle : -endAngle, this.location ? endAngle : -startAngle,        // aStartAngle, aEndAngle
+                                            true,
+//                                            this.location ? true : false,              // aClockwise
                                             -this.angle                  // aRotation
 
                                           );
