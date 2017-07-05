@@ -15,6 +15,14 @@ function RadialWall( vertices, parameters ){
   this.radius = this.axisLength  / 2 * 5 ;
   this.center = this.getCenter();
 
+  this.r1 = Math.floor( this.radius + delta );
+  this.r2 = Math.floor( this.radius - delta );
+
+  this.alpha = 0; //угол сектора окружности
+  this.startAngle = 0; //начальный угол дуги
+  this.endAngle = this.alpha + this.startAngle; //конечный угол дуги
+  this.cross_vector = new THREE.Vector3(1,0,0).cross(this.direction); //положение относительно оси x
+
   this._lastPosition = new THREE.Vector3(); //позиция при перемещении
 
 //  self.mover = null;
@@ -46,8 +54,6 @@ function RadialWall( vertices, parameters ){
 
       h2 -= distance;
       self.radius = $Editor.Math.radiusByDistanceToArcMiddlePoint( h2, self.axisLength );
-
-      window.console.log( self._last_radius - self.radius );
 
       if( self.radius > 100000 && self._last_radius > self.radius ){
 
@@ -110,14 +116,14 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     Wall.prototype.recalculatePoints.apply(this, arguments);
 
     if( this.radius <= this.axisLength / 2 ){
-
-      var alpha = $Editor.Math.chordAlpha( self.axisLength, self.radius );
-      var h2 =    $Editor.Math.chordFromMiddlePoint( self.radius, alpha  );
-      this.radius = $Editor.Math.radiusByDistanceToArcMiddlePoint( h2, this.axisLength );
+      this.radius = this.axisLength / 2;
+//      var alpha = $Editor.Math.chordAlpha( self.axisLength, self.radius );
+//      var h2 =    $Editor.Math.chordFromMiddlePoint( self.radius, alpha  );
+//      this.radius = $Editor.Math.radiusByDistanceToArcMiddlePoint( h2, this.axisLength );
 
     }
 
-    this.center = this.getCenter();
+
 
   },
   getCenter: function(){
@@ -161,72 +167,52 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
   buildGeometry: function(){
     var wallShape = new THREE.Shape();
 
+    var delta = this.width/2;
+    this.r1 = Math.floor( this.radius + delta );
+    this.r2 = Math.floor( this.radius - delta );
+
+    this.center = this.getCenter();
+    this.alpha = $Editor.Math.chordAlpha( this.axisLength, this.radius );
+    this.startAngle = (Math.PI - this.alpha)/2;
+    this.endAngle = this.alpha + this.startAngle;
+    this.cross_vector = new THREE.Vector3(1,0,0).cross(this.direction);
+
+//        window.console.log('cross_vector: '+ cross_vector.y);
+//        window.console.log('alpha: '+ alpha);
+//        window.console.log('axisLength: '+ this.axisLength);
+//        window.console.log('radius: '+ this.radius);
+//        window.console.log('x: '+ this.getCenter().x);
+//        window.console.log('y: '+ this.getCenter().z);
+//        window.console.log('angle: '+ this.angle);
+//        window.console.log('startAngle: '+ startAngle);
+//        window.console.log('endAngle: '+ endAngle);
+//        window.console.log('location: '+ this.location);
+//        window.console.log('width: '+ this.width);
+
+      var curve = new THREE.EllipseCurve(
+                                          this.center.x,  this.center.z, // ax, aY
+                                          this.r1, this.r1,            // xRadius, yRadius
+                                          this.location ? -this.startAngle : this.startAngle, this.location ? -this.endAngle : this.endAngle, // aStartAngle, aEndAngle
+                                          this.location ? true : false,// aClockwise
+                                          this.cross_vector.y < 0 ? this.angle : -this.angle// aRotation
+                                        );
 
 
-        var delta = this.width/2;
-        var r1 = Math.floor( this.radius + delta );
-
-        var coord = this.getCenter();
-        var alpha = $Editor.Math.chordAlpha( this.axisLength, this.radius );
-        var startAngle = (Math.PI - alpha)/2;
-        var endAngle = alpha + startAngle;
 
 
-        window.console.log('alpha: '+ alpha);
-        window.console.log('axisLength: '+ this.axisLength);
-        window.console.log('radius: '+ this.radius);
-        window.console.log('x: '+ this.getCenter().x);
-        window.console.log('y: '+ this.getCenter().z);
-        window.console.log('angle: '+ this.angle);
-        window.console.log('startAngle: '+ startAngle);
-        window.console.log('endAngle: '+ endAngle);
-        window.console.log('location: '+ this.location);
-        window.console.log('width: '+ this.width);
+      var curve2 = new THREE.EllipseCurve(
+                                          this.center.x,  this.center.z,  // ax, aY
+                                          this.r2, this.r2,             // xRadius, yRadius
+                                          this.location ? -this.endAngle : this.endAngle, this.location ? -this.startAngle : this.startAngle,// aStartAngle, aEndAngle
+                                          this.location ? false : true, // aClockwise
+                                          this.cross_vector.y < 0 ? this.angle : -this.angle // aRotation
+                                        );
 
-
-        var curve = new THREE.EllipseCurve(
-                                            coord.x,  coord.z, // ax, aY
-                                            r1, r1,            // xRadius, yRadius
-                                            endAngle, startAngle,
-//                                            this.location ? endAngle : startAngle, this.location ? startAngle : -endAngle,        // aStartAngle, aEndAngle
-                                            false,
-//                                            this.location ? false : true,              // aClockwise
-//                                            -this.angle        // aRotation
-                                            this.location ? -this.angle : -this.angle - Math.PI
-                                          );
-
-
-        var r2 = Math.floor( this.radius - delta );
-
-        var curve2 = new THREE.EllipseCurve(
-                                            coord.x,  coord.z,  // ax, aY
-                                            r2, r2,             // xRadius, yRadius
-                                            startAngle, endAngle,
-//                                            this.location ? startAngle : endAngle, this.location ? endAngle : -startAngle,        // aStartAngle, aEndAngle
-                                            true,
-//                                            this.location ? true : false,              // aClockwise
-//                                            -this.angle                  // aRotation
-                                            this.location ? -this.angle : -this.angle - Math.PI
-                                          );
-          window.console.log(curve2);
-
-        var middlePoint  = curve.getPoint ( 0.5 ); //центральная точка на дуге
-        var middlePointDistance =  ( new THREE.Vector3( middlePoint.x, 0, middlePoint.y ) ).distanceTo( this.axisLine.getCenter() );// расстояние до центра хорды
-        if( this.radius > this.axisLength/2 && middlePointDistance < this.radius ){
-
-          curve.aStartAngle *= -1;
-          curve.aEndAngle   *= -1;
-
-          curve2.aStartAngle *= -1;
-          curve2.aEndAngle   *= -1;
-
-        }
-
-        wallShape.moveTo( this.v1.x,  this.v1.z );
+      wallShape.moveTo( this.v1.x,  this.v1.z );
 //
 //				wallShape.lineTo( this.v11.x, this.v11.z );
 
-        wallShape.curves.push(curve);
+      wallShape.curves.push(curve);
 
 //        wallShape.currentPoint.x = this.v21.x;
 //        wallShape.currentPoint.y = this.v21.z;
@@ -234,7 +220,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 //        wallShape.lineTo( this.v2.x,  this.v2.z );
 //				wallShape.lineTo( this.v22.x, this.v22.z );
 
-        wallShape.curves.push(curve2);
+      wallShape.curves.push(curve2);
 
 //        wallShape.currentPoint.x = this.v12.x;
 //        wallShape.currentPoint.y = this.v12.z;
