@@ -1438,13 +1438,11 @@ function initProjection(obj){
         sph_v22.position.copy( item.v22 );
         scene.add( sph_v11, sph_v12, sph_v21, sph_v22 );
 
-
-
-
-
       }
 
     });
+
+    $Editor.cameraLookAtCenterWalls();
 
   });
   $('.footer').on('click','[action = changeFloorVisible]',function(){
@@ -1487,10 +1485,6 @@ function initProjection(obj){
     window.console.dir(scene.children);
 
   });
-
-
-
-
 
 }
 $projection = {};

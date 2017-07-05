@@ -1,6 +1,8 @@
 //объект радиусной стены
 function RadialWall( vertices, parameters ){
 
+  this.location = true; //положение центра окружности относительно хорды 0/1
+
   Wall.apply( this, [vertices, parameters] );
 
 //  this.type = 'Wall';
@@ -10,13 +12,10 @@ function RadialWall( vertices, parameters ){
   var self = this;
 
   this.isRadial = true;
-  this.radius = this.axisLength  / 2*5 ;
+  this.radius = this.axisLength  / 2 * 5 ;
   this.center = this.getCenter();
-  this.location = true; //положение центра окружности относительно хорды 0/1
 
   this._lastPosition = new THREE.Vector3(); //позиция при перемещении
-
-//  alert('new RadialWall create!');
 
 //  self.mover = null;
 
@@ -25,20 +24,23 @@ function RadialWall( vertices, parameters ){
 
     self._lastPosition = self.parent.localToWorld( self.position.clone() );
     self._startPosition = self.parent.localToWorld( self.position.clone() );
+    self._locationChanged = false;
+    var qqq = 1;
+    window.console.log('qqq: ' + qqq);
 
     controls.enabled = false;
 
 	};
   this.drag =       function ( event ) {
 
-    var dir = self._getDirToCenter();//направление расположение центра от хорды
-    var position = event.object.parent.localToWorld( event.object.position.clone() );
-    var distance = position.clone().sub( self._lastPosition ).projectOnVector(dir).length ();
+    var dir       = self._getDirToCenter();//направление расположение центра от хорды
+    var position  = event.object.parent.localToWorld( event.object.position.clone() );
+    var distance  = position.clone().sub( self._lastPosition ).projectOnVector(dir).length ()*2;
 
-    var cond = position.clone().sub( self._startPosition ).dot(dir) ;
+    var cond = position.clone().sub( self._startPosition ).dot( dir ) ;
 
     var alpha = $Editor.Math.chordAlpha( self.axisLength, self.radius );
-    var h2 =    $Editor.Math.chordFromMiddlePoint( self.radius, alpha  );
+    var h2    = $Editor.Math.chordFromMiddlePoint( self.radius, alpha  );
 
     if ( cond > 0 ){
 
@@ -47,10 +49,14 @@ function RadialWall( vertices, parameters ){
 
       window.console.log( self._last_radius - self.radius );
 
-      if( self.radius > 500000 && self._last_radius > self.radius ){
+      if( self.radius > 100000 && self._last_radius > self.radius ){
 
-        self.radius = 500000;
-        self.location = ! self.location;
+        self.radius = 100000;
+        if( ! self._locationChanged ){
+          self.location = ! self.location;
+          self._locationChanged = true;
+        }
+
 //        if(! self.location)
 //        debugger;
       }
@@ -59,10 +65,13 @@ function RadialWall( vertices, parameters ){
 
       h2 += distance;
       self.radius = $Editor.Math.radiusByDistanceToArcMiddlePoint( h2, self.axisLength );
-      if( self.radius > 500000 && self._last_radius > self.radius){
+      if( self.radius > 100000 && self._last_radius > self.radius){
 
-        self.radius = 500000;
-        self.location = ! self.location;
+        self.radius = 100000;
+        if( ! self._locationChanged ){
+          self.location = ! self.location;
+          self._locationChanged = true;
+        }
 //        if(! self.location)
 //        debugger;
       }
@@ -100,7 +109,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
     Wall.prototype.recalculatePoints.apply(this, arguments);
 
-    if( this.radius < this.axisLength / 2 ){
+    if( this.radius <= this.axisLength / 2 ){
 
       var alpha = $Editor.Math.chordAlpha( self.axisLength, self.radius );
       var h2 =    $Editor.Math.chordFromMiddlePoint( self.radius, alpha  );
@@ -137,10 +146,14 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 //     return this.direction90.clone().negate();
 //    }
 
-    if ( this.center && this.location ){
+    if ( this.location ){
+
      return this.direction90.clone().negate();
+
     } else {
+
      return this.direction90.clone();
+
     }
 
 
@@ -148,12 +161,10 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
   buildGeometry: function(){
     var wallShape = new THREE.Shape();
 
-				wallShape.moveTo( this.v1.x,  this.v1.z );
 
-				wallShape.lineTo( this.v11.x, this.v11.z );
 
         var delta = this.width/2;
-        var r1 = this.radius + delta;
+        var r1 = Math.floor( this.radius + delta );
 
         var coord = this.getCenter();
         var alpha = $Editor.Math.chordAlpha( this.axisLength, this.radius );
@@ -170,45 +181,38 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         window.console.log('startAngle: '+ startAngle);
         window.console.log('endAngle: '+ endAngle);
         window.console.log('location: '+ this.location);
+        window.console.log('width: '+ this.width);
 
 
         var curve = new THREE.EllipseCurve(
                                             coord.x,  coord.z, // ax, aY
                                             r1, r1,            // xRadius, yRadius
                                             endAngle, startAngle,
-//                                            this.location ? endAngle : -startAngle, this.location ? startAngle : -endAngle,        // aStartAngle, aEndAngle
+//                                            this.location ? endAngle : startAngle, this.location ? startAngle : -endAngle,        // aStartAngle, aEndAngle
                                             false,
 //                                            this.location ? false : true,              // aClockwise
-                                            -this.angle        // aRotation
+//                                            -this.angle        // aRotation
+                                            this.location ? -this.angle : -this.angle - Math.PI
                                           );
 
-        wallShape.curves.push(curve);
 
-        wallShape.currentPoint.x = this.v21.x;
-        wallShape.currentPoint.y = this.v21.z;
-
-        wallShape.lineTo( this.v2.x,  this.v2.z );
-				wallShape.lineTo( this.v22.x, this.v22.z );
-
-        var r2 = this.radius - delta;
+        var r2 = Math.floor( this.radius - delta );
 
         var curve2 = new THREE.EllipseCurve(
                                             coord.x,  coord.z,  // ax, aY
                                             r2, r2,             // xRadius, yRadius
                                             startAngle, endAngle,
-//                                            this.location ? startAngle : -endAngle, this.location ? endAngle : -startAngle,        // aStartAngle, aEndAngle
+//                                            this.location ? startAngle : endAngle, this.location ? endAngle : -startAngle,        // aStartAngle, aEndAngle
                                             true,
 //                                            this.location ? true : false,              // aClockwise
-                                            -this.angle                  // aRotation
-
+//                                            -this.angle                  // aRotation
+                                            this.location ? -this.angle : -this.angle - Math.PI
                                           );
-
-        wallShape.curves.push(curve2);
-
+          window.console.log(curve2);
 
         var middlePoint  = curve.getPoint ( 0.5 ); //центральная точка на дуге
         var middlePointDistance =  ( new THREE.Vector3( middlePoint.x, 0, middlePoint.y ) ).distanceTo( this.axisLine.getCenter() );// расстояние до центра хорды
-        if( this.radius >= this.axisLength/2 && middlePointDistance <= this.radius ){
+        if( this.radius > this.axisLength/2 && middlePointDistance < this.radius ){
 
           curve.aStartAngle *= -1;
           curve.aEndAngle   *= -1;
@@ -218,12 +222,25 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
         }
 
-        wallShape.currentPoint.x = this.v12.x;
-        wallShape.currentPoint.y = this.v12.z;
+        wallShape.moveTo( this.v1.x,  this.v1.z );
+//
+//				wallShape.lineTo( this.v11.x, this.v11.z );
 
-        wallShape.lineTo( this.v12.x, this.v12.z );
-//        wallShape.quadraticCurveTo ( coord.x, coord.z, this.v12.x, this.v12.z );
-        wallShape.lineTo( this.v1.x,  this.v1.z );
+        wallShape.curves.push(curve);
+
+//        wallShape.currentPoint.x = this.v21.x;
+//        wallShape.currentPoint.y = this.v21.z;
+//
+//        wallShape.lineTo( this.v2.x,  this.v2.z );
+//				wallShape.lineTo( this.v22.x, this.v22.z );
+
+        wallShape.curves.push(curve2);
+
+//        wallShape.currentPoint.x = this.v12.x;
+//        wallShape.currentPoint.y = this.v12.z;
+//
+//        wallShape.lineTo( this.v1.x,  this.v1.z );
+
 
     var extrudeSettings = {
       amount: this.height,
