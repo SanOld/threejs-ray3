@@ -65,14 +65,14 @@ var projectionWallMaterial_green = new THREE.MeshBasicMaterial({
       opacity: 0.8,
       transparent: true,
       depthWrite: false,
-      color: 'green'
+      color: '#5bbc4a '
     });
 var projectionWallMaterial_red = new THREE.MeshBasicMaterial({
       wireframe: false,
       opacity: 0.8,
       transparent: true,
       depthWrite: false,
-      color: 'red'
+      color: '#f44b48'
     });
 var acsWallMaterial = new THREE.MeshBasicMaterial({
       wireframe: false,

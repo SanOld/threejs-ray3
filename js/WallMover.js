@@ -26,7 +26,7 @@ function WallMover( wall ){
 
   var material_1 = new THREE.MeshBasicMaterial({
       wireframe: false,
-      opacity: 0.5,
+      opacity: 1,
       transparent: true,
       depthWrite: false,
       color: $Editor.default_params.wallMover.hover_color

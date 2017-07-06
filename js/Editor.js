@@ -35,17 +35,17 @@ function Editor(obj){
     Wall:{
       main_color: 'black',
       color_3D: '#d5c7ac',
-      active_color: '#00FFFF'
+      active_color: '#015C99'
     },
     wallMover:{
-      hover_color: '#ADFF2F'
+      hover_color: '#f7b605'
     },
     Doorway:{
       width: 100,
       height: 2100,
       elevation: 0,
       main_color: 'white',
-      active_color: '#00FFFF'
+      active_color: '#015C99'
     },
     Room:{
       main_color: '#FFCC99',
@@ -438,6 +438,8 @@ function Editor(obj){
       $Editor.floor.material = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
       $Editor.floor.material.anisotropy = maxAnisotropy;
       $Editor.floor.textureFile = filename;
+
+      $projection.toggleModeIn2D( 'creation' );
 
 		},
 		// Function called when download progresses
