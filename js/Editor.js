@@ -4275,6 +4275,7 @@ function initWallEditor( obj ){
 
 		obj.selected.setFloorScale(event);
 
+
 	});
   $('.ActiveElementMenu').on('click', '[action = changeWidth]', function(event){
 
