@@ -56,6 +56,7 @@ function Wall( vertices, parameters ){
     new THREE.Line3(self.p1, self.p2)
   ];
 
+  self.recalculatePoints();
   self.geometry = self.buildGeometry();
 
   self.material = new THREE.MeshBasicMaterial({
@@ -655,10 +656,12 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     if(! this.v22.equals( this.v11 ) )
     this.v22.copy( this.v2.clone().add( this.direction90.clone().negate().multiplyScalar(this.width/2) ) );
 
-    this.node11.position.copy(this.v11);
-    this.node12.position.copy(this.v12);
-    this.node21.position.copy(this.v21);
-    this.node22.position.copy(this.v22);
+    if( this.node11 ){
+      this.node11.position.copy(this.v11);
+      this.node12.position.copy(this.v12);
+      this.node21.position.copy(this.v21);
+      this.node22.position.copy(this.v22);
+    }
 
   },
 

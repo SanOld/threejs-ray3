@@ -125,8 +125,17 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 //      var alpha = $Editor.Math.chordAlpha( self.axisLength, self.radius );
 //      var h2 =    $Editor.Math.chordFromMiddlePoint( self.radius, alpha  );
 //      this.radius = $Editor.Math.radiusByDistanceToArcMiddlePoint( h2, this.axisLength );
-
     }
+
+    this.center = this.getCenter();
+
+    var geometry = new THREE.SphereBufferGeometry( Math.ceil( this.radius - this.width/2 ), 128, 128 );
+    this.sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
+    this.sphere_1.geometry.translate (this.center.x, 0, this.center.z);
+
+    var geometry = new THREE.SphereBufferGeometry( Math.ceil( this.radius + this.width/2 ), 128, 128 );
+    this.sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
+    this.sphere_2.geometry.translate ( this.center.x, 0, this.center.z );
 
   },
   getCenter: function(){
@@ -278,40 +287,42 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
      * определить угол vector_start_nearest к direction = endAngle для curve2
      *
      */
-      if( this.center.distanceToSquared( this.v11 ) < this.center.distanceToSquared( this.v12 )){
+      if( this.center.distanceToSquared( this.v11 ) >= this.center.distanceToSquared( this.v12 )){
 
-        var vector_start_nearest = this.v11.clone().sub( this.center );
-        var startAngle = vector_start_nearest.angleTo( this.direction );
+        var vector_start_nearest = this.v21.clone().sub( this.center );
+        var startAngleBig = vector_start_nearest.angleTo( this.direction );
 
-        var vector_end_nearest = this.v21.clone().sub( this.center );
-        var endAngle = vector_end_nearest.angleTo( this.direction );
+        var vector_end_nearest = this.v11.clone().sub( this.center );
+        var endAngleBig = vector_end_nearest.angleTo( this.direction );
+
+        var vector_start_nearest = this.v22.clone().sub( this.center );
+        var startAngleSmall = vector_start_nearest.angleTo( this.direction );
+
+        var vector_end_nearest = this.v12.clone().sub( this.center );
+        var endAngleSmall = vector_end_nearest.angleTo( this.direction );
 
       } else {
 
-        var vector_start_nearest = this.v12.clone().sub( this.center );
-        var startAngle = vector_start_nearest.angleTo( this.direction );
+        var vector_start_nearest = this.v22.clone().sub( this.center );
+        var startAngleBig = vector_start_nearest.angleTo( this.direction );
 
-        var vector_end_nearest = this.v22.clone().sub( this.center );
-        var endAngle = vector_end_nearest.angleTo( this.direction );
+        var vector_end_nearest = this.v12.clone().sub( this.center );
+        var endAngleBig = vector_end_nearest.angleTo( this.direction );
+
+        var vector_start_nearest = this.v21.clone().sub( this.center );
+        var startAngleSmall = vector_start_nearest.angleTo( this.direction );
+
+        var vector_end_nearest = this.v11.clone().sub( this.center );
+        var endAngleSmall = vector_end_nearest.angleTo( this.direction );
 
       }
 
-//        window.console.log('cross_vector: '+ cross_vector.y);
-//        window.console.log('alpha: '+ alpha);
-//        window.console.log('axisLength: '+ this.axisLength);
-//        window.console.log('radius: '+ this.radius);
-//        window.console.log('x: '+ this.getCenter().x);
-//        window.console.log('y: '+ this.getCenter().z);
-//        window.console.log('angle: '+ this.angle);
-//        window.console.log('startAngle: '+ startAngle);
-//        window.console.log('endAngle: '+ endAngle);
-//        window.console.log('location: '+ this.location);
-//        window.console.log('width: '+ this.width);
+
 
       var curve = new THREE.EllipseCurve(
                                           this.center.x,  this.center.z, // ax, aY
                                           this.r1, this.r1,            // xRadius, yRadius
-                                          this.location ? -this.startAngle : this.startAngle, this.location ? -this.endAngle : this.endAngle, // aStartAngle, aEndAngle
+                                          this.location ? -startAngleBig : startAngleBig, this.location ? -endAngleBig : endAngleBig, // aStartAngle, aEndAngle
                                           this.location ? true : false,// aClockwise
                                           this.cross_vector.y < 0 ? this.angle : -this.angle// aRotation
                                         );
@@ -322,7 +333,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       var curve2 = new THREE.EllipseCurve(
                                           this.center.x,  this.center.z,  // ax, aY
                                           this.r2, this.r2,             // xRadius, yRadius
-                                          this.location ? -endAngle : endAngle, this.location ? -startAngle : startAngle,// aStartAngle, aEndAngle
+                                          this.location ? -endAngleSmall : endAngleSmall, this.location ? -startAngleSmall : startAngleSmall,// aStartAngle, aEndAngle
                                           this.location ? false : true, // aClockwise
                                           this.cross_vector.y < 0 ? this.angle : -this.angle // aRotation
                                         );
@@ -385,8 +396,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     var target_foundation = null;
     var self = this;
 
-    var sphere_1;
-    var sphere_2;
+    var sphere_1 = this.sphere_1;
+    var sphere_2 = this.sphere_2;
 
     walls.forEach(function(item, i){
 
@@ -427,15 +438,13 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           }
         }
 
-        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 64, 64 );
-        sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
-        sphere_1.geometry.translate (self.center.x, 0, self.center.z);
-//        scene.add(sphere_1);
-
-        var geometry2 = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 64, 64 );
-        sphere_2 = new THREE.Mesh( geometry2, projectionWallMaterial_green );
-        sphere_2.geometry.translate (self.center.x, 0, self.center.z);
-//        scene.add(sphere_2);
+//        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 64, 64 );
+//        sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
+//        sphere_1.geometry.translate (self.center.x, 0, self.center.z);
+//
+//        var geometry2 = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 64, 64 );
+//        sphere_2 = new THREE.Mesh( geometry2, projectionWallMaterial_green );
+//        sphere_2.geometry.translate (self.center.x, 0, self.center.z);
 
       }
 
@@ -516,8 +525,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
   var target_foundation = null;
   var self = this;
 
-  var sphere_1;
-  var sphere_2;
+  var sphere_1 = this.sphere_1;
+  var sphere_2 = this.sphere_2;
 
   walls.forEach(function(item, i){
     if(self.uuid != item.uuid){
@@ -555,13 +564,13 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         }
       }
 
-      var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
-      sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
-      sphere_1.geometry.translate (self.center.x, 0, self.center.z);
-
-      var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
-      sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
-      sphere_2.geometry.translate (self.center.x, 0, self.center.z);
+//      var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
+//      sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
+//      sphere_1.geometry.translate (self.center.x, 0, self.center.z);
+//
+//      var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
+//      sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
+//      sphere_2.geometry.translate (self.center.x, 0, self.center.z);
 
     }
 
@@ -643,8 +652,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     var target_foundation = null;
     var self = this;
 
-    var sphere_1;
-    var sphere_2;
+    var sphere_1 = this.sphere_1;
+    var sphere_2 = this.sphere_2;
 
     walls.forEach(function(item, i){
       if(self.uuid != item.uuid){
@@ -684,13 +693,13 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           }
         }
 
-        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
-        sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
-        sphere_1.geometry.translate (self.center.x, 0, self.center.z);
-
-        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
-        sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
-        sphere_2.geometry.translate (self.center.x, 0, self.center.z);
+//        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
+//        sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
+//        sphere_1.geometry.translate (self.center.x, 0, self.center.z);
+//
+//        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
+//        sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
+//        sphere_2.geometry.translate (self.center.x, 0, self.center.z);
 
       }
 
@@ -771,8 +780,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       var target_foundation = null;
       var self = this;
 
-      var sphere_1;
-      var sphere_2;
+      var sphere_1 = this.sphere_1;
+      var sphere_2 = this.sphere_2;
 
       walls.forEach(function(item, i){
 
@@ -813,13 +822,14 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
             }
           }
 
-          var geometry = new THREE.SphereBufferGeometry( Math.ceil( self.radius - self.width/2 ), 32, 32 );
-          sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
-          sphere_1.geometry.translate (self.center.x, 0, self.center.z);
-
-          var geometry = new THREE.SphereBufferGeometry( Math.ceil( self.radius + self.width/2 ), 32, 32 );
-          sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
-          sphere_2.geometry.translate ( self.center.x, 0, self.center.z );
+//          var geometry = new THREE.SphereBufferGeometry( Math.ceil( self.radius - self.width/2 ), 32, 32 );
+//
+//          sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
+//          sphere_1.geometry.translate (self.center.x, 0, self.center.z);
+//
+//          var geometry = new THREE.SphereBufferGeometry( Math.ceil( self.radius + self.width/2 ), 32, 32 );
+//          sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
+//          sphere_2.geometry.translate ( self.center.x, 0, self.center.z );
 //          scene.add( sphere_2 );
 
         }
