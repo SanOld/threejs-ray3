@@ -73,7 +73,8 @@ function Editor(obj){
     obj.addFloor();
     obj.addLight();
     obj.loadData();
-//    obj.loadFromLocalStorage();
+
+    obj.setFloorHeight();
     obj.setPositionLight();
 
     //активация
@@ -201,6 +202,10 @@ function Editor(obj){
     var cad5 = {};
 
     cad5.timeStamp = date.getTime();
+
+    cad5.config = {};
+    cad5.config.floorHeight = floorHeight;
+
     if( ! cad5.id ){cad5.id = THREE.Math.generateUUID(); }
     cad5.walls = [];
 
@@ -300,6 +305,11 @@ function Editor(obj){
   };
 
   obj.parseData = function( cad5 ){
+
+    //высота этажа
+    if ( cad5.config.floorHeight ){
+      $Editor.setFloorHeight( cad5.config.floorHeight );
+    }
 
     //СТЕНЫ
     var i = cad5.walls.length;
@@ -448,6 +458,12 @@ function Editor(obj){
     obj.lights[3].position.set( 0, floorHeight * 2 , obj.floor.width );
 
     obj.lights[4].position.set( obj.floor.length/2, floorHeight  , obj.floor.width/2 );
+  };
+  obj.setFloorHeight = function( height ){
+
+    floorHeight = height || 3000;
+    $('.footer').find('[action = floorHeight]').val( floorHeight );
+
   };
 
   obj.msg = function( parameters ){
@@ -4338,6 +4354,7 @@ function initWallEditor( obj ){
     });
 
     $(this).trigger( "blur" );
+    $Editor.setFloorHeight( + elem.val()/current_unit.c );
 
   }
 
