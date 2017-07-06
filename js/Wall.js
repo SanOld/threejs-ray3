@@ -1298,19 +1298,21 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       var floorScaleY = 1;
       var floorScaleZ = 1;
 
-      if (self.v1.x == self.v2.x ){
+//      if (self.v1.x == self.v2.x ){
+//
+//        floorScaleY = val / self.axisLength;
+//
+//      } else if ( self.v1.z == self.v2.z ){
+//
+//        floorScaleX = val / self.axisLength;
+//
+//      } else if ( self.v1.x != self.v2.x  && self.v1.z != self.v2.z ){
+//
+//        floorScaleX = floorScaleY = val / self.axisLength;
+//
+//      }
 
-        floorScaleY = val / self.axisLength;
-
-      } else if ( self.v1.z == self.v2.z ){
-
-        floorScaleX = val / self.axisLength;
-
-      } else if ( self.v1.x != self.v2.x  && self.v1.z != self.v2.z ){
-
-        floorScaleX = floorScaleY = val / self.axisLength;
-
-      }
+      floorScaleX = floorScaleY = val / self.axisLength;
 
       $Editor.floor.setScale( floorScaleX, floorScaleY, floorScaleZ );
 
