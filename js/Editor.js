@@ -1302,7 +1302,12 @@ function initProjection(obj){
   $('.footer').on('click','[action = modeC]',function(event){
 
     event.preventDefault();
-    obj.toggleModeIn2D('creation');
+    if( $wallCreator.enabled ){
+      obj.toggleModeIn2D('edition');
+    } else {
+      obj.toggleModeIn2D('creation');
+    }
+
 
   });
   $('.footer').on('click','[action = modeE]',function(event){
