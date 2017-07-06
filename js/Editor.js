@@ -430,7 +430,9 @@ function Editor(obj){
 		// Function when resource is loaded
 		function ( floorTexture ) {
 			// do something with the texture
-
+      var k =  floorTexture.image.height / floorTexture.image.width;
+      $Editor.floor.scale.set (1,1,1);
+      $Editor.floor.setScale( 1, k, 1 );
       floorTexture.needsUpdate = true;
       floorTexture.repeat.set( 1, 1 );
       $Editor.floor.material = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.FrontSide } );
