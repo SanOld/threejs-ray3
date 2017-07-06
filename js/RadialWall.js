@@ -15,6 +15,8 @@ function RadialWall( vertices, parameters ){
   this.radius = this.axisLength  / 2 * 5 ;
   this.center = this.getCenter();
 
+  //=== расчет в buildGeometry
+  var delta = this.width/2;
   this.r1 = Math.floor( this.radius + delta );
   this.r2 = Math.floor( this.radius - delta );
 
@@ -22,6 +24,7 @@ function RadialWall( vertices, parameters ){
   this.startAngle = 0; //начальный угол дуги
   this.endAngle = this.alpha + this.startAngle; //конечный угол дуги
   this.cross_vector = new THREE.Vector3(1,0,0).cross(this.direction); //положение относительно оси x
+  //=== расчет в buildGeometry
 
   this._lastPosition = new THREE.Vector3(); //позиция при перемещении
 
@@ -92,6 +95,7 @@ function RadialWall( vertices, parameters ){
 	};
   this.dragend =    function ( event ) {
 
+    $wallCreator.updateWalls();
     controls.enabled = true;
 
   };
@@ -116,14 +120,13 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     Wall.prototype.recalculatePoints.apply(this, arguments);
 
     if( this.radius <= this.axisLength / 2 ){
+
       this.radius = this.axisLength / 2;
 //      var alpha = $Editor.Math.chordAlpha( self.axisLength, self.radius );
 //      var h2 =    $Editor.Math.chordFromMiddlePoint( self.radius, alpha  );
 //      this.radius = $Editor.Math.radiusByDistanceToArcMiddlePoint( h2, this.axisLength );
 
     }
-
-
 
   },
   getCenter: function(){
@@ -164,7 +167,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
 
   },
-  buildGeometry: function(){
+  buildGeometry_sample: function(){
     var wallShape = new THREE.Shape();
 
     var delta = this.width/2;
@@ -204,6 +207,122 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
                                           this.center.x,  this.center.z,  // ax, aY
                                           this.r2, this.r2,             // xRadius, yRadius
                                           this.location ? -this.endAngle : this.endAngle, this.location ? -this.startAngle : this.startAngle,// aStartAngle, aEndAngle
+                                          this.location ? false : true, // aClockwise
+                                          this.cross_vector.y < 0 ? this.angle : -this.angle // aRotation
+                                        );
+
+      wallShape.moveTo( this.v1.x,  this.v1.z );
+//
+//				wallShape.lineTo( this.v11.x, this.v11.z );
+
+      wallShape.curves.push(curve);
+
+//        wallShape.currentPoint.x = this.v21.x;
+//        wallShape.currentPoint.y = this.v21.z;
+//
+//        wallShape.lineTo( this.v2.x,  this.v2.z );
+//				wallShape.lineTo( this.v22.x, this.v22.z );
+
+      wallShape.curves.push(curve2);
+
+//        wallShape.currentPoint.x = this.v12.x;
+//        wallShape.currentPoint.y = this.v12.z;
+//
+//        wallShape.lineTo( this.v1.x,  this.v1.z );
+
+
+    var extrudeSettings = {
+      amount: this.height,
+      bevelEnabled: false
+    };
+    try{
+
+//      var shapePoints = wallShape.extractPoints();
+//      var vertices = shapePoints.shape;
+//      THREE.ShapeUtils.isClockWise(vertices)
+
+//      var arr = THREE.ShapeUtils.triangulate( vertices, false );
+
+//
+//      if( arr.lenth > 0 ){
+//        var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
+//      } else {
+//        return null;
+//      }
+
+      var geometry = new THREE.ExtrudeGeometry( wallShape, extrudeSettings );
+    } catch (e){
+      return null;
+    }
+    return geometry;
+  },
+  buildGeometry: function(){
+    var wallShape = new THREE.Shape();
+
+    var delta = this.width/2;
+    this.r1 = Math.floor( this.radius + delta );
+    this.r2 = Math.floor( this.radius - delta );
+
+    this.center = this.getCenter();
+    this.alpha = $Editor.Math.chordAlpha( this.axisLength, this.radius );
+    this.startAngle = (Math.PI - this.alpha)/2;
+    this.endAngle = this.alpha + this.startAngle;
+    this.cross_vector = new THREE.Vector3(1,0,0).cross(this.direction);
+
+    /*
+     * определить ближнюю к центру окружности точку из v11 / v12
+     * если v11
+     * определить вектор от центра окружности до v11 = vector_start_nearest
+     * определить угол vector_start_nearest к direction = startAngle для curve2
+     * определить вектор от центра окружности до v22 = vector_end_nearest
+     * определить угол vector_start_nearest к direction = endAngle для curve2
+     *
+     */
+      if( this.center.distanceToSquared( this.v11 ) < this.center.distanceToSquared( this.v12 )){
+
+        var vector_start_nearest = this.v11.clone().sub( this.center );
+        var startAngle = vector_start_nearest.angleTo( this.direction );
+
+        var vector_end_nearest = this.v21.clone().sub( this.center );
+        var endAngle = vector_end_nearest.angleTo( this.direction );
+
+      } else {
+
+        var vector_start_nearest = this.v12.clone().sub( this.center );
+        var startAngle = vector_start_nearest.angleTo( this.direction );
+
+        var vector_end_nearest = this.v22.clone().sub( this.center );
+        var endAngle = vector_end_nearest.angleTo( this.direction );
+
+      }
+
+//        window.console.log('cross_vector: '+ cross_vector.y);
+//        window.console.log('alpha: '+ alpha);
+//        window.console.log('axisLength: '+ this.axisLength);
+//        window.console.log('radius: '+ this.radius);
+//        window.console.log('x: '+ this.getCenter().x);
+//        window.console.log('y: '+ this.getCenter().z);
+//        window.console.log('angle: '+ this.angle);
+//        window.console.log('startAngle: '+ startAngle);
+//        window.console.log('endAngle: '+ endAngle);
+//        window.console.log('location: '+ this.location);
+//        window.console.log('width: '+ this.width);
+
+      var curve = new THREE.EllipseCurve(
+                                          this.center.x,  this.center.z, // ax, aY
+                                          this.r1, this.r1,            // xRadius, yRadius
+                                          this.location ? -this.startAngle : this.startAngle, this.location ? -this.endAngle : this.endAngle, // aStartAngle, aEndAngle
+                                          this.location ? true : false,// aClockwise
+                                          this.cross_vector.y < 0 ? this.angle : -this.angle// aRotation
+                                        );
+
+
+
+
+      var curve2 = new THREE.EllipseCurve(
+                                          this.center.x,  this.center.z,  // ax, aY
+                                          this.r2, this.r2,             // xRadius, yRadius
+                                          this.location ? -endAngle : endAngle, this.location ? -startAngle : startAngle,// aStartAngle, aEndAngle
                                           this.location ? false : true, // aClockwise
                                           this.cross_vector.y < 0 ? this.angle : -this.angle // aRotation
                                         );
@@ -694,13 +813,14 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
             }
           }
 
-          var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
+          var geometry = new THREE.SphereBufferGeometry( Math.ceil( self.radius - self.width/2 ), 32, 32 );
           sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
           sphere_1.geometry.translate (self.center.x, 0, self.center.z);
 
-          var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
+          var geometry = new THREE.SphereBufferGeometry( Math.ceil( self.radius + self.width/2 ), 32, 32 );
           sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
-          sphere_2.geometry.translate (self.center.x, 0, self.center.z);
+          sphere_2.geometry.translate ( self.center.x, 0, self.center.z );
+//          scene.add( sphere_2 );
 
         }
 
