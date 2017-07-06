@@ -28,7 +28,21 @@ function RoomDoorway( doorway ){
   this.name = 'room_' + doorway.name;
   var self = this;
 
-  this.visible = false;
+  if( this.doorway.CGI.selectedHelper ){
+    var geometry = new THREE.PlaneBufferGeometry();
+    geometry.copy( doorway.CGI.selectedHelper.geometry.clone() );
+//    this.selectedHelper = new THREE.Mesh( new THREE.PlaneBufferGeometry( this.doorway.width, this.doorway.width ), wallControlPointMaterial_hover );
+    this.selectedHelper = new THREE.Mesh( geometry, doorBlockHelperMaterial );
+//    this.selectedHelper.rotateZ( Math.PI/2 );
+    this.selectedHelper.position.copy( doorway.CGI.selectedHelper.getWorldPosition()  );
+    this.selectedHelper.rotation.copy( doorway.CGI.selectedHelper.getWorldRotation()  );
+//    this.selectedHelper.lookAt(new THREE.Vector3(0, 1, 0));
+    this.selectedHelper.name = 'doorSelectedHelper';
+    this.selectedHelper.door = this;
+    this.add( this.selectedHelper );
+  }
+
+//  this.visible = false;
 
   this.mainColor =  $Editor.default_params.RoomDoorway.main_color;
   this.hoverColor =  $Editor.default_params.Room.hover_color;
@@ -52,7 +66,7 @@ RoomDoorway.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
   buildGeometry: function(){
     var geometry = new THREE.BufferGeometry();
-    geometry.copy(this.doorway.geometry.clone() );
+    geometry.copy( this.doorway.geometry.clone() );
     return geometry;
   },
 

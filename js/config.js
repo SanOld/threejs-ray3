@@ -46,6 +46,13 @@ var dimensionMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff } );
 var transparentMaterial = new THREE.MeshBasicMaterial( { transparent: true, opacity: 0} );
 var doorwayMaterial = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.DoubleSide} );
 var doorwayBodyMaterial = new THREE.MeshBasicMaterial( {color: 'white', side: THREE.BackSide} );
+var doorBlockHelperMaterial = new THREE.MeshBasicMaterial({
+      wireframe: false,
+      opacity: 0.01,
+      transparent: true,
+      depthWrite: false,
+      color: 'white'
+    });
 var projectionWallMaterial_black = new THREE.MeshBasicMaterial({
       wireframe: false,
       opacity: 0.8,

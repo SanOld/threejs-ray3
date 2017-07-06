@@ -4,6 +4,7 @@ function initSelectMode( obj ){
   obj.enabled = false;
   obj.rooms = [];
   obj.doorways = [];
+  obj.doorwayHelpers = [];
   obj.selected = null;
   obj.hovered = null;
   obj.arraySelected = [];
@@ -33,7 +34,7 @@ function initSelectMode( obj ){
 
     obj.hideRoomsFloor();
     obj.hideRoomsSurfaces();
-    obj.hideDoorways();
+    obj.removeDoorways();
 
     obj.hideSelectAllWallsTool();
 
@@ -74,7 +75,7 @@ function initSelectMode( obj ){
     });
 
     objects = objects.concat( obj.doorways );
-
+    objects = objects.concat( obj.doorwayHelpers );
 
     if( obj.selectControls ){
 
@@ -85,7 +86,6 @@ function initSelectMode( obj ){
       obj.selectControls = new SelectControls( objects, camera, renderer.domElement );
 
     }
-
 
 
     obj.selectControls.addEventListener( 'select', obj.select );
@@ -144,6 +144,12 @@ function initSelectMode( obj ){
       }
 
       return;
+    }
+
+
+    if( event.object.name == 'doorSelectedHelper'){
+      obj.selected = event.object.door;
+      event.object = obj.selected;
     }
 
     //фиксируем выбранный объект
@@ -414,6 +420,9 @@ function initSelectMode( obj ){
         var el = new RoomDoorway( door );
         scene.add( el );
         obj.doorways.push( el );
+        if( el.selectedHelper){
+          obj.doorwayHelpers.push( el.selectedHelper );
+        }
       });
     });
 

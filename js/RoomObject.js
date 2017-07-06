@@ -17,7 +17,6 @@ function RoomObject( room ){
   this.activeColor =  $Editor.default_params.Room.active_color;
 
 
-
   //события
   this.hoveron =    function ( event ) {
 
@@ -51,6 +50,7 @@ RoomObject.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
 
     this.setStartPosition();
+
   },
 
   buildGeometry: function(){

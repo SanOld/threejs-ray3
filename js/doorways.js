@@ -799,10 +799,16 @@ DoorBlock.prototype = Object.assign( Object.create( Doorway.prototype ),{
   },
 
   addCGI: function(){
-      //УГО двери
+    //УГО двери
     this.CGI.door = new THREE.Mesh( this.getCGIDoorGeometry(), projectionWallMaterial_black );
     this.CGI.door.material.copy( projectionWallMaterial_black.clone() );
     this.CGI.door.lookAt(new THREE.Vector3(0, 0, -1));
+    //хелпер для выбора
+    this.CGI.selectedHelper = new THREE.Mesh( new THREE.PlaneBufferGeometry( this.width, this.width ), doorBlockHelperMaterial );
+    this.CGI.selectedHelper.material.copy( doorBlockHelperMaterial.clone() );
+    this.CGI.selectedHelper.lookAt(new THREE.Vector3(0, 0, -1));
+    this.CGI.selectedHelper.name = 'doorSelectedHelper';
+    this.CGI.selectedHelper.door = this;
 
     //параметры дуги
     this.CGI.ax = 0;
@@ -817,9 +823,10 @@ DoorBlock.prototype = Object.assign( Object.create( Doorway.prototype ),{
     this.setCGILocation();
 
     this.CGI.door.rotateZ( Math.PI/2 );
+    this.CGI.selectedHelper.rotateZ( Math.PI/2 );
     this.CGI.arc = this.getArc();
 
-    this.add( this.CGI.door, this.CGI.arc);
+    this.add( this.CGI.door, this.CGI.arc, this.CGI.selectedHelper);
 
   },
   setCGILocation: function(){
@@ -829,6 +836,8 @@ DoorBlock.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
         this.CGI.door.position.x = this.width/2 - this.CGI_door_thickness/2;
         this.CGI.door.position.y = this.width/2 + this.thickness/2 + 1;
+
+        this.CGI.selectedHelper.position.y = this.width/2;
 
         //параметры дуги
         this.CGI.ax = this.CGI.door.position.x + this.CGI_door_thickness/2;
@@ -842,6 +851,8 @@ DoorBlock.prototype = Object.assign( Object.create( Doorway.prototype ),{
         this.CGI.door.position.x = - this.width/2 + this.CGI_door_thickness/2;
         this.CGI.door.position.y = this.width/2 + this.thickness/2 + 1;
 
+        this.CGI.selectedHelper.position.y = this.width/2;
+
         //параметры дуги
         this.CGI.ax = this.CGI.door.position.x - this.CGI_door_thickness/2;
         this.CGI.ay = this.thickness/2;
@@ -854,6 +865,8 @@ DoorBlock.prototype = Object.assign( Object.create( Doorway.prototype ),{
         this.CGI.door.position.x = this.width/2 - this.CGI_door_thickness/2;
         this.CGI.door.position.y = -this.width/2 - this.thickness/2 + 1;
 
+        this.CGI.selectedHelper.position.y = -this.width/2;
+
         //параметры дуги
         this.CGI.ax = this.CGI.door.position.x + this.CGI_door_thickness/2;
         this.CGI.ay = -this.thickness/2;
@@ -865,6 +878,8 @@ DoorBlock.prototype = Object.assign( Object.create( Doorway.prototype ),{
       case 4:
         this.CGI.door.position.x = - this.width/2 + this.CGI_door_thickness/2;
         this.CGI.door.position.y = - this.width/2 - this.thickness/2 + 1;
+
+        this.CGI.selectedHelper.position.y = -this.width/2;
 
         //параметры дуги
         this.CGI.ax = this.CGI.door.position.x - this.CGI_door_thickness/2;
@@ -1412,6 +1427,13 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( DoorBlock.prototype ),
     this.CGI.door.material.copy( projectionWallMaterial_black.clone() );
     this.CGI.door.lookAt(new THREE.Vector3(0, 0, -1));
 
+    //хелпер для выбора
+    this.CGI.selectedHelper = new THREE.Mesh( new THREE.PlaneBufferGeometry( this.width/2, this.width ), doorBlockHelperMaterial );
+    this.CGI.selectedHelper.material.copy( doorBlockHelperMaterial.clone() );
+    this.CGI.selectedHelper.lookAt(new THREE.Vector3(0, 0, -1));
+    this.CGI.selectedHelper.name = 'doorSelectedHelper';
+    this.CGI.selectedHelper.door = this;
+
     this.CGI.door2 = this.CGI.door.clone();
 
     //параметры дуги//
@@ -1423,10 +1445,11 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( DoorBlock.prototype ),
 
     this.CGI.door.rotateZ( Math.PI/2 );
     this.CGI.door2.rotateZ( Math.PI/2 );
+    this.CGI.selectedHelper.rotateZ( Math.PI/2 );
     this.CGI.arc = this.getArc( this.CGI.prop_arc );
     this.CGI.arc2 = this.getArc( this.CGI.prop_arc2 );
 
-    this.add( this.CGI.door, this.CGI.arc, this.CGI.door2, this.CGI.arc2);
+    this.add( this.CGI.door, this.CGI.arc, this.CGI.door2, this.CGI.arc2, this.CGI.selectedHelper);
 
   },
   setCGILocation: function(){
@@ -1457,6 +1480,9 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( DoorBlock.prototype ),
         this.CGI.prop_arc2.aStartAngle = 0;
         this.CGI.prop_arc2.aEndAngle = Math.PI/2 ;
 
+        //хелпер выбора
+        this.CGI.selectedHelper.position.y = this.width/4;
+
         break;
       case 2:
 
@@ -1482,6 +1508,9 @@ DoubleDoorBlock.prototype = Object.assign( Object.create( DoorBlock.prototype ),
         this.CGI.prop_arc2.xRadius = this.CGI.prop_arc2.yRadius = this.width/2 - 2;
         this.CGI.prop_arc2.aStartAngle = Math.PI + Math.PI/2 ;
         this.CGI.prop_arc2.aEndAngle =  0;
+
+        //хелпер выбора
+        this.CGI.selectedHelper.position.y = -this.width/4;
 
         break;
       case 4:

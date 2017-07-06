@@ -2764,6 +2764,10 @@ function initWallEditor( obj ){
         door.dimensions.forEach(function(dim){
           objects = objects.concat(dim.note);
         });
+
+        if( door.CGI.selectedHelper ){
+          objects = objects.concat( door.CGI.selectedHelper );
+        }
       });
 
       //добавление контрольных точек
@@ -2871,6 +2875,11 @@ function initWallEditor( obj ){
           obj.hideAllMenu();
           $projection.hideObjParams();
 
+          if( obj.selected.name == 'doorSelectedHelper'){
+            obj.selected = obj.selected.door;
+            event.object = obj.selected;
+          }
+
           //взываем select на выбранном объекте
           if( 'select' in event.object )
           event.object.select(event);
@@ -2912,6 +2921,8 @@ function initWallEditor( obj ){
             $('.left_panel_custom').css({'bottom':'10px'});
 
           } else if( obj.selected.type == 'DoorBlockFloor' || obj.selected.type == 'DoubleDoorBlockFloor' ){
+
+
 
             $projection.showObjParams({
               height: {val: obj.getSelectedPropertyByName('height'), label: 'Высота'},
