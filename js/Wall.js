@@ -1328,7 +1328,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       self.hideMenu();
       self.remove();
-      self.parent.remove(obj.selected);
 
     });
 
