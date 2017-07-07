@@ -229,7 +229,7 @@ function initSelectMode( obj ){
 
     obj.rooms.forEach(function ( item, index, arr ) {
 
-      if( ! item.external )
+      if( ! item.external && item.floor )
       obj.select( { object: item.floor } );
 
     });
@@ -243,7 +243,7 @@ function initSelectMode( obj ){
 
         item.surfaces.forEach(function ( surface, index, arr ) {
 
-          surface.select( { object: surface } );
+          obj.select( { object: surface } );
 
         });
 
@@ -260,7 +260,7 @@ function initSelectMode( obj ){
 
         item.surfaces.forEach(function ( surface, index, arr ) {
 
-          surface.select( { object: surface } );
+          obj.select( { object: surface } );
 
         });
 
