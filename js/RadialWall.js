@@ -319,7 +319,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
 
 
-      var curve = new THREE.EllipseCurve(
+      this.curve1 = new THREE.EllipseCurve(
                                           this.center.x,  this.center.z, // ax, aY
                                           this.r1, this.r1,            // xRadius, yRadius
                                           this.location ? -startAngleBig : startAngleBig, this.location ? -endAngleBig : endAngleBig, // aStartAngle, aEndAngle
@@ -328,9 +328,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
                                         );
 
 
-
-
-      var curve2 = new THREE.EllipseCurve(
+      this.curve2 = new THREE.EllipseCurve(
                                           this.center.x,  this.center.z,  // ax, aY
                                           this.r2, this.r2,             // xRadius, yRadius
                                           this.location ? -endAngleSmall : endAngleSmall, this.location ? -startAngleSmall : startAngleSmall,// aStartAngle, aEndAngle
@@ -342,7 +340,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 //
 //				wallShape.lineTo( this.v11.x, this.v11.z );
 
-      wallShape.curves.push(curve);
+      wallShape.curves.push( this.curve1 );
 
 //        wallShape.currentPoint.x = this.v21.x;
 //        wallShape.currentPoint.y = this.v21.z;
@@ -350,7 +348,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 //        wallShape.lineTo( this.v2.x,  this.v2.z );
 //				wallShape.lineTo( this.v22.x, this.v22.z );
 
-      wallShape.curves.push(curve2);
+      wallShape.curves.push( this.curve2 );
 
 //        wallShape.currentPoint.x = this.v12.x;
 //        wallShape.currentPoint.y = this.v12.z;

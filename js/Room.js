@@ -94,18 +94,33 @@ Room.prototype = Object.assign( {}, {
   },
 
   getCountur: function( chain ){
+
     var countur = [];
     var nodes = this.nodes;
+    
     chain.forEach(function( item ){
 //      if( ! countur.length == 0 && ! nodes[item.source.id] )debugger;
-      if( countur.length == 0 ){
-        countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
-        countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
-      } else if(countur[countur.length-1].x == nodes[item.target.id].position.x && countur[countur.length-1].y == nodes[item.target.id].position.z && nodes[item.source.id] ){
-        countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
+      var wall = scene.getObjectByProperty('uuid', item.wall_uuid);
+
+      if( wall && wall.name == 'radial_wall' ){
+
+        countur = countur.concat (  wall.curve2.getPoints(50) );
+
       } else {
-        countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
+
+        if( countur.length == 0 ){
+          countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
+          countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
+        } else if(countur[countur.length-1].x == nodes[item.target.id].position.x && countur[countur.length-1].y == nodes[item.target.id].position.z && nodes[item.source.id] ){
+          countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
+        } else {
+          countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
+        }
+
       }
+
+
+
 
     });
 
@@ -494,19 +509,35 @@ Room.prototype = Object.assign( {}, {
     var self = this;
 
 
-    chain.forEach(function(item){
+//    chain.forEach(function(item){
+//
+//      var geometry = new THREE.Geometry();
+//      if(nodes[item.source.id] && nodes[item.target.id]){
+//        geometry.vertices.push( nodes[item.source.id].position.clone(), nodes[item.target.id].position.clone() );
+//        var line = new THREE.Line(geometry, LineBasicMaterialRed);
+//        line.name = 'room_line';
+//        line.visible = true;
+//
+//        self.counturLine.add( line );
+//      }
+//
+//    });
+var geometry = new THREE.Geometry();
+    self.countur.forEach(function(item){
 
-      var geometry = new THREE.Geometry();
-      if(nodes[item.source.id] && nodes[item.target.id]){
-        geometry.vertices.push( nodes[item.source.id].position.clone(), nodes[item.target.id].position.clone() );
-        var line = new THREE.Line(geometry, LineBasicMaterialRed);
+
+      geometry.vertices.push( new THREE.Vector3( item.x, 0 , item.y ) );
+
+
+
+    });
+
+    var line = new THREE.Line(geometry, LineBasicMaterialRed);
         line.name = 'room_line';
         line.visible = true;
 
         self.counturLine.add( line );
-      }
 
-    });
   },
   removeCounturLine: function(){
 
