@@ -442,7 +442,7 @@ function Editor(obj){
       $Editor.msg({
           type: 'confirm',
           text: "Установите масштаб чертежа",
-          modal: false,
+          modal: true,
           response: function(response){
             if(response){
               $projection.toggleModeIn2D( 'creation' );
