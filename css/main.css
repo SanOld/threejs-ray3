@@ -283,3 +283,89 @@ input.slope{
     right: 43px;
 
 }
+
+
+
+.custom_footer_buttons{
+    display: flex;
+    width: 445px;
+    /*background: red;*/
+}
+
+.col-2-footer-buttons{
+    display: flex;
+    justify-content: flex-end;
+}
+
+.footer-custom-buttons{
+    display: flex;
+}
+
+.footer-buttons{
+    display: flex;
+    justify-content: flex-end;
+}
+
+.content_row_custom{
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+
+
+/*tooltip*/
+.tooltip_custom {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.tooltip_custom .tooltip_customtext {
+    visibility: visible;
+    width: 400px;
+    background-color: red;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -200px;
+    opacity: 1;
+    transition: opacity 1s;
+    font-family: "Segoe UI";
+}
+
+.tooltip_custom .tooltip_customtext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border: 5px solid;
+    /*border-width: 5px;*/
+    /*border-style: solid;*/
+    border-color: red transparent transparent transparent;
+}
+
+.list_panel_custom {
+    position: absolute;
+    top: calc(30% - 200px);
+    right: 50px;
+    display: none;
+}
+
+.custom_new_form > button{
+    margin-left:5px;
+}
+
+.info_tooltip{
+    position: absolute;
+    top:40px;
+    left: 50%;
+    display: none;
+
+}

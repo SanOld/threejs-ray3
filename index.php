@@ -289,6 +289,33 @@
 
 
 </nav>
+
+
+
+<!--Стиля для формы ноходятся в файле "css/main.css"  c 289 строки -->
+<!--Форма для списка-->
+<div class="list_panel_custom">
+    <div style="height:40px"></div>
+    <div class="panel panel-default" style="width:300px">
+        <div class="panel-heading">Выберите страницу из списка</div>
+        <div class="panel-body" style="height:400px;     overflow: auto;">
+
+        </div>
+        <div class="panel-footer custom_new_form" style="display:flex;justify-content: flex-end">
+
+<!--            <button type="button" class="btn btn-default">Ok</button>-->
+            <button type="button" class="btn btn-default">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<!--Форма/tooltip-->
+<!--Пример использывания -->
+<div class="info_tooltip">
+    <div class="tooltip_custom">
+        <span class="tooltip_customtext">Выберите стрелкой направление изменения длины стены</span>
+    </div>
+</div>
 </body>
 
 <div class="ActiveElementMenu" style="top: 187px; left: 500px; display: none;">
