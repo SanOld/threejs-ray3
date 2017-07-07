@@ -175,7 +175,7 @@ function Dimension( param1, param2, plane, parameters ){
     self.editableField.on('change', function(){
         this.value = eval(this.value);
         self.dispatchEvent( { type: 'edit', object: obj, value: + this.value /current_unit.c } );
-        self.editableField.off('change');
+//        self.editableField.off('change');
       });
 
 
@@ -205,13 +205,9 @@ function Dimension( param1, param2, plane, parameters ){
       }
 
 
-
-
       self.dispatchEvent( { type: 'keydown', object: obj, keyCode: event.keyCode } );
 
-      if( event.keyCode == 13 ){
-
-
+      if( event.keyCode == 13 && ! self.arrow){
 
         self.unselect();
 
@@ -236,6 +232,7 @@ function Dimension( param1, param2, plane, parameters ){
       self.rightArrowActivated = false;
 
       self.editableField.trigger('change');
+//      self.editableField.off('change');
       self.unselect();
 
     });
@@ -246,6 +243,7 @@ function Dimension( param1, param2, plane, parameters ){
       self.rightArrowActivated = true;
 
       self.editableField.trigger('change');
+//      self.editableField.off('change');
       self.unselect();
 
     });
