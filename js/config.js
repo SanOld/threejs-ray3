@@ -1,5 +1,5 @@
 // standard global variables
-var mode = 'dev'; //'prod' (в режиме dev загрузка без iframe)
+var mode = 'prod'; //'prod' (в режиме dev загрузка без iframe)
 var container, scene, camera, renderer, controls, stats, selection;
 //var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock();
