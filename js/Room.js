@@ -557,7 +557,6 @@ Room.prototype = Object.assign( {}, {
 
     this.floor = this.counturLine = this.areaNotification = this.selectAllWallsTool = this.surfaces = null;
 
-
   },
 
   externalWallsAdd: function(uuid, value){
@@ -569,6 +568,7 @@ Room.prototype = Object.assign( {}, {
     while (j--) {
 
       var item = scene.getObjectByProperty( 'uuid', this.walls[j] );
+      if( ! item ) continue;
 
       if( j == 0 ){
         var next_item = scene.getObjectByProperty( 'uuid', this.walls[ this.walls.length - 1 ] );
