@@ -369,3 +369,9 @@ input.slope{
     display: none;
 
 }
+
+.doors_all_block.doors_cls_custom{
+  display: flex;
+  position: absolute;
+  left: 154px;
+}
