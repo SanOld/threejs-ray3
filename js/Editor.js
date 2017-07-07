@@ -24,8 +24,8 @@ function Editor(obj){
 
   obj.wallColors = {
     notChangable: 'black',
-    installation: 'green',
-    deinstallation: 'red'
+    installation: '#5bbc4a ',//'green'
+    deinstallation: '#f44b48' //red'
   };
 
   obj.default_params = {
@@ -439,7 +439,21 @@ function Editor(obj){
       $Editor.floor.material.anisotropy = maxAnisotropy;
       $Editor.floor.textureFile = filename;
 
-      $projection.toggleModeIn2D( 'creation' );
+      $Editor.msg({
+          type: 'confirm',
+          text: "Установите масштаб чертежа",
+          modal: false,
+          response: function(response){
+            if(response){
+              $projection.toggleModeIn2D( 'creation' );
+            } else {
+              $Editor.floor.material = floorMaterial;
+            }
+          }
+        });
+
+
+
 
 		},
 		// Function called when download progresses
@@ -1732,7 +1746,7 @@ function initWallCreator(obj){
 
   var currentWall = null; //стена над которой находится поинтер
   var intersectWalls = []; //стены под т-образное соединение
-  var pointHelper_material = new THREE.MeshBasicMaterial( {color: '#00FF00'} );
+  var pointHelper_material = projectionWallMaterial_green;
   var isChanged = false;//контроль  изменения размера
   var wallsNeedUpdate = true;
 
@@ -4566,7 +4580,7 @@ function setFloorPlan(form) {
 				if (!data.error) {
 					if (data.uploadall) {
 						//setFloorTexture('http://local.online.cableproject.net:8083/drawing/user_images/' + data.uploadall + '-0.jpg');
-						$Editor.setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.uploadall + '-0.jpg');
+						$Editor.setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.uploadall + '-1.jpg');
 					}
 				}
 			} else
