@@ -174,7 +174,7 @@ function Dimension( param1, param2, plane, parameters ){
     self.editableField.off('change');
     self.editableField.on('change', function(){
         this.value = eval(this.value);
-        self.dispatchEvent( { type: 'edit', object: obj, value: + this.value /current_unit.c } );
+        self.dispatchEvent( { type: 'edit', object: obj, value: + this.value /current_unit.c, element: this } );
 //        self.editableField.off('change');
       });
 

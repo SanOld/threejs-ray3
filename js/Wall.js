@@ -133,9 +133,15 @@ function Wall( vertices, parameters ){
 
         self.movePoint( left_point, offset, dimension.dim_type == 'center' );
 
+        if( $( event.element ).tooltip( "instance" ) )
+        $( event.element ).tooltip('destroy');
+
       } else if( dimension.rightArrowActivated ){
 
         self.movePoint( right_point, offset, dimension.dim_type == 'center' );
+
+        if( $( event.element ).tooltip( "instance" ) )
+        $( event.element ).tooltip('destroy');
 
       } else if( !dimension.leftArrowActivated && !dimension.rightArrowActivated && isScale ){
 
@@ -144,17 +150,29 @@ function Wall( vertices, parameters ){
 
       } else if( !dimension.leftArrowActivated && !dimension.rightArrowActivated ){
 
-        $Editor.msg({text:'Выберите направление изменения длины стены'});
-        //Подсказка
+         $(event.element).attr('title','Выберите стрелкой направление изменения длины стены');
+         $( event.element ).tooltip({
+          position: {
+            my: "center bottom-20",
+            at: "center top",
+            using: function( position, feedback ) {
+              $( this ).css( position );
+              $( "<div>" )
+                .addClass( "arrow" )
+                .addClass( feedback.vertical )
+                .addClass( feedback.horizontal )
+                .appendTo( this );
+            }
+          },
+          show: { effect: "blind", duration: 800 }
 
+        });
+
+        $( event.element ).tooltip('open');
 
       }
 
-
-  //    self.update();
-
       $wallCreator.updateWalls();
-
 
     };
 

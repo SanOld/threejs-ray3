@@ -310,12 +310,7 @@
 </div>
 
 <!--Форма/tooltip-->
-<!--Пример использывания -->
-<div class="info_tooltip">
-    <div class="tooltip_custom">
-        <span class="tooltip_customtext">Выберите стрелкой направление изменения длины стены</span>
-    </div>
-</div>
+
 </body>
 
 <div class="ActiveElementMenu" style="top: 187px; left: 500px; display: none;">
@@ -375,7 +370,7 @@
 
 <div class="EditableField btn-group" oncontextmenu="return false;" style=" display: none;">
   <button type="button" class="btn btn-default dim-arrow left" style=" display: none;"><span class="fa fa-arrow-left" aria-hidden="true"></span></button>
-  <input type="text" class="btn btn-default" name="dimfield" value ="" >
+  <input type="text" class="btn btn-default" name="dimfield" value ="" title="dim">
   <button type="button" class="btn btn-default dim-arrow right" style=" display: none;"><span class="fa fa-arrow-right" aria-hidden="true"></span></button>
 </div>
 

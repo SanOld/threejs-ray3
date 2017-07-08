@@ -553,6 +553,7 @@ function Editor(obj){
 
   };
 
+
   function onKeyDownEditor ( event ){
 //  alert(event.keyCode)
   if (window.FirstPersonView) {
