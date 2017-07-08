@@ -738,6 +738,31 @@ function Editor(obj){
   };
 
 
+  obj.showSelectedForm = function( pages, callback){
+
+    //получение элементов
+    var form = $('.list_panel_custom');
+    var listField = $('.list_panel_custom').find('.panel-body');
+
+    //наполнение страницами
+    listField.html('');
+    for(var i = 1; i <= pages; i++){
+
+      var el = '<div><a href=# number =' + (i-1) + ' >Страница' + i + '</a></div>';
+      listField.append( el );
+
+    }
+
+    form.show();
+
+    //обработка клика
+    form.on('click','a', function(){
+      callback( $(this).attr('number') );
+      form.off('click','a');
+      form.hide();
+    });
+  };
+
 
 }
 var $Editor = {};
@@ -4579,7 +4604,6 @@ function setFloorPlan(form) {
 			if (data.pages && data.pages > 1) {
 				if (!data.error) {
 					if (data.uploadall) {
-						$Editor.setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.uploadall + '-1.jpg');
             $Editor.showSelectedForm(data.pages, function(response){
               if(response){
                 $Editor.setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.uploadall + '-' + response + '.jpg');
