@@ -207,6 +207,8 @@ function initSelectMode( obj ){
 
   obj.selectAllDoors = function(){
 
+    obj.unselectAll();
+
     obj.doorways.forEach(function ( item, index, arr ) {
 
       if(item.type == 'Room_Doorway')
@@ -216,6 +218,8 @@ function initSelectMode( obj ){
 
   };
   obj.selectAllWindows = function(){
+
+    obj.unselectAll();
 
     obj.doorways.forEach(function ( item, index, arr ) {
 
@@ -227,6 +231,8 @@ function initSelectMode( obj ){
   };
   obj.selectAllFloors = function(){
 
+    obj.unselectAll();
+
     obj.rooms.forEach(function ( item, index, arr ) {
 
       if( ! item.external && item.floor )
@@ -236,6 +242,8 @@ function initSelectMode( obj ){
 
   };
   obj.selectAllOuterSurfaces = function(){
+
+    obj.unselectAll();
 
     obj.rooms.forEach(function ( item, index, arr ) {
 
@@ -253,6 +261,8 @@ function initSelectMode( obj ){
 
   };
   obj.selectAllInnerSurfaces = function(){
+
+    obj.unselectAll();
 
     obj.rooms.forEach(function ( item, index, arr ) {
 
