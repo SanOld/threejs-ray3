@@ -4579,15 +4579,19 @@ function setFloorPlan(form) {
 			if (data.pages && data.pages > 1) {
 				if (!data.error) {
 					if (data.uploadall) {
-						//setFloorTexture('http://local.online.cableproject.net:8083/drawing/user_images/' + data.uploadall + '-0.jpg');
 						$Editor.setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.uploadall + '-1.jpg');
+            $Editor.showSelectedForm(data.pages, function(response){
+              if(response){
+                $Editor.setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.uploadall + '-' + response + '.jpg');
+              }
+            });
+
 					}
 				}
 			} else
 			{
 				if (!data.error) {
 					if (data.upload) {
-						//setFloorTexture('http://local.online.cableproject.net:8083/drawing/user_images/' + data.upload);
 						$Editor.setFloorTexture('http://online.cad5d.com/test_cad/user_images/' + data.upload);
 					}
 				}
