@@ -63,7 +63,13 @@
           if( $selectMode.enabled )
           $selectMode.selectAllInnerSurfaces();
 
+        } else if( mess && mess.cmd == 'unselectAll' ){
+
+          if( $selectMode.enabled )
+          $selectMode.unselectAll();
+
         }
+
 
       }
 

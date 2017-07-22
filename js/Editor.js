@@ -87,6 +87,7 @@ function Editor(obj){
     scene.add( Dimensions );//глобальный объект-хранилище размеров
 //    scene.add( Areas );//глобальный объект-хранилище размеров площадей комнат
 //    scene.add( AreaCounturs );//глобальный объект-хранилище размеров контуров комнат
+//
     //режим чертежа
     switch (MODE) {
       case 'selection':
@@ -418,6 +419,16 @@ function Editor(obj){
     }
 
 
+  };
+  obj.gridVisibleOn = function(){
+    if( obj.floor.gridHelper ){
+      obj.floor.gridHelper.material.visible  = true;
+    }
+  };
+  obj.gridVisibleOff = function(){
+    if( obj.floor.gridHelper ){
+      obj.floor.gridHelper.material.visible  = false;
+    }
   };
   obj.setFloorTexture = function(filename) {
 	// instantiate a loader
@@ -1815,6 +1826,8 @@ function initWallCreator(obj){
 
     if( ! obj.pointerHelper ) pointerHelperAdd();
 
+    $Editor.gridVisibleOn();
+
 
     obj.magnitVerticiesCreate();
 
@@ -2680,6 +2693,8 @@ function initWallEditor( obj ){
     obj.activateControlPoint();
     obj.activateWallDimensions();
 
+    $Editor.gridVisibleOn();
+
     obj.deactivateSelectControls();
     obj.activateSelectControls();
 
@@ -3188,8 +3203,7 @@ function initWallEditor( obj ){
 
           window.console.log('room: ' + room.area );
 
-          if( true/*! room.external */){
-
+          if( ! room.external ){
 
             export_data.floors[0].rooms[ room_index ] =
             {
@@ -3211,13 +3225,13 @@ function initWallEditor( obj ){
             };
 
             if( room.floor && room.floor.actived ){
+
               s_room_without_openings += +export_data.floors[0].rooms[ room_index ].s_room_without_openings;
               p_room += +export_data.floors[0].rooms[ room_index ].p_room;
               n_outer_angle90_room += +export_data.floors[0].rooms[ room_index ].n_outer_angle90_room;
               n_outer_angle_N90_room += +export_data.floors[0].rooms[ room_index ].n_outer_angle_N90_room;
+
             }
-
-
 
             //стены комнаты
             for(var j = 0; j < room.surfaces.length; j++){
@@ -3268,10 +3282,7 @@ function initWallEditor( obj ){
                  item.doorsParams.concat(item.windowsParams, item.nichesParams) :
                  []
 
-
-
               });
-
 
               if( item.actived ){
                 wall_length += +arrSurfaces[arrSurfaces.length - 1].wall_length;
@@ -3281,7 +3292,6 @@ function initWallEditor( obj ){
               }
 
             }
-
 
             if( room._type != 'freeRoom'){
 
@@ -3293,7 +3303,7 @@ function initWallEditor( obj ){
               }
 
 
-          } else { //если не внешняя комната
+          } else {
 
             p_outer_contur += +( room.getFloorPerimeter() * current_unit.c ).toFixed( accuracy_measurements );//Внешний периметр здания
             s_outer_walls += +( room.getSurfacesArea() * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь внешних стен
@@ -3317,10 +3327,15 @@ function initWallEditor( obj ){
         });
 
         //удаление внешней комнаты из массива
-        toDelete.forEach(function (item, index, arr) {
-           export_data.floors[0].rooms.splice(item,1) ;
-        });
+        var y = toDelete.length;
+        while( y-- ){
 
+          export_data.floors[0].rooms.splice( toDelete[y],1 ) ;
+
+        }
+//        toDelete.forEach(function (item, index, arr) {
+//           export_data.floors[0].rooms.splice(item,1) ;
+//        });
 
         export_data.floors[0].totals.s_floors = s_floors;
         export_data.floors[0].totals.s_floors_without_openings = s_floors_without_openings;
@@ -3402,7 +3417,6 @@ function initWallEditor( obj ){
     var nodes =  obj.getNodes(obj.walls);
     var pathes = obj.getPathes(obj.walls);
     var chains = obj.getChains(nodes, pathes);
-
 
     //=================
 

@@ -23,6 +23,9 @@ function initSelectMode( obj ){
     obj.calculateDoorways();
     obj.showDoorways();
 
+    $Editor.gridVisibleOff();
+    $Editor.hidePropGui();
+
     obj.deactivateSelectControls();
     obj.activateSelectControls();
 
@@ -41,6 +44,8 @@ function initSelectMode( obj ){
     obj.deactivateSelectControls();
 
     obj.deactivate();
+
+    $Editor.showPropGui();
 
   };
 
@@ -241,6 +246,7 @@ function initSelectMode( obj ){
     });
 
   };
+
   obj.selectAllOuterSurfaces = function(){
 
     obj.unselectAll();
@@ -289,6 +295,7 @@ function initSelectMode( obj ){
     obj.selected = null;
 
   };
+
   obj.hoveron = function( event ){
     if( 'hoveron' in event.object && obj.hovered != event.object){
       event.object.hoveron( event );
