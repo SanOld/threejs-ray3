@@ -97,7 +97,7 @@ Room.prototype = Object.assign( {}, {
 
     var countur = [];
     var nodes = this.nodes;
-    
+
     chain.forEach(function( item ){
 //      if( ! countur.length == 0 && ! nodes[item.source.id] )debugger;
       var wall = scene.getObjectByProperty('uuid', item.wall_uuid);
@@ -119,12 +119,9 @@ Room.prototype = Object.assign( {}, {
 
       }
 
-
-
-
     });
 
-    countur.length = countur.length - 1;
+//    countur.length = countur.length - 1;
 
     return countur;
 

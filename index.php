@@ -156,8 +156,12 @@
             <!-- <p class="div_labels_custom"> -->
             <p></p>
               <span class="label_custom width" >Ширина:</span>
-              <input type="dim" class="  width lp_input_custom" pattern="^[0-9]+$" param="width" title="Ширина"><span class="width_ed_izm">мм</span>
+              <input type="dim" class="width lp_input_custom" pattern="^[0-9]+$" param="width" title="Ширина"><span class="width_ed_izm">мм</span>
             <!-- </p> -->
+
+            <p></p>
+              <span class="label_custom radius" >Радиус:</span>
+              <input type="dim" class="radius lp_input_custom" pattern="^[0-9]+$" param="radius" title="Радиус"><span class="radius_ed_izm">мм</span>
 
             <!-- <p class="div_labels_custom"> -->
             <!-- <span class='rwetret'></span> -->

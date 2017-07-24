@@ -197,7 +197,12 @@
 .width_ed_izm{
     color: white!important;
     position: relative;
-    left: 147px;
+    left: 142px;
+}
+.radius_ed_izm{
+    color: white!important;
+    position: relative;
+    left: 153px;
 }
 
 .label_lp_custom{

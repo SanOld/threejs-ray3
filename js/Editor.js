@@ -3063,15 +3063,20 @@ function initWallEditor( obj ){
           //по типу отображаем свойства
           if( obj.selected.type == 'Wall'){
 
-            $projection.showObjParams({
-              height: {val: obj.getSelectedPropertyByName('height'), label: 'Высота'},
-              width: {val: obj.getSelectedPropertyByName('width'), label: 'Толщина'},
+            var params = {
+              height: {val: ( obj.getSelectedPropertyByName('height') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Высота'},
+              width: {val: ( obj.getSelectedPropertyByName('width') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Толщина'},
               width_ed_izm:{label: current_unit.short_name},
               height_ed_izm:{label: current_unit.short_name},
               // elevation_ed_izm:{label:'мм'},
               wall_type: {},
               wall_action: {}
-            });
+            };
+
+            obj.selected.name == 'radial_wall' ? params.radius = {val: (obj.getSelectedPropertyByName('radius')* current_unit.c ).toFixed( accuracy_measurements ), label: 'Радиус'} : '';
+            obj.selected.name == 'radial_wall' ? params.radius_ed_izm = {label: current_unit.short_name} : '';
+
+            $projection.showObjParams( params );
 
             $('div.wall_type').parents('div').css('display','block');
             $('.left_panel_custom').css({'bottom':'213px'});
@@ -3079,14 +3084,15 @@ function initWallEditor( obj ){
             $projection.setWallBearingTypeValue( obj.getSelectedPropertyByName('bearingType') );
             $projection.setWallAction( obj.getSelectedPropertyByName('action') );
 
+
           } else if( obj.selected.type == 'WindowBlock'){
 
             $projection.showObjParams({
-              height: {val: obj.getSelectedPropertyByName('height'), label: 'Высота'},
-              width: {val: obj.getSelectedPropertyByName('width'), label: 'Ширина'},
-              depObject_thickness: {val: obj.selected.depObject_thickness, label: 'Толщина'},
-              elevation: {val: obj.getSelectedPropertyByName('elevation'), label: 'От пола'},
-              slope: {val: obj.getSelectedPropertyByName('slope'), label: 'Откос'},
+              height: {val: ( obj.getSelectedPropertyByName('height') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Высота'},
+              width: {val: ( obj.getSelectedPropertyByName('width') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Ширина'},
+              depObject_thickness: {val: ( obj.selected.depObject_thickness * current_unit.c ).toFixed( accuracy_measurements ), label: 'Толщина'},
+              elevation: {val: ( obj.getSelectedPropertyByName('elevation') * current_unit.c ).toFixed( accuracy_measurements ), label: 'От пола'},
+              slope: {val: ( obj.getSelectedPropertyByName('slope') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Откос'},
 
               elevation_ed_izm:{label: current_unit.short_name},
               slope_ed_izm:{label: current_unit.short_name},
@@ -3101,12 +3107,12 @@ function initWallEditor( obj ){
 
 
             $projection.showObjParams({
-              height: {val: obj.getSelectedPropertyByName('height'), label: 'Высота'},
-              width: {val: obj.getSelectedPropertyByName('width'), label: 'Ширина'},
+              height: {val: ( obj.getSelectedPropertyByName('height') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Высота'},
+              width: {val: ( obj.getSelectedPropertyByName('width') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Ширина'},
 
-              depObject_thickness: {val: obj.getSelectedPropertyByName('depObject_thickness'), label: 'Толщина'},
-              elevation: {val: obj.getSelectedPropertyByName('elevation'), label: 'От пола'},
-              slope: {val: obj.getSelectedPropertyByName('slope'), label: 'Откос'},
+              depObject_thickness: {val: ( obj.getSelectedPropertyByName('depObject_thickness') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Толщина'},
+              elevation: {val: ( obj.getSelectedPropertyByName('elevation') * current_unit.c ).toFixed( accuracy_measurements ), label: 'От пола'},
+              slope: {val: ( obj.getSelectedPropertyByName('slope') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Откос'},
               isEntryDoor: {isEntryDoor: obj.getSelectedPropertyByName('isEntryDoor'), label: 'Входная'},
               notEntryDoor:{label:'Межкомнатная'},
               entryDoor:{label:'Входная'},
@@ -3123,10 +3129,10 @@ function initWallEditor( obj ){
 
           } else if( obj.selected.type == 'Doorway' || obj.selected.type == 'Niche' ){
             $projection.showObjParams({
-              height: {val: obj.getSelectedPropertyByName('height'), label: 'Высота'},
-              width: {val: obj.getSelectedPropertyByName('width'), label: 'Ширина'},
-              thickness: {val: obj.getSelectedPropertyByName('thickness'), label: 'Толщина'},
-              elevation: {val: obj.getSelectedPropertyByName('elevation'), label: 'От пола'},
+              height: {val: ( obj.getSelectedPropertyByName('height') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Высота'},
+              width: {val: ( obj.getSelectedPropertyByName('width') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Ширина'},
+              thickness: {val: ( obj.getSelectedPropertyByName('thickness') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Толщина'},
+              elevation: {val: ( obj.getSelectedPropertyByName('elevation') * current_unit.c ).toFixed( accuracy_measurements ), label: 'От пола'},
               th_ed_izm:{label: current_unit.short_name},
               width_ed_izm:{label: current_unit.short_name},
               height_ed_izm:{label: current_unit.short_name},
