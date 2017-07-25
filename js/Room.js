@@ -104,7 +104,23 @@ Room.prototype = Object.assign( {}, {
 
       if( wall && wall.name == 'radial_wall' ){
 
-        countur = countur.concat (  wall.curve1.getPoints(50) );
+        window.console.log('sx = ' + nodes[item.source.id].position.x + 'sz = ' + nodes[item.source.id].position.z);
+        window.console.log('tx = ' + nodes[item.target.id].position.x + 'tz = ' + nodes[item.target.id].position.z);
+        var points = [];
+        var points1 = wall.curve1.getPoints(50);
+        var points2 = wall.curve2.getPoints(50);
+
+        var source = new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z );
+        var target = new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z );
+
+        var p1 = Math.min( points1[0].distanceToSquared ( source ), points1[0].distanceToSquared ( target ),
+                           points1[points1.length-1].distanceToSquared ( source ), points1[points1.length-1].distanceToSquared ( target ));
+        var p2 = Math.min( points2[0].distanceToSquared ( source ), points2[0].distanceToSquared ( target ),
+                           points2[points2.length-1].distanceToSquared ( source ), points2[points2.length-1].distanceToSquared ( target ));
+
+        p1 < p2 ? points = points1 : points = points2;
+
+        countur = countur.concat (  points );
 
       } else {
 

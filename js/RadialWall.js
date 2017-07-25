@@ -99,12 +99,8 @@ function RadialWall( vertices, parameters ){
   };
   this.hoveron =    function ( event ) {
 
-
-
   };
   this.hoveroff =   function ( event ) {
-
-
 
   };
 
@@ -146,8 +142,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     var h = $Editor.Math.chordFromCenter( this.radius, alpha );
 
     result = this.axisLine.getCenter().clone().add( dir.clone().multiplyScalar( h ) );
-
-
 
     return result;
 
@@ -400,8 +394,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       if(self.uuid != item.uuid){
         if( $wallEditor.isPointsNeighboors( self.v2, item.v1 ) ){
 
-          var angle = self.direction.angleTo(item.direction) ;
-          var cross = self.direction.clone().cross(item.direction).getComponent ( 1 );
+          var angle = self.direction.angleTo( item.direction ) ;
+          var cross = self.direction.clone().cross( item.direction ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
           if(angle > angle_max) {
@@ -410,7 +404,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
             segment_start = item.v22;
             target = item;
             target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
-            target_point = item.v1;
+//            target_point = item.v1;
+            target_point = item.v12;
             target_direction = item.direction.clone().negate();
 
           }
@@ -428,7 +423,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
             segment_start = item.v11;
             target = item;
             target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
-            target_point = item.v2;
+//            target_point = item.v2;
+            target_point = item.v21;
             target_direction = item.direction.clone();
 
           }
@@ -536,7 +532,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           segment_start = item.v21;
           target = item;
           target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
-          target_point = item.v1;
+//          target_point = item.v1;
+          target_point = item.v11;
           target_direction = item.direction.clone().negate();
 
         }
@@ -553,7 +550,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           segment_start = item.v12;
           target = item;
           target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
-          target_point = item.v2;
+//          target_point = item.v2;
+          target_point = item.v22;
           target_direction = item.direction.clone();
 
         }
@@ -664,7 +662,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
             segment_start = item.v12;
             target = item;
             target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
-            target_point = item.v2;
+//            target_point = item.v2;
+            target_point = item.v22;
             target_direction = item.direction.clone();
 
           }
@@ -682,7 +681,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
             segment_start = item.v21;
             target = item;
             target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
-            target_point = item.v1;
+//            target_point = item.v1;
+            target_point = item.v11;
             target_direction = item.direction.clone().negate();
 
           }
@@ -793,7 +793,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
               segment_start = item.v11;
               target = item;
               target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
-              target_point = item.v2;
+//              target_point = item.v2;
+              target_point = item.v21;
               target_direction = item.direction.clone();
 
             }
@@ -811,7 +812,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
               segment_start = item.v22;
               target = item;
               target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
-              target_point = item.v1;
+//              target_point = item.v1;
+              target_point = item.v12;
               target_direction = item.direction.clone().negate();
 
             }

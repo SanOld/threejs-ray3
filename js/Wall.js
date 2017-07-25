@@ -271,10 +271,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
         if( $wallEditor.isPointsNeighboors( self.v2, item.v1 ) ){
 
-          if( item.isRadial ){
-
-          }
-
           var angle = self.direction.angleTo(item.direction) ;
           var cross = self.direction.clone().cross(item.direction).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
@@ -287,9 +283,10 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
             target_point = item.getV12;
             target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
           }
+
         }
 
-        if($wallEditor.isPointsNeighboors( self.v2, item.v2 ) ){
+        if( $wallEditor.isPointsNeighboors( self.v2, item.v2 ) ){
 
           var angle = self.direction.angleTo( item.direction.clone().negate() ) ;
           var cross = self.direction.clone().cross( item.direction.clone().negate() ).getComponent ( 1 );
@@ -312,7 +309,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     //при разнице оснований и угол меньше 45 примыкание к основанию
     var exception = false;
     self._e_path22 = null;
-    if(target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
+    if( target && Math.abs(angle_max) < Math.PI/4 && target.width / self.width > 2 ){
 
       segment_start = target_foundation.p1;
       segment_end = target_foundation.p2;
@@ -332,7 +329,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
     }
 
-    if(exception){
+    if( exception ){
 
       self._e_path22 = {
                   id: self.uuid + '_e22',
