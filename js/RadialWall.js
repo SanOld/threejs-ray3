@@ -36,8 +36,6 @@ function RadialWall( vertices, parameters ){
     self._lastPosition = self.parent.localToWorld( self.position.clone() );
     self._startPosition = self.parent.localToWorld( self.position.clone() );
     self._locationChanged = false;
-    var qqq = 1;
-    window.console.log('qqq: ' + qqq);
 
     controls.enabled = false;
 
@@ -470,7 +468,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       var intersects = [];
       var intersects_1 = [];
       var intersects_2 = [];
-
 
       sphere_1.raycast( raycaster, intersects_1 );
       intersects = intersects.concat( intersects_1 );

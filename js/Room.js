@@ -104,7 +104,7 @@ Room.prototype = Object.assign( {}, {
 
       if( wall && wall.name == 'radial_wall' ){
 
-        countur = countur.concat (  wall.curve2.getPoints(50) );
+        countur = countur.concat (  wall.curve1.getPoints(50) );
 
       } else {
 
