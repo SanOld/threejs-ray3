@@ -310,7 +310,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       }
 
 
-
       this.curve1 = new THREE.EllipseCurve(
                                           this.center.x,  this.center.z, // ax, aY
                                           this.r1, this.r1,            // xRadius, yRadius
@@ -318,7 +317,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
                                           this.location ? true : false,// aClockwise
                                           this.cross_vector.y < 0 ? this.angle : -this.angle// aRotation
                                         );
-
 
       this.curve2 = new THREE.EllipseCurve(
                                           this.center.x,  this.center.z,  // ax, aY
@@ -656,7 +654,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           var cross = self.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max) {
+          if(angle <= angle_max) {
 
             angle_max = angle;
             segment_start = item.v12;
@@ -675,7 +673,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           var cross = self.direction.clone().negate().cross( item.direction.clone() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max) {
+          if(angle <= angle_max) {
 
             angle_max = angle;
             segment_start = item.v21;
@@ -787,7 +785,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
             var cross = self.direction.clone().negate().cross(item.direction.clone().negate()).getComponent ( 1 );
             angle = cross < 0 ? angle : - angle;
 
-            if(angle > angle_max) {
+            if(angle >= angle_max) {
 
               angle_max = angle;
               segment_start = item.v11;
@@ -806,7 +804,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
             var cross = self.direction.clone().negate().cross( item.direction.clone() ).getComponent ( 1 );
             angle = cross < 0 ? angle : - angle;
 
-            if(angle > angle_max) {
+            if(angle >= angle_max) {
 
               angle_max = angle;
               segment_start = item.v22;
@@ -895,6 +893,44 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       return result_point.equals(new THREE.Vector3()) ? null : result_point;
     },
 
+  getAxisCurve: function () {
+    this.center = this.getCenter();
+    this.alpha = $Editor.Math.chordAlpha( this.axisLength, this.radius );
+    this.startAngle = (Math.PI - this.alpha)/2;
+    this.endAngle = this.alpha + this.startAngle;
+    this.cross_vector = new THREE.Vector3(1,0,0).cross(this.direction);
+
+    if( this.center.distanceToSquared( this.v11 ) >= this.center.distanceToSquared( this.v12 )){
+
+        var vector_start_nearest = this.v2.clone().sub( this.center );
+        var startAngleBig = vector_start_nearest.angleTo( this.direction );
+
+        var vector_end_nearest = this.v1.clone().sub( this.center );
+        var endAngleBig = vector_end_nearest.angleTo( this.direction );
+
+      } else {
+
+        var vector_start_nearest = this.v22.clone().sub( this.center );
+        var startAngleBig = vector_start_nearest.angleTo( this.direction );
+
+        var vector_end_nearest = this.v12.clone().sub( this.center );
+        var endAngleBig = vector_end_nearest.angleTo( this.direction );
+
+
+      }
+
+
+      var result =  new THREE.EllipseCurve(
+                                          this.center.x,  this.center.z, // ax, aY
+                                          this.radius, this.radius,            // xRadius, yRadius
+                                          this.location ? -startAngleBig : startAngleBig, this.location ? -endAngleBig : endAngleBig, // aStartAngle, aEndAngle
+                                          this.location ? true : false,// aClockwise
+                                          this.cross_vector.y < 0 ? this.angle : -this.angle// aRotation
+                                        );
+
+     return result;
+  },
+
   setActiveMode: function( state ){
 
     Wall.prototype.setActiveMode.apply(this, arguments);
@@ -910,6 +946,14 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       this.deactivate();
 
     }
+
+  },
+
+  addDoorway: function( type, parameters ){
+
+    parameters = parameters || {};
+    parameters.dimEnabled = false; //откл размеры
+    return Wall.prototype.addDoorway.apply( this, [type, parameters] );
 
   },
 

@@ -2941,7 +2941,7 @@ function initWallEditor( obj ){
           objects = objects.concat(dim.note);
         });
 
-        if( door.CGI.selectedHelper ){
+        if( door.CGI && door.CGI.selectedHelper ){
           objects = objects.concat( door.CGI.selectedHelper );
         }
       });
@@ -3011,7 +3011,6 @@ function initWallEditor( obj ){
               obj.selectedArray.push( object.uuid );
               obj.selected = object;
               callback(true);
-
 
             } else {
               callback(false);;

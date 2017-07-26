@@ -27,6 +27,8 @@ function Doorway( wall, parameters ){
   this.offset = parameters.hasOwnProperty("offset") ? parameters["offset"] : this.wall.axisLength / 2;
   this.depObject_thickness = 0;
 
+  this.dimEnabled = parameters.hasOwnProperty("dimEnabled") ? parameters["dimEnabled"] : true;
+
 
   this.dimensions = []; //массив хранения объектов размеров проемов
   //точки привязки для размеров
@@ -66,11 +68,14 @@ function Doorway( wall, parameters ){
 
   scene.add(this.doorwayBody);
 
-  setTimeout(function(){
-    self.calcDimensionsPoints();
-    self.createDimensions();
-    self.updateDimensions();
-  });
+
+  if( this.dimEnabled ){
+    setTimeout(function(){
+      self.calcDimensionsPoints();
+      self.createDimensions();
+      self.updateDimensions();
+    });
+  }
 
 
   this.dragControls = null;
@@ -100,13 +105,13 @@ function Doorway( wall, parameters ){
 //    self.hideMenuLKM();
 
     var position = event.object.position.clone().projectOnVector (
+
                                           self.wall.worldToLocal ( self.wall.v2.clone() )
                                           .sub( self.wall.worldToLocal( self.wall.v1.clone() ) )
 
                                           );
 
-
-    event.object.position.copy(position.sub(self.direction_offset));
+    event.object.position.copy( position.sub( self.direction_offset ) );
 
 
     //вычисление смещения
@@ -117,13 +122,18 @@ function Doorway( wall, parameters ){
     self.offset = vec.length();
     var dot = vec.dot ( self.wall.direction.clone() );
 
+
     if ( self.wall.axisLength - self.width/2 < self.offset  ){
+
       self.offset = self.wall.axisLength - self.width/2;
-      self.update();
+
     } else if( self.offset < self.width/2 || dot < 0 ){
+
       self.offset = self.width/2;
-      self.update();
+
     }
+
+    self.update();
 
     //обновление размера
     self.updateDimensions();
@@ -224,7 +234,7 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   rebuildGeometry: function() {
 
     this.geometry = new THREE.BoxBufferGeometry( this.width, this.thickness+1, 1 );
-    this.doorwayBody.geometry = new THREE.BoxGeometry( this.width, this.height, this.wall.width + 1 );
+    this.doorwayBody.geometry = new THREE.BoxGeometry( this.width, this.height, this.wall.width * 2 );
   },
 
   getCalculatedPosition: function(){
@@ -237,7 +247,15 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
       this.offset = this.width/2;
     }
 
-    result.copy( this.wall.worldToLocal(  this.wall.v1.clone().add( this.wall.direction.clone().multiplyScalar( this.offset ) ) ) );
+    if( this.wall.name == 'radial_wall' ){
+
+      var point = this.wall.getAxisCurve().getPoint ( 1 - this.offset / this.wall.axisLength );
+      result = new THREE.Vector3( point.x, point.y, this.wall.height );
+
+    } else {
+      result.copy( this.wall.worldToLocal(  this.wall.v1.clone().add( this.wall.direction.clone().multiplyScalar( this.offset ) ) ) );
+    }
+
     result.add( new THREE.Vector3(0,0,-(this.wall.height + this.top_offset)) );
 
     return result;
@@ -252,8 +270,21 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 //    var cross = this.localToWorld ( new THREE.Vector3(1,0,0) ).cross ( this.wall.direction.clone() );
 //    var angle = this.localToWorld ( new THREE.Vector3(1,0,0) ).angleTo ( this.wall.direction.clone() );
 
-    var cross =  ( new THREE.Vector3(1,0,0) ).cross ( this.wall.direction.clone() );
-    var angle = ( new THREE.Vector3(1,0,0) ).angleTo ( this.wall.direction.clone() );
+
+
+    if( this.wall.name == 'radial_wall' ){
+
+      var tangent = this.wall.getAxisCurve().getTangent ( 1 - this.offset / this.wall.axisLength );
+
+      var cross =  ( new THREE.Vector3(1,0,0) ).cross ( new THREE.Vector3( tangent.x,0,tangent.y ) );
+      var angle = ( new THREE.Vector3(1,0,0) ).angleTo ( new THREE.Vector3( tangent.x,0,tangent.y ) );
+
+    } else {
+
+      var cross =  ( new THREE.Vector3(1,0,0) ).cross ( this.wall.direction.clone() );
+      var angle = ( new THREE.Vector3(1,0,0) ).angleTo ( this.wall.direction.clone() );
+
+    }
 
     if( cross.y > 0 ){
       angle *= -1;
@@ -318,7 +349,6 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
   setLocation: function( location ){
     this.location = location || 1;
   },
-
 
   update: function(){
 
@@ -613,8 +643,6 @@ Doorway.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
 
   }
 
-
-
 });
 //Ниша
 function Niche( wall, parameters ){
@@ -657,18 +685,44 @@ Niche.prototype = Object.assign( Object.create( Doorway.prototype ),{
   },
   getCalculatedPosition: function(){
 
-    switch (this.location) {
-      case 1:
-        var offset90 = this.wall.direction90.clone().multiplyScalar( this.wall.width/2 + 1 - this.thickness/2 );
-        break;
+    if( this.wall.name == 'radial_wall' ){
 
-      case 3:
-        var offset90 = this.wall.direction90.clone().multiplyScalar( -(this.wall.width/2 + 1) + this.thickness/2 );
-        break;
+      var point = this.wall.getAxisCurve().getPoint ( 1 - this.offset / this.wall.axisLength );
+      var tangent = this.wall.getAxisCurve().getTangent ( 1 - this.offset / this.wall.axisLength );
+      var _direction90 = new THREE.Vector2( -tangent.x, tangent.y );
+
+      switch (this.location) {
+        case 1:
+          var offset90 = _direction90.clone().multiplyScalar( this.wall.width/2 + 1 - this.thickness/2/2 );
+          break;
+
+        case 3:
+          var offset90 = _direction90.clone().multiplyScalar( -(this.wall.width/2 + 1) + this.thickness/2/2 );
+          break;
+      }
+      //смещение перпендикулярно касательной
+      point.add( new THREE.Vector2( offset90.y, offset90.x ) );
+
+      var result = new THREE.Vector3( point.x, point.y, this.wall.height );
+
+    } else {
+
+
+      switch (this.location) {
+        case 1:
+          var offset90 = this.wall.direction90.clone().multiplyScalar( this.wall.width/2 + 1 - this.thickness/2 );
+          break;
+
+        case 3:
+          var offset90 = this.wall.direction90.clone().multiplyScalar( -(this.wall.width/2 + 1) + this.thickness/2 );
+          break;
+      }
+
+      var result = new THREE.Vector3();
+      result.copy( this.wall.worldToLocal(  this.wall.v1.clone().add( this.wall.direction.clone().multiplyScalar( this.offset ) ).add( offset90 ) ) );
     }
 
-    var result = new THREE.Vector3();
-    result.copy( this.wall.worldToLocal(  this.wall.v1.clone().add( this.wall.direction.clone().multiplyScalar( this.offset ) ).add( offset90 ) ) );
+    //высота
     result.add( new THREE.Vector3(0,0,-(this.wall.height + this.top_offset)) );
 
     return result;

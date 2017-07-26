@@ -861,7 +861,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         parameters["width"] = parameters.hasOwnProperty("width") ? parameters["width"] : 1450;
         parameters["height"] = parameters.hasOwnProperty("height") ? parameters["height"] : 1450;
         parameters["elevation"] = parameters.hasOwnProperty("elevation") ? parameters["elevation"] : 800;
-        obj = new WindowBlock(this, parameters );
+        obj = new WindowBlock( this, parameters );
       } else if( type == 'Niche' ){
         obj = new Niche(this, parameters);
       } else if( type == 'Arch' ){
@@ -878,7 +878,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       return obj ? obj.uuid : false;
 
-
     }
 
   },
@@ -887,8 +886,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     this.doors.splice( this.doors.indexOf(doorway), 1 );
     this.remove(doorway);
     delete doorway;
-
-
 
     this.update();
 

@@ -103,9 +103,7 @@ Room.prototype = Object.assign( {}, {
       var wall = scene.getObjectByProperty('uuid', item.wall_uuid);
 
       if( wall && wall.name == 'radial_wall' ){
-
-        window.console.log('sx = ' + nodes[item.source.id].position.x + 'sz = ' + nodes[item.source.id].position.z);
-        window.console.log('tx = ' + nodes[item.target.id].position.x + 'tz = ' + nodes[item.target.id].position.z);
+        
         var points = [];
         var points1 = wall.curve1.getPoints(50);
         var points2 = wall.curve2.getPoints(50);
