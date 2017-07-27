@@ -103,7 +103,7 @@ Room.prototype = Object.assign( {}, {
       var wall = scene.getObjectByProperty('uuid', item.wall_uuid);
 
       if( wall && wall.name == 'radial_wall' ){
-        
+
         var points = [];
         var points1 = wall.curve1.getPoints(50);
         var points2 = wall.curve2.getPoints(50);
@@ -118,7 +118,21 @@ Room.prototype = Object.assign( {}, {
 
         p1 < p2 ? points = points1 : points = points2;
 
-        countur = countur.concat (  points );
+        if( Math.min( p1, p2 ) == points1[0].distanceToSquared ( source ) || Math.min( p1, p2 ) == points1[points1.length-1].distanceToSquared ( target ) ){
+          points.reverse();
+        }
+        if( Math.min( p1, p2 ) == points2[0].distanceToSquared ( source ) || Math.min( p1, p2 ) == points2[points1.length-1].distanceToSquared ( target ) ){
+          points.reverse();
+        }
+
+        countur = countur.concat (  points.reverse() );
+
+        window.console.log( 111 );
+        window.console.log( p1 );
+        window.console.log( points[0] );
+        window.console.log( points[points.length-1] );
+        window.console.log( source );
+        window.console.log( target );
 
       } else {
 

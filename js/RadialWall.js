@@ -326,6 +326,8 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
                                           this.cross_vector.y < 0 ? this.angle : -this.angle // aRotation
                                         );
 
+
+
       wallShape.moveTo( this.v1.x,  this.v1.z );
 //
 //				wallShape.lineTo( this.v11.x, this.v11.z );
@@ -399,11 +401,13 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           if(angle > angle_max) {
 
             angle_max = angle;
-            segment_start = item.v22;
+            segment_start = item.v22
+//            segment_start = self.location ? item.v22 : item.v21;
+
             target = item;
             target_foundation = {p1: item.v1, p2: item.v12, node_id: item.node12.id};
 //            target_point = item.v1;
-            target_point = item.v12;
+            target_point = item.v12
             target_direction = item.direction.clone().negate();
 
           }
@@ -419,6 +423,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
             angle_max = angle;
             segment_start = item.v11;
+//            segment_start = segment_start = self.location ? item.v11 : item.v12;
             target = item;
             target_foundation = {p1: item.v2, p2: item.v21, node_id: item.node21.id};
 //            target_point = item.v2;
@@ -463,10 +468,17 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       var intersects_1 = [];
       var intersects_2 = [];
 
-      sphere_1.raycast( raycaster, intersects_1 );
-      intersects = intersects.concat( intersects_1 );
-      sphere_2.raycast( raycaster, intersects_2 );
-      intersects = intersects.concat( intersects_2 );
+      if( self.location ){
+        sphere_1.raycast( raycaster, intersects_1 );
+        intersects = intersects.concat( intersects_1 );
+      } else {
+        sphere_2.raycast( raycaster, intersects_2 );
+        intersects = intersects.concat( intersects_2 );
+      }
+//      sphere_1.raycast( raycaster, intersects_1 );
+//      intersects = intersects.concat( intersects_1 );
+//      sphere_2.raycast( raycaster, intersects_2 );
+//      intersects = intersects.concat( intersects_2 );
 
       if( intersects.length == 1 ){
 
@@ -528,6 +540,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         if(angle < angle_max) {
           angle_max = angle;
           segment_start = item.v21;
+//          segment_start = segment_start = self.location ? item.v21 : item.v22;
           target = item;
           target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
 //          target_point = item.v1;
@@ -546,6 +559,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         if(angle < angle_max) {
           angle_max = angle;
           segment_start = item.v12;
+//          segment_start = segment_start = self.location ? item.v12 : item.v11;
           target = item;
           target_foundation = {p1: item.v2, p2: item.v22, node_id: item.node22.id};
 //          target_point = item.v2;
@@ -593,10 +607,19 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
     var intersects_2 = [];
 
 
-    sphere_1.raycast( raycaster, intersects_1 );
-    intersects = intersects.concat( intersects_1 );
-    sphere_2.raycast( raycaster, intersects_2 );
-    intersects = intersects.concat( intersects_2 );
+    if( self.location ){
+        sphere_2.raycast( raycaster, intersects_2 );
+        intersects = intersects.concat( intersects_2 );
+      } else {
+        sphere_1.raycast( raycaster, intersects_1 );
+        intersects = intersects.concat( intersects_1 );
+
+      }
+
+//    sphere_1.raycast( raycaster, intersects_1 );
+//    intersects = intersects.concat( intersects_1 );
+//    sphere_2.raycast( raycaster, intersects_2 );
+//    intersects = intersects.concat( intersects_2 );
 
     if( intersects.length == 1 ){
 
@@ -722,11 +745,17 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       var intersects_1 = [];
       var intersects_2 = [];
 
-
-      sphere_1.raycast( raycaster, intersects_1 );
-      intersects = intersects.concat( intersects_1 );
-      sphere_2.raycast( raycaster, intersects_2 );
-      intersects = intersects.concat( intersects_2 );
+      if( self.location ){
+        sphere_1.raycast( raycaster, intersects_1 );
+        intersects = intersects.concat( intersects_1 );
+      } else {
+        sphere_2.raycast( raycaster, intersects_2 );
+        intersects = intersects.concat( intersects_2 );
+      }
+//      sphere_1.raycast( raycaster, intersects_1 );
+//      intersects = intersects.concat( intersects_1 );
+//      sphere_2.raycast( raycaster, intersects_2 );
+//      intersects = intersects.concat( intersects_2 );
 
       if( intersects.length == 1 ){
 
@@ -854,11 +883,17 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         var intersects_1 = [];
         var intersects_2 = [];
 
-
-        sphere_1.raycast( raycaster, intersects_1 );
-        intersects = intersects.concat( intersects_1 );
-        sphere_2.raycast( raycaster, intersects_2 );
-        intersects = intersects.concat( intersects_2 );
+        if( self.location ){
+          sphere_2.raycast( raycaster, intersects_2 );
+          intersects = intersects.concat( intersects_2 );
+        } else {
+          sphere_1.raycast( raycaster, intersects_1 );
+          intersects = intersects.concat( intersects_1 );
+        }
+//        sphere_1.raycast( raycaster, intersects_1 );
+//        intersects = intersects.concat( intersects_1 );
+//        sphere_2.raycast( raycaster, intersects_2 );
+//        intersects = intersects.concat( intersects_2 );
 
         if( intersects.length == 1 ){
 
