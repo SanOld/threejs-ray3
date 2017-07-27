@@ -1585,7 +1585,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
     $wallEditor.removeWall( this );
 
     $wallCreator.addWall( [ v1, v2 ], { isRadial: !isRadial});
-    window.console.log($wallEditor.walls);
 
   }
 
