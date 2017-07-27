@@ -120,10 +120,10 @@ Room.prototype = Object.assign( {}, {
 
 
 
-        if( countur.length > 0 && Math.min( p1, p2 ) == points1[points1.length-1].distanceToSquared ( countur[countur.length-1] ) ){
+        if( countur.length > 0 && Math.floor( Math.min( p1, p2 ) ) == Math.floor( points1[points1.length-1].distanceToSquared ( countur[countur.length-1] ) ) ){
           points.reverse();
         }
-        if( countur.length > 0 &&  Math.min( p1, p2 ) == points2[points2.length-1].distanceToSquared ( countur[countur.length-1] ) ){
+        if( countur.length > 0 &&  Math.floor( Math.min( p1, p2 ) ) == Math.floor( points2[points2.length-1].distanceToSquared ( countur[countur.length-1] ) ) ){
           points.reverse();
         }
 
@@ -254,8 +254,7 @@ Room.prototype = Object.assign( {}, {
         break;
       }
 
-
-    })
+    });
      return area;
   },
   getAreaCoords: function( countur ){
