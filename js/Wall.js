@@ -275,7 +275,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().cross(item.direction).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle > angle_max) {
+          if(angle > angle_max ) {
             angle_max = angle;
             segment_start = item.v22;
             segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
@@ -292,7 +292,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().cross( item.direction.clone().negate() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle > angle_max) {
+          if(angle > angle_max ) {
             angle_max = angle;
             segment_start = item.v11;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );
@@ -367,14 +367,14 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       if(self.uuid != item.uuid){
         if( $wallEditor.isPointsNeighboors( self.v2, item.v1 ) ){
 
-          var angle = self.direction.angleTo(item.direction) ;
+          var angle = self.direction.angleTo( item.direction ) ;
           var cross = self.direction.clone().cross(item.direction).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max) {
+          if(angle < angle_max ) {
             angle_max = angle;
             segment_start = item.v21;
-            segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar(item.axisLength * 2) );
+            segment_end = segment_start.clone().add( item.direction.clone().negate().multiplyScalar( item.axisLength * 2 ) );
             target = item;
             target_point = item.getV11;
             target_foundation = {p1: item.v1, p2: item.v11, node_id: item.node11.id};
@@ -387,7 +387,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
           var cross = self.direction.clone().cross( item.direction.clone().negate() ).getComponent ( 1 );
           angle = cross < 0 ? angle : - angle;
 
-          if(angle < angle_max) {
+          if( angle < angle_max ) {
             angle_max = angle;
             segment_start = item.v12;
             segment_end = segment_start.clone().add( item.direction.clone().multiplyScalar(item.axisLength * 2) );

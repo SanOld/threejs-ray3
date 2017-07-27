@@ -105,8 +105,8 @@ Room.prototype = Object.assign( {}, {
       if( wall && wall.name == 'radial_wall' ){
 
         var points = [];
-        var points1 = wall.curve1.getPoints(50);
-        var points2 = wall.curve2.getPoints(50);
+        var points1 = wall.curve1.getPoints( 50 );
+        var points2 = wall.curve2.getPoints( 50 );
 
         var source = new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z );
         var target = new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z );
@@ -118,21 +118,16 @@ Room.prototype = Object.assign( {}, {
 
         p1 < p2 ? points = points1 : points = points2;
 
-        if( Math.min( p1, p2 ) == points1[0].distanceToSquared ( source ) || Math.min( p1, p2 ) == points1[points1.length-1].distanceToSquared ( target ) ){
+
+
+        if( countur.length > 0 && Math.min( p1, p2 ) == points1[points1.length-1].distanceToSquared ( countur[countur.length-1] ) ){
           points.reverse();
         }
-        if( Math.min( p1, p2 ) == points2[0].distanceToSquared ( source ) || Math.min( p1, p2 ) == points2[points1.length-1].distanceToSquared ( target ) ){
+        if( countur.length > 0 &&  Math.min( p1, p2 ) == points2[points2.length-1].distanceToSquared ( countur[countur.length-1] ) ){
           points.reverse();
         }
 
-        countur = countur.concat (  points.reverse() );
-
-        window.console.log( 111 );
-        window.console.log( p1 );
-        window.console.log( points[0] );
-        window.console.log( points[points.length-1] );
-        window.console.log( source );
-        window.console.log( target );
+        countur = countur.concat (  points );
 
       } else {
 

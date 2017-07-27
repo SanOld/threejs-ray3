@@ -401,7 +401,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           if(angle > angle_max) {
 
             angle_max = angle;
-            segment_start = item.v22
+            segment_start = item.v22;
 //            segment_start = self.location ? item.v22 : item.v21;
 
             target = item;
@@ -433,14 +433,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           }
         }
 
-//        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 64, 64 );
-//        sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
-//        sphere_1.geometry.translate (self.center.x, 0, self.center.z);
-//
-//        var geometry2 = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 64, 64 );
-//        sphere_2 = new THREE.Mesh( geometry2, projectionWallMaterial_green );
-//        sphere_2.geometry.translate (self.center.x, 0, self.center.z);
-
       }
 
     });
@@ -460,8 +452,9 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       exception = true;
 
     }
+
     //пересечение
-    if( angle_max > -Math.PI && angle_max != 0 ){
+//    if( angle_max > -Math.PI /*&& angle_max != 0*/ ){
 
       var raycaster = new THREE.Raycaster( segment_start, target_direction );
       var intersects = [];
@@ -475,10 +468,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         sphere_2.raycast( raycaster, intersects_2 );
         intersects = intersects.concat( intersects_2 );
       }
-//      sphere_1.raycast( raycaster, intersects_1 );
-//      intersects = intersects.concat( intersects_1 );
-//      sphere_2.raycast( raycaster, intersects_2 );
-//      intersects = intersects.concat( intersects_2 );
 
       if( intersects.length == 1 ){
 
@@ -498,7 +487,9 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
       }
 
-    }
+//    }
+
+
 
     if(exception){
       self._e_path22 = {
@@ -569,14 +560,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         }
       }
 
-//      var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
-//      sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
-//      sphere_1.geometry.translate (self.center.x, 0, self.center.z);
-//
-//      var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
-//      sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
-//      sphere_2.geometry.translate (self.center.x, 0, self.center.z);
-
     }
 
   });
@@ -599,7 +582,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
   }
   //пересечение
-  if(angle_max < Math.PI && angle_max != 0){
+//  if(angle_max < Math.PI && angle_max != 0){
 
     var raycaster = new THREE.Raycaster( segment_start, target_direction );
     var intersects = [];
@@ -615,11 +598,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         intersects = intersects.concat( intersects_1 );
 
       }
-
-//    sphere_1.raycast( raycaster, intersects_1 );
-//    intersects = intersects.concat( intersects_1 );
-//    sphere_2.raycast( raycaster, intersects_2 );
-//    intersects = intersects.concat( intersects_2 );
 
     if( intersects.length == 1 ){
 
@@ -639,7 +617,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
     }
 
-  }
+//  }
 
   if(exception){
     self._e_path21 = {
@@ -709,14 +687,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           }
         }
 
-//        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius - self.width/2), 32, 32 );
-//        sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
-//        sphere_1.geometry.translate (self.center.x, 0, self.center.z);
-//
-//        var geometry = new THREE.SphereBufferGeometry( Math.ceil(self.radius + self.width/2), 32, 32 );
-//        sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
-//        sphere_2.geometry.translate (self.center.x, 0, self.center.z);
-
       }
 
     });
@@ -738,7 +708,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
     }
     //пересечение
-    if(angle_max < Math.PI && angle_max != 0){
+//    if(angle_max < Math.PI && angle_max != 0){
 
       var raycaster = new THREE.Raycaster( segment_start, target_direction );
       var intersects = [];
@@ -752,10 +722,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
         sphere_2.raycast( raycaster, intersects_2 );
         intersects = intersects.concat( intersects_2 );
       }
-//      sphere_1.raycast( raycaster, intersects_1 );
-//      intersects = intersects.concat( intersects_1 );
-//      sphere_2.raycast( raycaster, intersects_2 );
-//      intersects = intersects.concat( intersects_2 );
 
       if( intersects.length == 1 ){
 
@@ -775,7 +741,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
       }
 
-    }
+//    }
 
     if(exception){
         self._e_path12 = {
@@ -846,16 +812,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
             }
           }
 
-//          var geometry = new THREE.SphereBufferGeometry( Math.ceil( self.radius - self.width/2 ), 32, 32 );
-//
-//          sphere_1 = new THREE.Mesh( geometry, wallControlPointMaterial );
-//          sphere_1.geometry.translate (self.center.x, 0, self.center.z);
-//
-//          var geometry = new THREE.SphereBufferGeometry( Math.ceil( self.radius + self.width/2 ), 32, 32 );
-//          sphere_2 = new THREE.Mesh( geometry, wallControlPointMaterial );
-//          sphere_2.geometry.translate ( self.center.x, 0, self.center.z );
-//          scene.add( sphere_2 );
-
         }
 
       });
@@ -876,7 +832,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
       }
       //пересечение
-      if(angle_max > -Math.PI && angle_max != 0){
+//      if(angle_max > -Math.PI && angle_max != 0){
 
         var raycaster = new THREE.Raycaster( segment_start, target_direction );
         var intersects = [];
@@ -890,10 +846,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           sphere_1.raycast( raycaster, intersects_1 );
           intersects = intersects.concat( intersects_1 );
         }
-//        sphere_1.raycast( raycaster, intersects_1 );
-//        intersects = intersects.concat( intersects_1 );
-//        sphere_2.raycast( raycaster, intersects_2 );
-//        intersects = intersects.concat( intersects_2 );
 
         if( intersects.length == 1 ){
 
@@ -913,7 +865,7 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
         }
 
-      }
+//      }
 
       if(exception){
           self._e_path11 = {
