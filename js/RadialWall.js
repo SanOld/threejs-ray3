@@ -1,7 +1,5 @@
-//объект радиусной стены
+  //объект радиусной стены
 function RadialWall( vertices, parameters ){
-
-  this.location = true; //положение центра окружности относительно хорды 0/1
 
   Wall.apply( this, [vertices, parameters] );
 
@@ -331,6 +329,10 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
       wallShape.moveTo( this.v1.x,  this.v1.z );
 //
 //				wallShape.lineTo( this.v11.x, this.v11.z );
+//        var p = this.curve1.getPoints(50);
+//        wallShape.lineTo( p[0].x, p[0].y );
+//        window.console.log(this.v11);
+//        window.console.log(p[0]);
 
       wallShape.curves.push( this.curve1 );
 
