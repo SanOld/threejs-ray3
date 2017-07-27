@@ -720,6 +720,7 @@ Niche.prototype = Object.assign( Object.create( Doorway.prototype ),{
 
       var result = new THREE.Vector3();
       result.copy( this.wall.worldToLocal(  this.wall.v1.clone().add( this.wall.direction.clone().multiplyScalar( this.offset ) ).add( offset90 ) ) );
+      
     }
 
     //высота

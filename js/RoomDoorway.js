@@ -28,7 +28,7 @@ function RoomDoorway( doorway ){
   this.name = 'room_' + doorway.name;
   var self = this;
 
-  if( this.doorway.CGI.selectedHelper ){
+  if( this.doorway.CGI && this.doorway.CGI.selectedHelper ){
     var geometry = new THREE.PlaneBufferGeometry();
     geometry.copy( doorway.CGI.selectedHelper.geometry.clone() );
 //    this.selectedHelper = new THREE.Mesh( new THREE.PlaneBufferGeometry( this.doorway.width, this.doorway.width ), wallControlPointMaterial_hover );
