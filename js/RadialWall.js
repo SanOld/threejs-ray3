@@ -326,28 +326,77 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
 
 
 
-      wallShape.moveTo( this.v1.x,  this.v1.z );
+
 //
-//				wallShape.lineTo( this.v11.x, this.v11.z );
-//        var p = this.curve1.getPoints(50);
-//        wallShape.lineTo( p[0].x, p[0].y );
-//        window.console.log(this.v11);
-//        window.console.log(p[0]);
-
-      wallShape.curves.push( this.curve1 );
-
-//        wallShape.currentPoint.x = this.v21.x;
-//        wallShape.currentPoint.y = this.v21.z;
 //
-//        wallShape.lineTo( this.v2.x,  this.v2.z );
-//				wallShape.lineTo( this.v22.x, this.v22.z );
+        var p1 = this.curve1.getPoints(50);
+        var p2 = this.curve2.getPoints(50);
 
-      wallShape.curves.push( this.curve2 );
-
-//        wallShape.currentPoint.x = this.v12.x;
-//        wallShape.currentPoint.y = this.v12.z;
+//        if( p1[0].distanceToSquared( new THREE.Vector2( this.v1.x,  this.v1.z )) < p1[0].distanceToSquared( new THREE.Vector2( this.v2.x,  this.v2.z )) ){
 //
-//        wallShape.lineTo( this.v1.x,  this.v1.z );
+//          wallShape.moveTo( this.v1.x,  this.v1.z );
+//          wallShape.lineTo( this.v11.x, this.v11.z );
+//          wallShape.curves.push( this.curve1 );
+//
+//          wallShape.currentPoint.x = this.v21.x;
+//          wallShape.currentPoint.y = this.v21.z;
+//
+//          wallShape.lineTo( this.v2.x,  this.v2.z );
+//          wallShape.lineTo( this.v22.x, this.v22.z );
+//
+//          wallShape.curves.push( this.curve2 );
+//
+//          wallShape.currentPoint.x = this.v12.x;
+//          wallShape.currentPoint.y = this.v12.z;
+//
+//          wallShape.lineTo( this.v1.x,  this.v1.z );
+//
+//        } else {
+//
+//          wallShape.moveTo( this.v2.x,  this.v2.z );
+//
+//          wallShape.lineTo( p1[0].x, p1[0].y );
+//          wallShape.curves.push( this.curve1 );
+//
+//          wallShape.currentPoint.x = p1[p1.length-1].x;
+//          wallShape.currentPoint.y = p1[p1.length-1].y;
+//
+//          wallShape.lineTo( this.v1.x,  this.v1.z );
+//
+//
+//          wallShape.lineTo( p2[0].x, p2[0].y );
+//
+//          wallShape.curves.push( this.curve2 );
+//
+//          wallShape.currentPoint.x = p2[p2.length-1].x;
+//          wallShape.currentPoint.y = p2[p2.length-1].y;
+//
+//          wallShape.lineTo( this.v2.x,  this.v2.z );
+//
+//        }
+
+          wallShape.moveTo( this.v2.x,  this.v2.z );
+
+          wallShape.lineTo( p1[0].x, p1[0].y );
+          wallShape.curves.push( this.curve1 );
+
+          wallShape.currentPoint.x = p1[p1.length-1].x;
+          wallShape.currentPoint.y = p1[p1.length-1].y;
+
+          wallShape.lineTo( this.v1.x,  this.v1.z );
+
+
+          wallShape.lineTo( p2[0].x, p2[0].y );
+
+          wallShape.curves.push( this.curve2 );
+
+          wallShape.currentPoint.x = p2[p2.length-1].x;
+          wallShape.currentPoint.y = p2[p2.length-1].y;
+
+          wallShape.lineTo( this.v2.x,  this.v2.z );
+
+
+
 
 
     var extrudeSettings = {
