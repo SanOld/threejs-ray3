@@ -3447,7 +3447,7 @@ function initWallEditor( obj ){
 
         //перенос внешней комнаты из массива rooms в outline
         var y = toDelete.length;
-
+//
         while( y-- ){
 
           export_data.floors[0].outline.push ( export_data.floors[0].rooms.splice( toDelete[y],1 ) );

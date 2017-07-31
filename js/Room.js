@@ -105,8 +105,8 @@ Room.prototype = Object.assign( {}, {
       if( wall && wall.name == 'radial_wall' ){
 
         var points = [];
-        var points1 = wall.curve1.getPoints( 50 );
-        var points2 = wall.curve2.getPoints( 50 );
+        var points1 = wall.curve1.getPoints( 10 );
+        var points2 = wall.curve2.getPoints( 10 );
 
         var source = new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z );
         var target = new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z );
@@ -146,7 +146,22 @@ Room.prototype = Object.assign( {}, {
 
 //    countur.length = countur.length - 1;
 
-    return countur;
+    return this.smooth(countur);
+
+  },
+  smooth: function( arr ){
+
+    var arr = arr || [];
+
+    arr.forEach(function( item, index ){
+      if( index > 0 ){
+        var cond1 = Math.abs( arr[index].x - arr[index-1].x ) < 2;
+        var cond2 = Math.abs( arr[index].y - arr[index-1].y ) < 2;
+        if ( cond1 && cond2 ) arr.splice(index-1,1);
+      }
+    });
+
+    return arr;
 
   },
   getWalls: function( chain ){
@@ -428,6 +443,7 @@ Room.prototype = Object.assign( {}, {
       var w1 = surfaces[i].walls[0];
       var w2 = surfaces[i+1].walls[0];
 
+      if ( w1.name != 'radial_wall' && w2.name != 'radial_wall' )
       if ( w1.isCollinear( w2 ) && w1.width == w2.width && w1.height == w2.height   ){
         var surface = new RoomSurface( this, [ w1, w2 ], [ s1.source, s2.target, s1.sourceBase, s2.targetBase ], s2.movePoint );
 //        if(surface.geometry === null){debugger;}

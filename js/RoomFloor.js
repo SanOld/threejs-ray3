@@ -23,7 +23,6 @@ RoomFloor.prototype = Object.assign( Object.create( RoomObject.prototype ),{
       }
     });
 
-
     var extrudeSettings = {
       amount: this.height,
       bevelEnabled: false
