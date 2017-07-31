@@ -68,7 +68,7 @@ function Editor(obj){
   obj.on = function(){
 
 
-    obj.addPropGui();
+//    obj.addPropGui();
 
     obj.addFloor();
     obj.addLight();
@@ -3203,7 +3203,7 @@ function initWallEditor( obj ){
 
           window.console.log('room: ' + room.area );
 
-          if( ! room.external ){
+
 
             export_data.floors[0].rooms[ room_index ] =
             {
@@ -3303,7 +3303,7 @@ function initWallEditor( obj ){
               }
 
 
-          } else {
+          if( room.external ){
 
             p_outer_contur += +( room.getFloorPerimeter() * current_unit.c ).toFixed( accuracy_measurements );//Внешний периметр здания
             s_outer_walls += +( room.getSurfacesArea() * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь внешних стен
@@ -3326,11 +3326,22 @@ function initWallEditor( obj ){
 
         });
 
+        export_data.floors[0].outline = [];
+        window.console.dir(export_data.floors[0].rooms);
+
         //удаление внешней комнаты из массива
         var y = toDelete.length;
+              window.console.dir(toDelete);
         while( y-- ){
 
-          export_data.floors[0].rooms.splice( toDelete[y],1 ) ;
+          window.console.log(y);
+          window.console.dir(export_data.floors[0].rooms);
+          window.console.log(toDelete[y]);
+
+          window.console.dir(export_data.floors[0].rooms[ toDelete[y] ]);
+          export_data.floors[0].outline.push ( export_data.floors[0].rooms.splice( toDelete[y],1 ) );
+
+          ;
 
         }
 //        toDelete.forEach(function (item, index, arr) {
