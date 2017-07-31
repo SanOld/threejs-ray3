@@ -70,6 +70,9 @@ function Editor(obj){
   obj.hidedFloorTexture = null;
   obj.timeStamp = 0;
 
+  obj.roomsNeedUpdate = true;
+  obj.wallsNeedDeepUpdate = true;
+
 
 //  obj.wallCreationModes = [ 'center', 'inner', 'outer' ];
   obj.wallActions = [ 'notChangable', 'installation', 'deinstallation' ];
@@ -2009,7 +2012,6 @@ function initWallCreator(obj){
       if( $Editor.roomsNeedUpdate ) obj.calculateRooms();
 
     }
-
 
 
   };

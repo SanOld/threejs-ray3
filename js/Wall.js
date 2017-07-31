@@ -664,8 +664,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
   update: function( walls ){
 
-
-
       var self = this;
       this.walls = walls || this.walls;
 
@@ -695,12 +693,15 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       this.setDefaultNode();
 
-      if( !$Editor.wallsNeedDeepUpdate ) return;
+
+
 
       if( this.mover ){
         this.mover.wall = this;
         this.mover.update();
       }
+
+      if( !$Editor.wallsNeedDeepUpdate ) return;
 
       this.controlPoint1.update();
       this.controlPoint2.update();
