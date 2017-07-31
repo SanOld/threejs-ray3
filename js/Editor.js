@@ -3327,26 +3327,15 @@ function initWallEditor( obj ){
         });
 
         export_data.floors[0].outline = [];
-        window.console.dir(export_data.floors[0].rooms);
 
-        //удаление внешней комнаты из массива
+        //перенос внешней комнаты из массива rooms в outline
         var y = toDelete.length;
               window.console.dir(toDelete);
         while( y-- ){
 
-          window.console.log(y);
-          window.console.dir(export_data.floors[0].rooms);
-          window.console.log(toDelete[y]);
-
-          window.console.dir(export_data.floors[0].rooms[ toDelete[y] ]);
           export_data.floors[0].outline.push ( export_data.floors[0].rooms.splice( toDelete[y],1 ) );
 
-          ;
-
         }
-//        toDelete.forEach(function (item, index, arr) {
-//           export_data.floors[0].rooms.splice(item,1) ;
-//        });
 
         export_data.floors[0].totals.s_floors = s_floors;
         export_data.floors[0].totals.s_floors_without_openings = s_floors_without_openings;
