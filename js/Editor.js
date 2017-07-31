@@ -56,7 +56,7 @@ function Editor(obj){
         var p = vector3;
         var vector = p.project(camera);
 
-        vector.x = (vector.x + 1) / 2 * window.innerWidth;
+        vector.x =  (vector.x + 1) / 2 * window.innerWidth;
         vector.y = -(vector.y - 1) / 2 * window.innerHeight;
 
         return vector;

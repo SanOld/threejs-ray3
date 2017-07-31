@@ -34,7 +34,6 @@ function RoomSurface( room, walls, vertieces, movePoint, exception ){
       color: this.mainColor
     });
 
-
   this.defineDoorways();
 
 }
@@ -47,12 +46,55 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
     var wallShape = new THREE.Shape();
     wallShape.moveTo( this.source.x, this.source.z );
-    wallShape.lineTo( this.target.x, this.target.z );
+
     this.targetBase = !this.targetBase ? this.getBasePoint( this.target, this.source ) : this.targetBase;
-    wallShape.lineTo( this.targetBase.x, this.targetBase.z );
     this.sourceBase =  !this.sourceBase ? this.getBasePoint( this.source, this.target ) : this.sourceBase;
-    wallShape.lineTo( this.sourceBase.x, this.sourceBase.z );
-    wallShape.lineTo( this.source.x, this.source.z );
+
+    if( this.walls[0].name == 'radial_wall' ){
+
+      var vector_start_nearest = this.source.clone().sub( this.walls[0].center );
+      var startAngleBig = vector_start_nearest.angleTo( this.walls[0].direction );
+      var vector_end_nearest = this.target.clone().sub( this.walls[0].center );
+      var endAngleBig = vector_end_nearest.angleTo( this.walls[0].direction );
+
+      var vector_start_nearest = this.targetBase.clone().sub( this.walls[0].center );
+      var startAngleSmall = vector_start_nearest.angleTo( this.walls[0].direction );
+      var vector_end_nearest = this.sourceBase.clone().sub( this.walls[0].center );
+      var endAngleSmall = vector_end_nearest.angleTo( this.walls[0].direction );
+
+      var radius = this.target.distanceTo( this.walls[0].center );
+
+      this.curve1 = new THREE.EllipseCurve(
+                                            this.walls[0].center.x,  this.walls[0].center.z, // ax, aY
+                                            radius, radius,            // xRadius, yRadius
+                                            this.walls[0].location ? -startAngleBig : startAngleBig, this.walls[0].location ? -endAngleBig : endAngleBig, // aStartAngle, aEndAngle
+                                            !this.walls[0].location ? true : false,// aClockwise
+                                            this.walls[0].cross_vector.y < 0 ? this.walls[0].angle : -this.walls[0].angle// aRotation
+                                          );
+
+      var radius2 = this.targetBase.distanceTo( this.walls[0].center );
+
+      this.curve2 = new THREE.EllipseCurve(
+                                            this.walls[0].center.x,  this.walls[0].center.z,  // ax, aY
+                                            radius2, radius2,             // xRadius, yRadius
+                                            this.walls[0].location ? -startAngleSmall : startAngleSmall, this.walls[0].location ? -endAngleSmall : endAngleSmall, // aStartAngle, aEndAngle
+                                            !this.walls[0].location ? false : true, // aClockwise
+                                            this.walls[0].cross_vector.y < 0 ? this.walls[0].angle : -this.walls[0].angle // aRotation
+                                          );
+
+
+      wallShape.curves.push( this.curve1 );
+      wallShape.curves.push( this.curve2 );
+
+    } else {
+
+      wallShape.lineTo( this.target.x, this.target.z );
+      wallShape.lineTo( this.targetBase.x, this.targetBase.z );
+      wallShape.lineTo( this.sourceBase.x, this.sourceBase.z );
+      wallShape.lineTo( this.source.x, this.source.z );
+    }
+
+
 
     var extrudeSettings = {
       amount: this.height,

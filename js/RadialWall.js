@@ -325,8 +325,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
                                         );
 
 
-
-
 //
 //
         var p1 = this.curve1.getPoints(50);
@@ -394,8 +392,6 @@ RadialWall.prototype = Object.assign( Object.create( Wall.prototype ),{
           wallShape.currentPoint.y = p2[p2.length-1].y;
 
           wallShape.lineTo( this.v2.x,  this.v2.z );
-
-
 
 
 
