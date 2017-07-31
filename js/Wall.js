@@ -663,6 +663,9 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
   },
 
   update: function( walls ){
+
+
+
       var self = this;
       this.walls = walls || this.walls;
 
@@ -680,7 +683,7 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
       var new_geometry = this.buildGeometry();
       this.setDefaultPosition();
-      if(new_geometry){
+      if( new_geometry ){
         this.geometry = new_geometry;
         this.geometry.verticesNeedUpdate = true;
         this.visible = true;
@@ -691,6 +694,8 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       }
 
       this.setDefaultNode();
+
+      if( !$Editor.wallsNeedDeepUpdate ) return;
 
       if( this.mover ){
         this.mover.wall = this;
@@ -706,8 +711,6 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
 
       self.updateDimensions();
-
-
 
   },
   remove: function( object ){

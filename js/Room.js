@@ -105,8 +105,8 @@ Room.prototype = Object.assign( {}, {
       if( wall && wall.name == 'radial_wall' ){
 
         var points = [];
-        var points1 = wall.curve1.getPoints( 10 );
-        var points2 = wall.curve2.getPoints( 10 );
+        var points1 = wall.curve1.getPoints( 50 );
+        var points2 = wall.curve2.getPoints( 50 );
 
         var source = new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z );
         var target = new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z );

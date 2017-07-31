@@ -1998,12 +1998,19 @@ function initWallCreator(obj){
     if( wallsNeedUpdate ){
 
       obj.walls.forEach(function( item, i, arr ){
-        item.update( obj.walls );
+        if(item.name == 'radial_wall') item.update( obj.walls );
       });
 
-      obj.calculateRooms();
+      obj.walls.forEach(function( item, i, arr ){
+        if(item.name != 'radial_wall') item.update( obj.walls );
+      });
+
+
+      if( $Editor.roomsNeedUpdate ) obj.calculateRooms();
 
     }
+
+
 
   };
   obj.updateWallsNodes = function(){
@@ -2062,6 +2069,7 @@ function initWallCreator(obj){
     if ( isRadial ){
 
       var wall = new RadialWall( vertices, parameters );
+
 
     } else {
 

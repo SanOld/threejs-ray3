@@ -273,6 +273,9 @@ function WallMover( wall ){
     self.updateNeighbors();
     self.neighborsNeedUpdate = false;
 
+    $Editor.roomsNeedUpdate = false;
+    $Editor.wallsNeedDeepUpdate = false;
+
 	};
   this.drag =       function ( event, newCoord ) {
 
@@ -522,6 +525,8 @@ function WallMover( wall ){
 
     if( self.needRemove ) self.wall.remove();
 
+    $Editor.roomsNeedUpdate = true;
+    $Editor.wallsNeedDeepUpdate = true;
     $wallCreator.updateWalls();
 
     //обнуляем значения
