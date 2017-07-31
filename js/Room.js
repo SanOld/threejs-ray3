@@ -155,8 +155,8 @@ Room.prototype = Object.assign( {}, {
 
     arr.forEach(function( item, index ){
       if( index > 0 ){
-        var cond1 = Math.abs( arr[index].x - arr[index-1].x ) < 2;
-        var cond2 = Math.abs( arr[index].y - arr[index-1].y ) < 2;
+        var cond1 = Math.abs( arr[index].x - arr[index-1].x ) < 10;
+        var cond2 = Math.abs( arr[index].y - arr[index-1].y ) < 10;
         if ( cond1 && cond2 ) arr.splice(index-1,1);
       }
     });
