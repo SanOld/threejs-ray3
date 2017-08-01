@@ -23,8 +23,8 @@ function initSelectMode( obj ){
     obj.calculateDoorways();
     obj.showDoorways();
 
-    $Editor.gridVisibleOff();
-    $Editor.hidePropGui();
+    if( $Editor.floor )$Editor.floor.gridOff();
+//    $Editor.hidePropGui();
 
     obj.deactivateSelectControls();
     obj.activateSelectControls();
@@ -45,7 +45,9 @@ function initSelectMode( obj ){
 
     obj.deactivate();
 
-    $Editor.showPropGui();
+    if( $Editor.gridEnabled ) $Editor.floor.gridOn();
+
+//    $Editor.showPropGui();
 
   };
 

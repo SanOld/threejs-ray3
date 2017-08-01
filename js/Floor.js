@@ -34,13 +34,14 @@ function Floor( parameters ){
 
     var result = parent_toJson.call(this);
 
-    this.addHelper(); //восстанавливаем grid
+    if( $Editor.gridEnabled ) this.addHelper(); //восстанавливаем grid
+
 
     return result;
 
   };
 
-  this.addHelper();
+  if( $Editor.gridEnabled ) this.addHelper();
 
 }
 Floor.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
@@ -79,6 +80,17 @@ Floor.prototype = Object.assign( Object.create( THREE.Mesh.prototype ),{
     this.gridHelper.position.z = -10;
     this.gridHelper.rotation.x = -Math.PI / 2;
     this.add( this.gridHelper );
+  },
+  gridOn: function(){
+    if( this.gridHelper ){
+      this.gridHelper.material.visible  = true;
+    } else {
+      this.addHelper();
+    }
+
+  },
+  gridOff: function(){
+    this.gridHelper.material.visible  = false;
   }
 
 });

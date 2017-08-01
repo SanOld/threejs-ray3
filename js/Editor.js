@@ -87,6 +87,8 @@ function Editor(obj){
   obj.roomsNeedUpdate = true;
   obj.wallsNeedDeepUpdate = true;
 
+  obj.gridEnabled = true;
+
 
 //  obj.wallCreationModes = [ 'center', 'inner', 'outer' ];
   obj.wallActions = [ 'notChangable', 'installation', 'deinstallation' ];
@@ -183,6 +185,7 @@ function Editor(obj){
           toggleMode('2D');
 
           $projection.toggleModeIn2D( 'creation' );
+          $Editor.gridVisibleOn();
 
           setTimeout(function(){
             obj.cameraLookAtCenterWalls();
@@ -489,6 +492,7 @@ function Editor(obj){
 
     if( obj.floor.gridHelper ){
       obj.floor.gridHelper.material.visible  = ! obj.floor.gridHelper.material.visible;
+      obj.gridEnabled = ! obj.gridEnabled;
     } else {
       obj.floor.addHelper();
     }
@@ -497,12 +501,14 @@ function Editor(obj){
   };
   obj.gridVisibleOn = function(){
     if( obj.floor.gridHelper ){
-      obj.floor.gridHelper.material.visible  = true;
+      obj.floor.gridOn();
+      obj.gridEnabled = true;
     }
   };
   obj.gridVisibleOff = function(){
     if( obj.floor.gridHelper ){
-      obj.floor.gridHelper.material.visible  = false;
+      obj.floor.gridOff();
+      obj.gridEnabled = false;
     }
   };
   obj.setFloorTexture = function(filename) {
@@ -1945,9 +1951,6 @@ function initWallCreator(obj){
 
     if( ! obj.pointerHelper ) pointerHelperAdd();
 
-    $Editor.gridVisibleOn();
-
-
     obj.magnitVerticiesCreate();
 
     document.addEventListener( 'mousedown', onDocumentMouseDownWallCreator, false );
@@ -2828,8 +2831,6 @@ function initWallEditor( obj ){
     obj.activateDoorway();
     obj.activateControlPoint();
     obj.activateWallDimensions();
-
-    $Editor.gridVisibleOn();
 
     obj.deactivateSelectControls();
     obj.activateSelectControls();
