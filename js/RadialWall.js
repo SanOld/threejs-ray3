@@ -37,6 +37,9 @@ function RadialWall( vertices, parameters ){
 
     controls.enabled = false;
 
+    $Editor.roomsNeedUpdate = false;
+    $Editor.wallsNeedDeepUpdate = false;
+
 	};
   this.drag =       function ( event ) {
 
@@ -91,8 +94,13 @@ function RadialWall( vertices, parameters ){
 	};
   this.dragend =    function ( event ) {
 
+    $Editor.roomsNeedUpdate = true;
+    $Editor.wallsNeedDeepUpdate = true;
+    
     $wallCreator.updateWalls();
     controls.enabled = true;
+
+
 
   };
   this.hoveron =    function ( event ) {
