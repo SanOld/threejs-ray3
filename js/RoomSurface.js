@@ -147,7 +147,21 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
 
   getLength: function(){
 
-    return this.source.distanceTo( this.target );
+    if( this.walls[0].name == 'radial_wall' ){
+
+      var vec1 = this.source.clone().sub( this.walls[0].center );
+      var vec2 = this.target.clone().sub( this.walls[0].center );
+      var alpha = vec1.angleTo( vec2 );
+      var dist = this.source.distanceTo( this.walls[0].center );
+
+      return $Editor.Math.arcL( dist, alpha );
+
+    } else {
+
+      return this.source.distanceTo( this.target );
+
+    }
+
 
   },
   getHeight: function(){

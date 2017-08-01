@@ -16,6 +16,20 @@ function Editor(obj){
 
     },
 
+    /** arcL - Длина дуги
+     * @param {float} R
+     * @param {float} alpha
+     * @returns {float} Длина дуги
+     */
+    arcL: function( R, alpha ){
+
+      var R = R || 0;
+      var alpha = alpha || 0;
+
+      return R * alpha;
+
+    },
+
     chordAlpha: function( L, R ){
 
       var L = L || 0;
@@ -3330,8 +3344,6 @@ function initWallEditor( obj ){
 
           window.console.log('room: ' + room.area );
 
-
-
             export_data.floors[0].rooms[ room_index ] =
             {
               "furniture": [],
@@ -3420,14 +3432,14 @@ function initWallEditor( obj ){
 
             }
 
-            if( room._type != 'freeRoom'){
+            if( room._type != 'freeRoom' && ! room.external ){
 
-                s_floors  = +( room.area * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь полов
-                s_floors_without_openings += +( room.getAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ); //Чистая площадь полов за вычетом отверстий
-                s_inner_walls  += +(( room.getSurfacesArea() * area_unit.c ).toFixed( area_accuracy_measurements )); //Площадь внутренних стен
-                s_inner_walls_without_openings += +( room.getSurfacesAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь внутренних стен без проемов
+              s_floors  += +( room.area * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь полов
+              s_floors_without_openings += +( room.getAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ); //Чистая площадь полов за вычетом отверстий
+              s_inner_walls  += +(( room.getSurfacesArea() * area_unit.c ).toFixed( area_accuracy_measurements )); //Площадь внутренних стен
+              s_inner_walls_without_openings += +( room.getSurfacesAreaWithoutOpenings() * area_unit.c ).toFixed( area_accuracy_measurements ); //Площадь внутренних стен без проемов
 
-              }
+            }
 
 
           if( room.external ){
