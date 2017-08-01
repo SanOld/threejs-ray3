@@ -102,14 +102,14 @@ Room.prototype = Object.assign( {}, {
 //      if( ! countur.length == 0 && ! nodes[item.source.id] )debugger;
       var wall = scene.getObjectByProperty('uuid', item.wall_uuid);
 
+      var source = new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z );
+      var target = new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z );
+
       if( wall && wall.name == 'radial_wall' ){
 
         var points = [];
         var points1 = wall.curve1.getPoints( 50 );
         var points2 = wall.curve2.getPoints( 50 );
-
-        var source = new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z );
-        var target = new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z );
 
         var p1 = Math.min( points1[0].distanceToSquared ( source ), points1[0].distanceToSquared ( target ),
                            points1[points1.length-1].distanceToSquared ( source ), points1[points1.length-1].distanceToSquared ( target ));
@@ -119,34 +119,31 @@ Room.prototype = Object.assign( {}, {
         p1 < p2 ? points = points1 : points = points2;
 
 
-
-        if( countur.length > 0 && Math.floor( Math.min( p1, p2 ) ) == Math.floor( points1[points1.length-1].distanceToSquared ( countur[countur.length-1] ) ) ){
+        if( p1 < p2 && countur.length > 0 && Math.floor( Math.min( p1, p2 ) ) == Math.floor( points1[points1.length-1].distanceToSquared ( countur[countur.length-1] ) ) ){
           points.reverse();
         }
-        if( countur.length > 0 &&  Math.floor( Math.min( p1, p2 ) ) == Math.floor( points2[points2.length-1].distanceToSquared ( countur[countur.length-1] ) ) ){
+        if( p1 > p2 && countur.length > 0 &&  Math.floor( Math.min( p1, p2 ) ) == Math.floor( points2[points2.length-1].distanceToSquared ( countur[countur.length-1] ) ) ){
           points.reverse();
         }
 
         countur = countur.concat (  points );
 
+      }
+      
+
+      if( countur.length == 0 ){
+        countur.push( source );
+        countur.push( target );
+      } else if(countur[countur.length-1].x == target.x && countur[countur.length-1].y == target.y && source ){
+        countur.push( source );
       } else {
-
-        if( countur.length == 0 ){
-          countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
-          countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
-        } else if(countur[countur.length-1].x == nodes[item.target.id].position.x && countur[countur.length-1].y == nodes[item.target.id].position.z && nodes[item.source.id] ){
-          countur.push( new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z ) );
-        } else {
-          countur.push( new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z ) );
-        }
-
+        countur.push( target );
       }
 
     });
 
-//    countur.length = countur.length - 1;
-
     return this.smooth(countur);
+//    return countur;
 
   },
   smooth: function( arr ){
