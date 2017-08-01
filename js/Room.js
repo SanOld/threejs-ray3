@@ -105,6 +105,10 @@ Room.prototype = Object.assign( {}, {
       var source = new THREE.Vector2( nodes[item.source.id].position.x, nodes[item.source.id].position.z );
       var target = new THREE.Vector2( nodes[item.target.id].position.x, nodes[item.target.id].position.z );
 
+      if( countur.length == 0 ){
+        countur.push( source );
+      }
+
       if( wall && wall.name == 'radial_wall' ){
 
         var points = [];
@@ -121,28 +125,38 @@ Room.prototype = Object.assign( {}, {
 
         if( p1 < p2 && countur.length > 0 && Math.floor( Math.min( p1, p2 ) ) == Math.floor( points1[points1.length-1].distanceToSquared ( countur[countur.length-1] ) ) ){
           points.reverse();
+          window.console.log(1);
         }
         if( p1 > p2 && countur.length > 0 &&  Math.floor( Math.min( p1, p2 ) ) == Math.floor( points2[points2.length-1].distanceToSquared ( countur[countur.length-1] ) ) ){
           points.reverse();
+          window.console.log(2);
+        }
+
+        if(countur[countur.length-1].x == target.x && countur[countur.length-1].y == target.y && source ){
+          var added = source ;
+        } else {
+          var added = target ;
         }
 
         countur = countur.concat (  points );
+        countur.push( added );
+
+      } else{
+
+         if(countur[countur.length-1].x == target.x && countur[countur.length-1].y == target.y && source ){
+          countur.push( source );
+        } else {
+          countur.push( target );
+        }
 
       }
-      
 
-      if( countur.length == 0 ){
-        countur.push( source );
-        countur.push( target );
-      } else if(countur[countur.length-1].x == target.x && countur[countur.length-1].y == target.y && source ){
-        countur.push( source );
-      } else {
-        countur.push( target );
-      }
 
     });
 
-    return this.smooth(countur);
+    window.console.dir( countur );
+
+    return this.smooth( countur );
 //    return countur;
 
   },
@@ -557,10 +571,7 @@ Room.prototype = Object.assign( {}, {
 var geometry = new THREE.Geometry();
     self.countur.forEach(function(item){
 
-
       geometry.vertices.push( new THREE.Vector3( item.x, 0 , item.y ) );
-
-
 
     });
 
