@@ -72,7 +72,8 @@ RoomSurface.prototype = Object.assign( Object.create( RoomObject.prototype ),{
                                             this.walls[0].cross_vector.y < 0 ? this.walls[0].angle : -this.walls[0].angle// aRotation
                                           );
 
-      var radius2 = this.targetBase.distanceTo( this.walls[0].center );
+      var distance = this.sourceBase.distanceTo( this.walls[0].center );
+      var radius2 = radius < distance ?  radius + $Editor.default_params.RoomSurface.width : radius2 = radius - $Editor.default_params.RoomSurface.width;
 
       this.curve2 = new THREE.EllipseCurve(
                                             this.walls[0].center.x,  this.walls[0].center.z,  // ax, aY
