@@ -3097,8 +3097,12 @@ function initWallEditor( obj ){
               wall_action: {}
             };
 
-            obj.selected.name == 'radial_wall' ? params.radius = {val: (obj.getSelectedPropertyByName('radius')* current_unit.c ).toFixed( accuracy_measurements ), label: 'Радиус'} : '';
-            obj.selected.name == 'radial_wall' ? params.radius_ed_izm = {label: current_unit.short_name} : '';
+            if( obj.selected.name == 'radial_wall' ){
+
+              params.radius = {val: (obj.getSelectedPropertyByName('radius') * current_unit.c ).toFixed( accuracy_measurements ), label: 'Радиус'};
+              params.radius_ed_izm = {label: current_unit.short_name};
+
+            }
 
             $projection.showObjParams( params );
 
