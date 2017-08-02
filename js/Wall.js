@@ -1358,37 +1358,43 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
       var floorScaleX = 1;
       var floorScaleY = 1;
       var floorScaleZ = 1;
+      var koef = 1;
 
-//      if (self.v1.x == self.v2.x ){
-//
-//        floorScaleY = val / self.axisLength;
-//
-//      } else if ( self.v1.z == self.v2.z ){
-//
-//        floorScaleX = val / self.axisLength;
-//
-//      } else if ( self.v1.x != self.v2.x  && self.v1.z != self.v2.z ){
-//
-//        floorScaleX = floorScaleY = val / self.axisLength;
-//
-//      }
-
-      floorScaleX = floorScaleY = val / self.axisLength;
+      floorScaleX = floorScaleY = koef = val / self.axisLength;
 
       $Editor.floor.setScale( floorScaleX, floorScaleY, floorScaleZ );
 
 
-      self.dimensions.forEach(function( item ){
+//      self.dimensions.forEach(function( item ){
+//
+//        if(item.dim_type == 'center'){
+//          self.changeDim({target: item, value: val, isScale: true});
+//          return;
+//        }
+//
+//      });
 
-        if(item.dim_type == 'center'){
-          self.changeDim({target: item, value: val, isScale: true});
-          return;
-        }
+      self.hideMenu();
+//      self.remove();
+
+
+      self.walls.forEach(function( item, i ){
+
+        item.v1.multiply ( new THREE.Vector3(koef, 1, koef) );
+        item.v2.multiply ( new THREE.Vector3(koef, 1, koef) );
+
+//        if( item.name =='' ){
+//          item.radius *= koef;
+//        }
+
+//        item.doors.forEach(function( door ){
+//          door.offset *= koef;
+//        });
 
       });
 
-      self.hideMenu();
-      self.remove();
+      $wallCreator.updateWalls();
+      $wallCreator.updateWalls();
 
     });
 

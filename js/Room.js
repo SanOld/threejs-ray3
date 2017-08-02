@@ -154,7 +154,7 @@ Room.prototype = Object.assign( {}, {
 
     });
 
-    window.console.dir( countur );
+//    window.console.dir( countur );
 
     return this.smooth( countur );
 //    return countur;
