@@ -1,98 +1,97 @@
 "use strict";
 // MAIN
 
-	var parentURL = '*';
-  var serverData = null; //данные для инициализации
+var parentURL = '*';
+var serverData = null; //данные для инициализации
 
-	window.onbeforeunload = function() {
-		//console.log('unload widget');
-		post_cancel();
-	};
+window.onbeforeunload = function () {
+    //console.log('unload widget');
+    post_cancel();
+};
 
-	window.onpopstate = function(event) {
-		//alert("location: " + document.location + ", state: " + JSON.stringify(event.state));
-		post_cancel();
-	};
+window.onpopstate = function (event) {
+    //alert("location: " + document.location + ", state: " + JSON.stringify(event.state));
+    post_cancel();
+};
 
-  $(function () {
+$(function () {
 
-      $(document).keypress(function(e) {
-          if (e.keyCode == 119) {
-              post_ok();
-          }
-          if (e.keyCode == 27) {
-              post_cancel();
-          }
-      });
+    $(document).keypress(function (e) {
+        if (e.keyCode == 119) {
+            post_ok();
+        }
+        if (e.keyCode == 27) {
+            post_cancel();
+        }
+    });
 
-      $(window).on("message onmessage", listener);
+    $(window).on("message onmessage", listener);
 
-      parent.window.postMessage({message: {cmd: 'ready', data: {} }}, parentURL);
+    parent.window.postMessage({message: {cmd: 'ready', data: {}}}, parentURL);
 
-      function listener(event) {
+    function listener(event) {
         var mess = event.originalEvent.data.message;
 
-        if ( mess && mess.cmd == 'put_data' ) {
-          parentURL = event.originalEvent.origin;
-          serverData = mess.data || {};
+        if (mess && mess.cmd == 'put_data') {
+            parentURL = event.originalEvent.origin;
+            serverData = mess.data || {};
 
-          init();
-          animate();
-        } else if( mess && mess.cmd == 'selectAllDoors' ){
+            init();
+            animate();
+        } else if (mess && mess.cmd == 'selectAllDoors') {
 
-          if( $selectMode.enabled )
-          $selectMode.selectAllDoors();
+            if ($selectMode.enabled)
+                $selectMode.selectAllDoors();
 
-        } else if( mess && mess.cmd == 'selectAllWindows' ){
+        } else if (mess && mess.cmd == 'selectAllWindows') {
 
-          if( $selectMode.enabled )
-          $selectMode.selectAllWindows();
+            if ($selectMode.enabled)
+                $selectMode.selectAllWindows();
 
-        } else if( mess && mess.cmd == 'selectAllFloors' ){
+        } else if (mess && mess.cmd == 'selectAllFloors') {
 
-          if( $selectMode.enabled )
-          $selectMode.selectAllFloors();
+            if ($selectMode.enabled)
+                $selectMode.selectAllFloors();
 
-        } else if( mess && mess.cmd == 'selectAllOuterSurfaces' ){
+        } else if (mess && mess.cmd == 'selectAllOuterSurfaces') {
 
-          if( $selectMode.enabled )
-          $selectMode.selectAllOuterSurfaces();
+            if ($selectMode.enabled)
+                $selectMode.selectAllOuterSurfaces();
 
-        } else if( mess && mess.cmd == 'selectAllInnerSurfaces' ){
+        } else if (mess && mess.cmd == 'selectAllInnerSurfaces') {
 
-          if( $selectMode.enabled )
-          $selectMode.selectAllInnerSurfaces();
+            if ($selectMode.enabled)
+                $selectMode.selectAllInnerSurfaces();
 
         }
 
-      }
+    }
 
-  });
+});
 
-	// на "OK" выходной джсон передается в заданное место (в тестовом варианте - на страницу документа)
-  function post_ok(data) {
-  if (data == undefined)
-  {
-    $wallEditor.on();
-    $wallEditor.getJSON(post_ok) ;
-    $wallEditor.off();
-  }
-  else
-  {
+// на "OK" выходной джсон передается в заданное место (в тестовом варианте - на страницу документа)
+function post_ok(data) {
+    if (data == undefined)
+    {
+        $wallEditor.on();
+        $wallEditor.getJSON(post_ok);
+        $wallEditor.off();
+    } else
+    {
+        console.log(parentURL);
+        if (parentURL != '*')
+            parent.window.postMessage({message: {cmd: 'put_data', data: JSON.parse(data)}}, parentURL);
+        else {
+            console.log('JSON:');
+            console.log(data);
+        }
+    }
+}
+
+function post_cancel() {
     console.log(parentURL);
-    if (parentURL != '*')
-      parent.window.postMessage({message: {cmd: 'put_data', data: JSON.parse(data) }}, parentURL);
-    else {
-      console.log('JSON:');
-      console.log(data);
-    }
-  }
-  }
-
-  function post_cancel() {
-		console.log(parentURL);
-        parent.window.postMessage({message: {cmd: 'cancel'}}, parentURL);
-    }
+    parent.window.postMessage({message: {cmd: 'cancel'}}, parentURL);
+}
 
 
 
@@ -110,23 +109,25 @@ var offset = new THREE.Vector3();
 
 function initMain()
 {
- 	// SCENE
-	scene = new THREE.Scene();
-	// CAMERA
-	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 1, FAR = 1000000;
-	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-	scene.add(camera) ;
-	camera.position.set(25000,10000,25000);
-	camera.lookAt(scene.position);
-	// RENDERER
-	if ( Detector.webgl )
-		renderer = new THREE.WebGLRenderer( {antialias:true} );
-	else
-		renderer = new THREE.CanvasRenderer();
+    debugger
+    // SCENE
+    scene = new THREE.Scene();
+    // CAMERA
+    var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
+    var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 1, FAR = 1000000;
+    camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+    scene.add(camera);
+    camera.position.set(25000, 10000, 25000);
+    camera.lookAt(scene.position);
+    // RENDERER
+    debugger
+    if (Detector.webgl)
+        renderer = new THREE.WebGLRenderer({antialias: true});
+    else
+        renderer = new THREE.CanvasRenderer();
 
-	renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-  maxAnisotropy = renderer.getMaxAnisotropy();
+    renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+    maxAnisotropy = renderer.getMaxAnisotropy();
 //  renderer.shadowMapType = THREE.PCFSoftShadowMap; // options are THREE.BasicShadowMap | THREE.PCFShadowMap | THREE.PCFSoftShadowMap
 
 //  renderer.gammaInput = true;
@@ -135,44 +136,44 @@ function initMain()
 //  renderer.toneMappingExposure = 3;
 
 
-  container = document.createElement( 'div' );
-	document.body.appendChild( container );
-	container.appendChild( renderer.domElement );
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    container.appendChild(renderer.domElement);
 
-  //статистика
+    //статистика
 //  rendererStats	= new THREEx.RendererStats();
 //  rendererStats.domElement.style.position	= 'absolute'
 //  rendererStats.domElement.style.left	= '0px'
 //  rendererStats.domElement.style.bottom	= '0px'
 //  document.body.appendChild( rendererStats.domElement )
 
-	// EVENTS
+    // EVENTS
 //	THREEx.WindowResize(renderer, camera);
 //	THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
-	// CONTROLS
+    // CONTROLS
 //	controls = new THREE.OrbitControls( camera, renderer.domElement );
-	// STATS
+    // STATS
 //	stats = new Stats();
 //	stats.domElement.style.position = 'absolute';
 //	stats.domElement.style.bottom = '0px';
 //	stats.domElement.style.zIndex = 100;
 //	container.appendChild( stats.domElement );
-	// LIGHT
+    // LIGHT
 
 
 
-	// SKYBOX/FOG
-	var skyBoxGeometry = new THREE.BoxGeometry( 1000000, 1000000, 1000000 );
+    // SKYBOX/FOG
+    var skyBoxGeometry = new THREE.BoxGeometry(1000000, 1000000, 1000000);
 //	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.BackSide } );
-  var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 'white', side: THREE.DoubleSide } );
-	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
-  skyBox.name = "skyBox";
-	scene.add(skyBox);
+    var skyBoxMaterial = new THREE.MeshBasicMaterial({color: 'white', side: THREE.DoubleSide});
+    var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
+    skyBox.name = "skyBox";
+    scene.add(skyBox);
 
-    controls = new THREE.OrbitControls( camera, renderer.domElement );
-	//  controls.enabled = false;
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    //  controls.enabled = false;
 
-	window.addEventListener( 'resize', onWindowResize, false );
+    window.addEventListener('resize', onWindowResize, false);
 
 }
 
@@ -180,7 +181,7 @@ function initMain()
 function init()
 {
 
-	initMain();
+    initMain();
 
 //	////////////
 //	// CUSTOM //
@@ -195,16 +196,16 @@ function init()
 
 //setTimeout(addCameraRay,1000,scene);
 //$arcWall.add( scene, wall );
-$Editor.on();
+    $Editor.on();
 
 
 }
 
 function animate()
 {
-  requestAnimationFrame( animate );
-  update();
-	render();
+    requestAnimationFrame(animate);
+    update();
+    render();
 }
 
 function update()
@@ -215,17 +216,18 @@ function update()
 
 function render()
 {
-	renderer.render( scene, camera );
+    renderer.render(scene, camera);
 }
 
-function onDocumentMouseWheel( event )
+function onDocumentMouseWheel(event)
 {
 //  camera.fov += event.deltaY * 0.05;
 //  camera.updateProjectionMatrix();
 }
-function onWindowResize( event )
+function onWindowResize(event)
 {
-  camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-	renderer.setSize( window.innerWidth, window.innerHeight );
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
 }
+

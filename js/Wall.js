@@ -183,21 +183,21 @@ Wall.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
   constructor: Wall,
 
-  buildGeometry: function(){
-    var wallShape = new THREE.Shape();
+  buildGeometry: function () {
+        var wallShape = new THREE.Shape();
 
-				wallShape.moveTo( this.v1.x,  this.v1.z );
-				wallShape.lineTo( this.v11.x, this.v11.z );
-				wallShape.lineTo( this.v21.x, this.v21.z );
-        wallShape.lineTo( this.v2.x,  this.v2.z );
-				wallShape.lineTo( this.v22.x, this.v22.z );
-        wallShape.lineTo( this.v12.x, this.v12.z );
-        wallShape.lineTo( this.v1.x,  this.v1.z );
+        wallShape.moveTo(this.v1.x, this.v1.z);
+        wallShape.lineTo(this.v11.x, this.v11.z);
+        wallShape.lineTo(this.v21.x, this.v21.z);
+        wallShape.lineTo(this.v2.x, this.v2.z);
+        wallShape.lineTo(this.v22.x, this.v22.z);
+        wallShape.lineTo(this.v12.x, this.v12.z);
+        wallShape.lineTo(this.v1.x, this.v1.z);
 
-    var extrudeSettings = {
-      amount: this.height,
-      bevelEnabled: false
-    };
+        var extrudeSettings = {
+            amount: this.height,
+            bevelEnabled: false
+        };
     try{
 
 //      var shapePoints = wallShape.extractPoints();

@@ -204,21 +204,21 @@ function Editor(obj){
     obj.localSavingOff();
   };
 
-  obj.addPropGui = function(){
+    obj.addPropGui = function () {
 
-    var gui = new dat.GUI();
-				gui.add( obj.default_params, 'opacity', 0, 1 ).onChange( function () {
+        var gui = new dat.GUI();
+        gui.add(obj.default_params, 'opacity', 0, 1).onChange(function () {
 
-          acsWallMaterial2.opacity = obj.default_params.opacity;
+            acsWallMaterial2.opacity = obj.default_params.opacity;
 
-					projectionWallMaterial_black.opacity = obj.default_params.opacity;
-          projectionWallMaterial_green.opacity = obj.default_params.opacity;
-          projectionWallMaterial_red.opacity = obj.default_params.opacity;
+            projectionWallMaterial_black.opacity = obj.default_params.opacity;
+            projectionWallMaterial_green.opacity = obj.default_params.opacity;
+            projectionWallMaterial_red.opacity = obj.default_params.opacity;
 
-				} );
-				gui.open();
+        });
+        gui.open();
 
-  };
+    };
   obj.showPropGui = function(){
 
     $('div.dg.main.a').show();

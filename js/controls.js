@@ -454,45 +454,45 @@ SelectControls = function ( _objects, _camera, _domElement ){
 
 	}
 
-	function onDocumentMouseDown( event ) {
+    function onDocumentMouseDown( event ) {
 
-		event.preventDefault();
+        event.preventDefault();
     _mouse.x = ( event.clientX / _domElement.width ) * 2 - 1;
-		_mouse.y = - ( event.clientY / _domElement.height ) * 2 + 1;
+        _mouse.y = - ( event.clientY / _domElement.height ) * 2 + 1;
 
-		_raycaster.setFromCamera( _mouse, _camera );
+        _raycaster.setFromCamera( _mouse, _camera );
 
-		var intersects = _raycaster.intersectObjects( _objects );
+        var intersects = _raycaster.intersectObjects( _objects );
 
-		if ( intersects.length > 0 ) {
+        if ( intersects.length > 0 ) {
 
       _selected = intersects[ 0 ].object;
 
-//			_domElement.style.cursor = 'move';
+    //			_domElement.style.cursor = 'move';
       _coord = {x:event.clientX, y:event.clientY};
-			scope.dispatchEvent( { type: 'select', object: _selected, screenCoord: _coord } );
+            scope.dispatchEvent( { type: 'select', object: _selected, screenCoord: _coord } );
 
-		} else {
+        } else {
       scope.dispatchEvent( { type: 'unselect', object: _selected, screenCoord: _coord } );
     }
 
 
-	}
+    }
 
-	function onDocumentMouseUp( event ) {
+    function onDocumentMouseUp( event ) {
 
-		event.preventDefault();
+        event.preventDefault();
 
-		if ( _selected ) {
+        if ( _selected ) {
 
       scope.dispatchEvent( { type: 'end', object: _selected } );
         _selected = null;
 
-		}
+        }
 
-		_domElement.style.cursor = 'auto';
+        _domElement.style.cursor = 'auto';
 
-	}
+    }
 
   function onDocumentContextMenu( event ){
    		event.preventDefault();

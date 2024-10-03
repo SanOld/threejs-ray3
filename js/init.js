@@ -26,7 +26,7 @@ $(document).ready(function() {
   include("js/load.js?"+HASH);
   include("js/lib/ThreeCSG.js");
 
-  include("js/lib/threex-rendererstats/threex.rendererstats.js");
+//  include("js/lib/threex-rendererstats/threex.rendererstats.js");
 
   include("js/controls.js?"+HASH);
   include("js/notes.js?"+HASH);
@@ -48,6 +48,8 @@ $(document).ready(function() {
   include("js/RoomSurface.js?"+HASH);
   include("js/RoomDoorway.js?"+HASH);
   include("js/selectMode.js?"+HASH);
+
+  include("js/start.js?");
 
 
 });
